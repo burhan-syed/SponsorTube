@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import he from 'he'; 
 
 const useVideoCaptions = ({ captionsURL }: { captionsURL: string }) => {
   const getXMLCaptions = async () => {
@@ -17,7 +18,7 @@ const useVideoCaptions = ({ captionsURL }: { captionsURL: string }) => {
         duration: parseFloat(
           (child?.["attributes"] as any)?.["dur"]?.["value"]
         ),
-        text: child?.textContent,
+        text: he.decode(child?.textContent ?? ""),
       };
     });
     return formatted;

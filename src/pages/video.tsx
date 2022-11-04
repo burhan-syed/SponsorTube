@@ -7,12 +7,12 @@ import Header from "../components/ui/Header";
 import VideoInfo from "../components/ui/VideoInfo";
 import VideoEmbed from "../components/ui/VideoEmbed";
 import type { NextPage } from "next";
+import SponsorTranscripts from "../components/SponsorTranscripts";
 
 const Home: NextPage = () => {
   const router = useRouter();
   const { v } = router.query;
   const videoID = (Array.isArray(v) ? v?.[0] : v) ?? "";
-  const sponsors = useSponsorBlock({ videoID });
   const videoInfo = trpc.video.info.useQuery(
     { videoID },
     {
@@ -23,11 +23,9 @@ const Home: NextPage = () => {
     }
   );
 
-  const captions = useVideoCaptions({
-    captionsURL: videoInfo.data?.captions.caption_tracks?.[0]?.base_url ?? "",
-  });
+  
 
-  console.log("videoInfos:", sponsors.data, videoInfo.data, captions.data);
+  console.log("videoInfos:", videoInfo.data);
   return (
     <>
       <Head>
@@ -37,17 +35,6 @@ const Home: NextPage = () => {
       </Head>
       <Header />
       <main className="p-4">
-        {sponsors.isLoading ? (
-          <>{"loading.."}</>
-        ) : sponsors.data ? (
-          <pre className="max-w-screen truncate">
-            {JSON.stringify(sponsors.data)}
-          </pre>
-        ) : sponsors.error ? (
-          "error"
-        ) : (
-          "something went wrong"
-        )}
         {videoInfo.isLoading ? (
           <>{"loading.."}</>
         ) : videoInfo.data ? (
@@ -85,6 +72,9 @@ const Home: NextPage = () => {
         ) : (
           "something went wrong"
         )}
+
+        <SponsorTranscripts videoID={videoID} captionTracks={videoInfo.data?.captions.caption_tracks}/>
+
         {/* <button
           type="button"
           disabled={!videoInfo.data?.captions.caption_tracks?.[0]?.base_url}
