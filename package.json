@@ -7,6 +7,7 @@
     "dev": "next dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
+    "ts-node": "ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\"",
     "start": "next start"
   },
   "dependencies": {
@@ -28,6 +29,7 @@
     "react-intersection-observer": "^9.4.0",
     "sponsorblock-api": "^0.2.2",
     "superjson": "1.9.1",
+    "ts-node": "^10.9.1",
     "uuid": "^9.0.0",
     "youtubei.js": "^2.3.2",
     "zod": "^3.18.0"
@@ -42,6 +44,7 @@
     "@typescript-eslint/parser": "^5.33.0",
     "autoprefixer": "^10.4.7",
     "clsx": "^1.2.1",
+    "csv-parser": "^3.0.0",
     "eslint": "8.22.0",
     "eslint-config-next": "12.3.1",
     "postcss": "^8.4.14",

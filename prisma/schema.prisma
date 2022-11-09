@@ -63,3 +63,46 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+enum SponsorCategories {
+  sponsor
+  intro
+  outro
+  interaction
+  selfpromo
+  music_offtopic
+  preview
+  filler
+  //undocumented types found while backfilling:
+  moreCategories
+  poi_highlight
+  exclusive_access
+  chapter
+}
+
+model SponsorTimes {
+  UUID           String            @id @db.VarChar(38)
+  category       SponsorCategories
+  videoID        String            @db.VarChar(11)
+  startTime      Float            
+  endTime        Float             
+  votes          Int?
+  locked         Boolean?
+  incorrectVotes Int?              
+  userID         String?           @db.VarChar(38)
+  timeSubmitted  DateTime?         
+  views          Int?
+  actionType     String?           
+  service        String?
+  videoDuration  Float?            
+  hidden         Boolean?
+  reputation     Float?            
+  shadowHidden   Boolean?          
+  hashedVideoID  String?           @db.VarChar(64)
+  userAgent      String?           
+  description    String?
+
+  // videoInfo Video? @relation(fields: [videoID], references: [videoID])
+  // transcript SponsorTranscript? 
+  @@index([videoID])
+}
