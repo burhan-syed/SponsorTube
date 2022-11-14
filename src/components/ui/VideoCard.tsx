@@ -1,21 +1,21 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useInView } from "react-intersection-observer";
 import useSponsorBlock from "../../hooks/useSponsorBlock";
 
-import type Video from "youtubei.js/dist/src/parser/classes/Video";
-import Link from "next/link";
+import type {VideoWithThumbnail} from "../../types"
 
 type VideoCardProps = {
-  video: Video;
+  video: VideoWithThumbnail;
 };
 
 const VideoCard = ({ video }: VideoCardProps) => {
   const router = useRouter();
   const { ref, inView } = useInView();
   const sponsors = useSponsorBlock({ videoID: inView ? video.id : "" });
-  const videoThumbnail = video.thumbnails.pop();
+  const videoThumbnail = video.video_thumbnail;////video.thumbnails.pop();
   return (
     <div
       ref={ref}

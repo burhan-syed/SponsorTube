@@ -5,6 +5,8 @@ import VideoCard from "../components/ui/VideoCard";
 import Header from "../components/ui/Header";
 import ChannelCard from "../components/ui/ChannelCard";
 
+import type {VideoWithThumbnail} from "../types"
+
 const SearchPage = () => {
   const router = useRouter();
   const { q } = router.query;
@@ -30,7 +32,10 @@ const SearchPage = () => {
             <ChannelCard key={channel.id} channel={channel} />
           ))}
           {searchResults.data.videos?.map((video, i) => (
-            <VideoCard key={video.id} video={video} />
+            <VideoCard
+              key={video.id}
+              video={video as VideoWithThumbnail}
+            />
           ))}
         </div>
       ) : (
