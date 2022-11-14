@@ -2665,10 +2665,10 @@ yocto-queue@^0.1.0:
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
 
-youtubei.js@^2.3.2:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/youtubei.js/-/youtubei.js-2.3.2.tgz#9328b5eb53bce6b17a31afe5a9b579c2743ca15e"
-  integrity sha512-RVxpOXXg5YSI0rO31MLGWRiB9XeLkOxyZ3hLee12jvExPQmtOhYYnQwiXfT6KzfHi6juC0V1vQjK/3/H+bcaBQ==
+youtubei.js@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/youtubei.js/-/youtubei.js-2.4.1.tgz#ec62bdc72e7f18f4a8f419e37e0cedcc22593a88"
+  integrity sha512-hBri5LVlVncWMKMt2jUv+MB8Kqsq51NShnVl0NZRvM8TqgJCVQi6S76IPqRMAIbYkrSV3tLdf6R+tjpMja0bhw==
   dependencies:
     "@protobuf-ts/runtime" "^2.7.0"
     jintr "^0.3.1"
