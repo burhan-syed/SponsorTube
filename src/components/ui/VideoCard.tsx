@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { useInView } from "react-intersection-observer";
 import useSponsorBlock from "../../hooks/useSponsorBlock";
 
-import type {VideoWithThumbnail} from "../../types"
+import type { VideoWithThumbnail } from "../../types";
 
 type VideoCardProps = {
   video: VideoWithThumbnail;
@@ -15,7 +15,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
   const router = useRouter();
   const { ref, inView } = useInView();
   const sponsors = useSponsorBlock({ videoID: inView ? video.id : "" });
-  const videoThumbnail = video.video_thumbnail;////video.thumbnails.pop();
+  const videoThumbnail = video?.video_thumbnail ?? video.thumbnails?.[0];
   return (
     <div
       ref={ref}
@@ -48,22 +48,24 @@ const VideoCard = ({ video }: VideoCardProps) => {
             <span>{video.published?.text}</span>
           </span>
         </div>
-        <Link href={`/channel/${video.author.id}`}>
-          <a className="flex">
-            <div className="h-6 w-6 flex-none overflow-hidden rounded-full">
-              {video.author.thumbnails?.[0]?.url && (
-                <Image
-                  src={video.author.thumbnails?.[0]?.url}
-                  alt=""
-                  width={video.author.thumbnails?.[0]?.width}
-                  height={video.author.thumbnails?.[0]?.height}
-                  unoptimized={true}
-                />
-              )}
-            </div>
-            <span>{video.author.name}</span>
-          </a>
-        </Link>
+        {video.author.id && video.author.id !== "N/A" && (
+          <Link href={`/channel/${video.author.id}`}>
+            <a className="flex">
+              <div className="h-6 w-6 flex-none overflow-hidden rounded-full">
+                {video.author.thumbnails?.[0]?.url && (
+                  <Image
+                    src={video.author.thumbnails?.[0]?.url}
+                    alt=""
+                    width={video.author.thumbnails?.[0]?.width}
+                    height={video.author.thumbnails?.[0]?.height}
+                    unoptimized={true}
+                  />
+                )}
+              </div>
+              <span>{video.author.name}</span>
+            </a>
+          </Link>
+        )}
 
         <p>{video.snippets?.[0]?.text?.text}</p>
         <div className="w-full rounded-full bg-yellow-100">

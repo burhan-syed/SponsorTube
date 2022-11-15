@@ -11,3 +11,9 @@ export const ytSearchQuery = async ({ query }: { query: string }) => {
   const details = await yt.search(query);
   return details;
 };
+
+export const getChannel = async ({channelID}: {channelID: string} ) => {
+  const yt = await Innertube.create(); 
+  const channel = await yt.getChannel(channelID);
+  return  channel;
+}

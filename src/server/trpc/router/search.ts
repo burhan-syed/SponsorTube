@@ -3,7 +3,6 @@ import { z } from "zod";
 import { ytSearchQuery } from "../../../apis/youtube";
 import Channel from "youtubei.js/dist/src/parser/classes/Channel";
 import Video from "youtubei.js/dist/src/parser/classes/Video";
-import superjson from "superjson";
 
 export const searchRouter = router({
   hello: publicProcedure
