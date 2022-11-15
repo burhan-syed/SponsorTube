@@ -54,6 +54,12 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+
+  SponsorTypes        SponsorTypes[]
+  UserSponsorVotes    UserSponsorVotes[]
+  Transcripts         Transcripts[]
+  TranscriptDetails   TranscriptDetails[]
+  UserTranscriptVotes UserTranscriptVotes[]
 }
 
 model VerificationToken {
@@ -84,25 +90,131 @@ model SponsorTimes {
   UUID           String            @id @db.VarChar(38)
   category       SponsorCategories
   videoID        String            @db.VarChar(11)
-  startTime      Float            
-  endTime        Float             
+  startTime      Float
+  endTime        Float
   votes          Int?
   locked         Boolean?
-  incorrectVotes Int?              
+  incorrectVotes Int?
   userID         String?           @db.VarChar(38)
-  timeSubmitted  DateTime?         
+  timeSubmitted  DateTime?
   views          Int?
-  actionType     String?           
+  actionType     String?
   service        String?
-  videoDuration  Float?            
+  videoDuration  Float?
   hidden         Boolean?
-  reputation     Float?            
-  shadowHidden   Boolean?          
+  reputation     Float?
+  shadowHidden   Boolean?
   hashedVideoID  String?           @db.VarChar(64)
-  userAgent      String?           
+  userAgent      String?
   description    String?
 
-  // videoInfo Video? @relation(fields: [videoID], references: [videoID])
-  // transcript SponsorTranscript? 
+  Video      Videos?       @relation(fields: [videoID], references: [id])
+  Transcripts Transcripts[]
+  Sponsors   Sponsors[]
+
   @@index([videoID])
+}
+
+model Channels {
+  id   String  @id
+  name String?
+
+  Videos       Videos[]
+  ChannelStats ChannelStats[] //may be overtime data
+}
+
+model ChannelStats {
+  channelId                           String   @id
+  videosProcessed                     Int      @default(0)
+  processedTo                         DateTime @default(now())
+  processedFrom                       DateTime
+  numberVideosSponsored               Int?
+  percentVideosSponsored              Float?
+  aveSponsorSegmentsPerSponsoredVideo Float?
+  percentSponsorTimePerSponsoredVideo Float?
+
+  Channel Channels @relation(fields: [channelId], references: [id])
+}
+
+model Videos {
+  id        String @id
+  channelId String
+
+  title     String?
+  published DateTime?
+  duration  Float?
+
+  SponsorSegments SponsorTimes[]
+  Channel         Channels       @relation(fields: [channelId], references: [id])
+}
+
+model Transcripts {
+  id          String   @id @default(cuid())
+  segmentUUID String   @db.VarChar(38)
+  text        String   @db.Text
+  created     DateTime @default(now())
+  userId      String?
+
+  CreatedBy           User?                 @relation(fields: [userId], references: [id])
+  SponsorSegment      SponsorTimes          @relation(fields: [segmentUUID], references: [UUID])
+  TranscriptDetails   TranscriptDetails[]
+  UserTranscriptVotes UserTranscriptVotes[]
+}
+
+model UserTranscriptVotes {
+  id           Int    @id @default(autoincrement())
+  userId       String
+  transcriptId String
+  direction    Int    @default(0)
+
+  User      User        @relation(fields: [userId], references: [id])
+  Transcipt Transcripts @relation(fields: [transcriptId], references: [id])
+}
+
+model TranscriptDetails {
+  id           String   @id @default(cuid())
+  userId       String
+  transcriptId String
+  created      DateTime @default(now())
+
+  CreatedBy  User        @relation(fields: [userId], references: [id])
+  Transcript Transcripts @relation(fields: [transcriptId], references: [id])
+  Sponsors   Sponsors[]
+}
+
+model Sponsors {
+  id                  String             @id @default(cuid())
+  transcriptDetailsId String
+  segmentUUID         String
+  brand               String
+  product             String?
+  type                Int?
+  offer               String?
+  locked              Boolean            @default(false)
+
+  Votes               UserSponsorVotes[]
+  TranscriptDetails   TranscriptDetails  @relation(fields: [transcriptDetailsId], references: [id])
+  SponsorSegment      SponsorTimes?      @relation(fields: [segmentUUID], references: [UUID])
+  SponsorType         SponsorTypes?      @relation(fields: [type], references: [id])
+}
+
+model UserSponsorVotes {
+  id        Int    @id @default(autoincrement())
+  userId    String
+  sponsorId String
+  direction Int    @default(0)
+
+  User    User     @relation(fields: [userId], references: [id])
+  Sponsor Sponsors @relation(fields: [sponsorId], references: [id])
+}
+
+model SponsorTypes {
+  id      Int     @id @default(autoincrement())
+  type    String  @unique
+  active  Boolean @default(true)
+  userId  String?
+  pending Boolean @default(false)
+
+  CreatedBy User?      @relation(fields: [userId], references: [id])
+  Sponsors  Sponsors[]
 }
