@@ -1,51 +1,33 @@
-export const getXMLCaptions = async (url: string) => {
-  const data = await fetch(url)
-    .then((response) => response.text())
-    .then((str) => new window.DOMParser().parseFromString(str, "text/xml"));
-  //console.log("captions:", data);
-};
+import { XMLParser } from "fast-xml-parser";
+import he from 'he'; 
 
-export const getTranscriptsInTime = ({
-  transcripts,
-  times,
-}: {
-  transcripts: {
-    start: number;
-    duration: number;
-    text: string | null;
-  }[];
-  times: { startTimeMS: number; endTimeMS: number };
-}) => {
-  const { startTimeMS, endTimeMS } = times;
-  let transcriptStart = 0;
-  let transcriptEnd = 0;
-  const transcript = transcripts.map((line, i) => {
-    if (
-      //capture all possible transcripts in the time period
-      ((transcripts?.[i - 1]?.start ?? 0) +
-        (transcripts?.[i - 1]?.duration ?? 0) >=
-        startTimeMS ||
-        line.start > startTimeMS) &&
-      line.start <= endTimeMS
-    ) {
-      if (transcriptStart === 0) {
-        transcriptStart =
-          (transcripts?.[i - 1]?.start ?? 0) +
-            (transcripts?.[i - 1]?.duration ?? 0) >=
-          startTimeMS
-            ? transcripts?.[i - 1]?.start ?? 0 / 1000
-            : line.start / 1000;
-      }
-      transcriptEnd = (line.start + line.duration) / 1000;
-      return line.text;
-    }
-    return "";
+export const getXMLCaptions = async (
+  url: string
+): Promise<{ text: string; start: number; dur: number }[]> => {
+  const XMLdata = await fetch(url).then((response) => response.text());
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    parseAttributeValue: true,
+    attributeNamePrefix: "",
+    preserveOrder: true,
+    textNodeName: "text",
   });
-  const transcriptsInTime = transcript.filter((l) => l && l?.length > 0)
-  return {
-    transcript: transcriptsInTime.join(" "),
-    runs: transcriptsInTime,
-    transcriptStart,
-    transcriptEnd,
-  };
+  const parsedCaptions = parser.parse(XMLdata);
+  const firstSegment = parsedCaptions?.[1]?.["transcript"]?.[0];
+  //check for unexpected xml format
+  if (
+    !firstSegment?.["text"]?.[0]?.text &&
+    !firstSegment?.[":@"]?.start &&
+    !firstSegment?.[":@"]?.dur
+  ) {
+    throw new Error("Unexpected XML Format. First segment:", firstSegment);
+  }
+  const formattedCaptions = parsedCaptions?.[1]?.["transcript"]?.map(
+    (segment: any) => ({
+      text: he.decode(segment?.["text"]?.[0]?.text ?? ""),
+      ...segment?.[":@"],
+    })
+  );
+  //console.log("formatted:", formattedCaptions?.[0]);
+  return formattedCaptions;
 };

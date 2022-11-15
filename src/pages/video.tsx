@@ -1,8 +1,6 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { trpc } from "../utils/trpc";
-import useSponsorBlock from "../hooks/useSponsorBlock";
-import useVideoCaptions from "../hooks/useVideoCaptions";
 import Header from "../components/ui/Header";
 import VideoInfo from "../components/ui/VideoInfo";
 import VideoEmbed from "../components/ui/VideoEmbed";
@@ -22,6 +20,7 @@ const Home: NextPage = () => {
       staleTime: Infinity,
     }
   );
+  const getCaptions = trpc.video.testMutate.useMutation(); 
 
   
 
@@ -75,7 +74,7 @@ const Home: NextPage = () => {
 
         <SponsorTranscripts videoID={videoID} captionTracks={videoInfo.data?.captions.caption_tracks}/>
 
-        {/* <button
+        <button
           type="button"
           disabled={!videoInfo.data?.captions.caption_tracks?.[0]?.base_url}
           onClick={() =>
@@ -87,7 +86,7 @@ const Home: NextPage = () => {
           }
         >
           get mutations
-        </button> */}
+        </button>
       </main>
     </>
   );

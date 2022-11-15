@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getTranscriptsInTime } from "../server/functions/captions";
+import { getTranscriptsInTime } from "../server/functions/transcripts";
 import type { Segment } from "sponsorblock-api";
 
 const useSponsorTranscripts = ({
@@ -8,7 +8,7 @@ const useSponsorTranscripts = ({
 }: {
   videoCaptions?: {
     start: number;
-    duration: number;
+    dur: number;
     text: string | null;
   }[];
   sponsorSegments?: Segment[];
