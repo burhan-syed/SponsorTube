@@ -4,7 +4,7 @@ import { useCookies } from "react-cookie";
 import { Category } from "sponsorblock-api";
 import { v4 as uuidv4 } from "uuid";
 import { getVideoSegments } from "../apis/sponsorblock";
-
+import { trpc } from "@/utils/trpc";
 const useSponsorBlock = ({
   videoID,
   categories = ["sponsor"],
@@ -25,6 +25,17 @@ const useSponsorBlock = ({
     }
   }, []);
 
+  const savedSegments = trpc.video.segments.useQuery(
+    { videoID: videoID ?? ""},
+    {
+      enabled: !!videoID,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      staleTime: Infinity,
+      cacheTime: Infinity,
+    }
+  );
+
   const segments = useQuery(
     ["sponsorblock", videoID, categories, userID],
     () => getVideoSegments({ userID, videoID, categories }),
@@ -33,11 +44,11 @@ const useSponsorBlock = ({
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
-      cacheTime: Infinity
+      cacheTime: Infinity,
     }
   );
 
-  return segments;
+  return {savedSegments, segments};
 };
 
 export default useSponsorBlock;

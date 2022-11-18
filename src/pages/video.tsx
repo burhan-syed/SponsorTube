@@ -4,8 +4,8 @@ import { trpc } from "../utils/trpc";
 import Header from "../components/ui/Header";
 import VideoInfo from "../components/ui/VideoInfo";
 import VideoEmbed from "../components/ui/VideoEmbed";
+import SponsorTranscripts from "../components/transcripts/SponsorTranscripts";
 import type { NextPage } from "next";
-import SponsorTranscripts from "../components/SponsorTranscripts";
 
 const Home: NextPage = () => {
   const router = useRouter();

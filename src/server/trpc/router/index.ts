@@ -5,12 +5,14 @@ import { authRouter } from "./auth";
 import { videoRouter } from "./video";
 import { searchRouter } from "./search";
 import { channelRouter } from "./channel";
+import { transcriptRouter } from "./transcripts";
 export const appRouter = router({
   example: exampleRouter,
   auth: authRouter,
   video: videoRouter,
   search: searchRouter,
-  channel: channelRouter
+  channel: channelRouter,
+  transcript: transcriptRouter,
 });
 
 // export type definition of API

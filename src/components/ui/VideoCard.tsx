@@ -14,7 +14,7 @@ type VideoCardProps = {
 const VideoCard = ({ video }: VideoCardProps) => {
   const router = useRouter();
   const { ref, inView } = useInView();
-  const sponsors = useSponsorBlock({ videoID: inView ? video.id : "" });
+  const {segments, savedSegments} = useSponsorBlock({ videoID: inView ? video.id : "" });
   const videoThumbnail = video?.video_thumbnail ?? video.thumbnails?.[0];
   return (
     <div
@@ -69,11 +69,16 @@ const VideoCard = ({ video }: VideoCardProps) => {
 
         <p>{video.snippets?.[0]?.text?.text}</p>
         <div className="w-full rounded-full bg-yellow-100">
-          {sponsors.isLoading
-            ? "checking for sponsors.."
-            : sponsors.data
-            ? sponsors.data.length
-            : "something went wrong"}
+          {segments.isLoading
+            ? "checking for segments.."
+            : segments.data
+            ? segments.data.length
+            : "something went wrong"}{"|"}
+          {savedSegments.isLoading
+            ? "checking for saved segments.."
+            : savedSegments.data
+            ? savedSegments.data.length
+            : "something went wrong w/saved segments"}
         </div>
       </div>
     </div>

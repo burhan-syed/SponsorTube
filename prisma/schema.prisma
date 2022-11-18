@@ -55,11 +55,12 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
-  SponsorTypes        SponsorTypes[]
-  UserSponsorVotes    UserSponsorVotes[]
-  Transcripts         Transcripts[]
-  TranscriptDetails   TranscriptDetails[]
-  UserTranscriptVotes UserTranscriptVotes[]
+  SponsorTypes               SponsorTypes[]
+  UserSponsorVotes           UserSponsorVotes[]
+  Transcripts                Transcripts[]
+  TranscriptDetails          TranscriptDetails[]
+  UserTranscriptVotes        UserTranscriptVotes[]
+  UserTranscriptDetailsVotes UserTranscriptDetailsVotes[]
 }
 
 model VerificationToken {
@@ -87,7 +88,7 @@ enum SponsorCategories {
 }
 
 model SponsorTimes {
-  UUID           String            @id @db.VarChar(38)
+  UUID           String            @id
   category       SponsorCategories
   videoID        String            @db.VarChar(11)
   startTime      Float
@@ -108,9 +109,9 @@ model SponsorTimes {
   userAgent      String?
   description    String?
 
-  Video      Videos?       @relation(fields: [videoID], references: [id])
+  Video       Videos?       @relation(fields: [videoID], references: [id])
   Transcripts Transcripts[]
-  Sponsors   Sponsors[]
+  Sponsors    Sponsors[]
 
   @@index([videoID])
 }
@@ -145,16 +146,19 @@ model Videos {
   duration  Float?
 
   SponsorSegments SponsorTimes[]
+  Sponsors        Sponsors[]
   Channel         Channels       @relation(fields: [channelId], references: [id])
 }
 
 model Transcripts {
-  id          String   @id @default(cuid())
-  segmentUUID String   @db.VarChar(38)
-  text        String   @db.Text
-  created     DateTime @default(now())
-  userId      String?
-
+  id                  String                @id @default(cuid())
+  segmentUUID         String                
+  text                String                @db.Text
+  created             DateTime              @default(now())
+  userId              String?
+  score               Int                   @default(0)
+  startTime           Float?
+  endTime             Float?
   CreatedBy           User?                 @relation(fields: [userId], references: [id])
   SponsorSegment      SponsorTimes          @relation(fields: [segmentUUID], references: [UUID])
   TranscriptDetails   TranscriptDetails[]
@@ -176,36 +180,67 @@ model TranscriptDetails {
   userId       String
   transcriptId String
   created      DateTime @default(now())
+  score        Int      @default(0)
 
-  CreatedBy  User        @relation(fields: [userId], references: [id])
-  Transcript Transcripts @relation(fields: [transcriptId], references: [id])
-  Sponsors   Sponsors[]
+  CreatedBy   User                         @relation(fields: [userId], references: [id])
+  Transcript  Transcripts                  @relation(fields: [transcriptId], references: [id])
+  Votes       UserTranscriptDetailsVotes[]
+  Annotations TranscriptAnnotations[]
+
+  @@unique([transcriptId, userId])
+}
+
+model UserTranscriptDetailsVotes {
+  id                  Int    @id @default(autoincrement())
+  userId              String
+  transcriptDetailsId String
+  direction           Int    @default(0)
+
+  User              User              @relation(fields: [userId], references: [id])
+  TranscriptDetails TranscriptDetails @relation(fields: [transcriptDetailsId], references: [id])
+}
+
+enum AnnotationTags {
+  BRAND
+  PRODUCT
+  OFFER
+}
+
+model TranscriptAnnotations {
+  id                  String         @id @default(cuid())
+  start               Int
+  end                 Int
+  text                String
+  tag                 AnnotationTags
+  transcriptDetailsId String?
+
+  TranscriptDetails TranscriptDetails? @relation(fields: [transcriptDetailsId], references: [id])
 }
 
 model Sponsors {
-  id                  String             @id @default(cuid())
-  transcriptDetailsId String
-  segmentUUID         String
-  brand               String
-  product             String?
-  type                Int?
-  offer               String?
-  locked              Boolean            @default(false)
+  id          String  @id @default(cuid())
+  videoId     String
+  segmentUUID String
+  brand       String
+  product     String?
+  type        Int?
+  offer       String?
+  locked      Boolean @default(false)
 
-  Votes               UserSponsorVotes[]
-  TranscriptDetails   TranscriptDetails  @relation(fields: [transcriptDetailsId], references: [id])
-  SponsorSegment      SponsorTimes?      @relation(fields: [segmentUUID], references: [UUID])
-  SponsorType         SponsorTypes?      @relation(fields: [type], references: [id])
+  Votes          UserSponsorVotes[]
+  Video          Videos             @relation(fields: [videoId], references: [id])
+  SponsorSegment SponsorTimes?      @relation(fields: [segmentUUID], references: [UUID])
+  SponsorType    SponsorTypes?      @relation(fields: [type], references: [id])
 }
 
 model UserSponsorVotes {
-  id        Int    @id @default(autoincrement())
-  userId    String
-  sponsorId String
-  direction Int    @default(0)
+  id         Int    @id @default(autoincrement())
+  userId     String
+  sponsorsId String
+  direction  Int    @default(0)
 
-  User    User     @relation(fields: [userId], references: [id])
-  Sponsor Sponsors @relation(fields: [sponsorId], references: [id])
+  User     User     @relation(fields: [userId], references: [id])
+  Sponsors Sponsors @relation(fields: [sponsorsId], references: [id])
 }
 
 model SponsorTypes {

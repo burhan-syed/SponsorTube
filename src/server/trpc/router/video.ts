@@ -4,6 +4,22 @@ import { getXMLCaptions } from "../../functions/captions";
 import { getVideoInfo } from "../../../apis/youtube";
 
 export const videoRouter = router({
+  segments: publicProcedure
+    .input(z.object({ videoID: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const videoSegments = await ctx.prisma.sponsorTimes.findMany({
+        where: { videoID: input.videoID, locked: true },
+        select: {
+          UUID: true,
+          videoID: true,
+          startTime: true,
+          endTime: true,
+          category: true,
+          videoDuration: true,
+        }
+      });
+      return videoSegments;
+    }),
   info: publicProcedure
     .input(z.object({ videoID: z.string() }))
     .query(async ({ input }) => {
