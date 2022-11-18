@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Head from "next/head";
 import Search from "../components/Search";
 import type { NextPage } from "next";
+import Auth from "@/components/Auth";
 
 const Home: NextPage = () => {
   //const hello = trpc.example.hello.useQuery({ text: "from tRPC" });
@@ -45,6 +46,9 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center ">
+        <div className="absolute top-0 right-0">
+          <Auth/>
+        </div>
         <div className="h-11 w-full max-w-6xl px-2 md:w-2/3 md:px-0">
           <Search />
         </div>
