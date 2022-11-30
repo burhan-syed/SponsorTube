@@ -17,7 +17,7 @@ const Header = ({
   return (
     <header className="flex h-12 w-screen items-center">
       <Link href={"/"}>
-        <a>Home</a>
+        Home
       </Link>
       <div className="h-11 w-full max-w-6xl px-2 md:w-2/3 md:px-0">
         <Search initialValue={searchInitialText} />
