@@ -23,6 +23,8 @@ const SegmentTranscript = ({
   });
   const savedTranscriptAnnotations = trpc.transcript.get.useQuery({
     segmentUUID: segment?.UUID,
+  }, {
+    enabled: !!segment.UUID
   });
   return (
     <div>
@@ -46,6 +48,7 @@ const SegmentTranscript = ({
               transcript={{
                 segmentUUID: segment.UUID,
                 text: sponsorSegmentTranscripts.transcript,
+                annotations: savedTranscriptAnnotations.data?.[0]?.TranscriptDetails?.[0]?.Annotations,
                 id: undefined,
               }}
             />
