@@ -163,6 +163,8 @@ model Transcripts {
   SponsorSegment      SponsorTimes          @relation(fields: [segmentUUID], references: [UUID])
   TranscriptDetails   TranscriptDetails[]
   UserTranscriptVotes UserTranscriptVotes[]
+
+  @@unique([segmentUUID, userId])
 }
 
 model UserTranscriptVotes {
@@ -172,7 +174,7 @@ model UserTranscriptVotes {
   direction    Int    @default(0)
 
   User      User        @relation(fields: [userId], references: [id])
-  Transcipt Transcripts @relation(fields: [transcriptId], references: [id])
+  Transcript Transcripts @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
 }
 
 model TranscriptDetails {
@@ -183,7 +185,7 @@ model TranscriptDetails {
   score        Int      @default(0)
 
   CreatedBy   User                         @relation(fields: [userId], references: [id])
-  Transcript  Transcripts                  @relation(fields: [transcriptId], references: [id])
+  Transcript  Transcripts                  @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
   Votes       UserTranscriptDetailsVotes[]
   Annotations TranscriptAnnotations[]
 
@@ -197,7 +199,7 @@ model UserTranscriptDetailsVotes {
   direction           Int    @default(0)
 
   User              User              @relation(fields: [userId], references: [id])
-  TranscriptDetails TranscriptDetails @relation(fields: [transcriptDetailsId], references: [id])
+  TranscriptDetails TranscriptDetails @relation(fields: [transcriptDetailsId], references: [id], onDelete: Cascade)
 }
 
 enum AnnotationTags {
@@ -214,7 +216,7 @@ model TranscriptAnnotations {
   tag                 AnnotationTags
   transcriptDetailsId String?
 
-  TranscriptDetails TranscriptDetails? @relation(fields: [transcriptDetailsId], references: [id])
+  TranscriptDetails TranscriptDetails? @relation(fields: [transcriptDetailsId], references: [id], onDelete: Cascade)
 }
 
 model Sponsors {

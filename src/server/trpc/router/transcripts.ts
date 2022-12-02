@@ -9,8 +9,9 @@ export const transcriptRouter = router({
     .query(async ({ input, ctx }) => {
       const transcripts = await prisma?.transcripts.findMany({
         where: { segmentUUID: input.segmentUUID },
-        orderBy: [ {score: "desc"}, {id: "desc"} ],
+        orderBy: [{ score: "desc" }, { id: "desc" }],
         select: {
+          id: true,
           segmentUUID: true,
           text: true,
           startTime: true,
@@ -20,8 +21,8 @@ export const transcriptRouter = router({
               score: "desc",
             },
             select: {
-              Annotations: true
-            }
+              Annotations: true,
+            },
           },
         },
       });
@@ -30,8 +31,37 @@ export const transcriptRouter = router({
   saveTranscript: protectedProcedure
     .input(z.object({ segmentUUID: z.string(), text: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      await ctx.prisma.transcripts.create({
-        data: {
+      const pTranscript = await ctx.prisma.transcripts.findUnique({
+        where: {
+          segmentUUID_userId: {
+            segmentUUID: input.segmentUUID,
+            userId: ctx.session.user.id,
+          },
+        },
+      });
+      
+      await ctx.prisma.transcripts.upsert({
+        where: {
+          segmentUUID_userId: {
+            segmentUUID: input.segmentUUID,
+            userId: ctx.session.user.id,
+          },
+        },
+        update: {
+          score: 0,
+          text: input.text,
+          TranscriptDetails: {
+            deleteMany: {
+              transcriptId: pTranscript?.id, //annotations will be cascade deleted
+            },
+          },
+          UserTranscriptVotes: {
+            deleteMany: {
+              transcriptId: pTranscript?.id,
+            },
+          },
+        },
+        create: {
           segmentUUID: input.segmentUUID,
           text: input.text,
           userId: ctx.session.user.id,
@@ -56,7 +86,12 @@ export const transcriptRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       //case: fresh annotations, no transcript or transcript details
-      console.log("UUID?", input.segmentUUID, "length?", input.segmentUUID?.length)
+      console.log(
+        "UUID?",
+        input.segmentUUID,
+        "length?",
+        input.segmentUUID?.length
+      );
       if (!input.transcriptId && input.transcript && input.segmentUUID) {
         return await ctx.prisma.transcripts.create({
           data: {

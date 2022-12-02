@@ -1,6 +1,6 @@
 import React from "react";
 import { TextAnnotate } from "react-text-annotate-blend";
-import Selector from "../forms/Selector";
+import Selector from "../ui/common/Selector";
 import { trpc } from "@/utils/trpc";
 import { AnnotationTags } from "@prisma/client";
 import type { TranscriptAnnotations } from "@prisma/client";

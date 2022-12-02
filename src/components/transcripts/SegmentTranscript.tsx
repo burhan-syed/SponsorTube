@@ -7,6 +7,7 @@ import useVideoCaptions from "@/hooks/useVideoCaptions";
 import type { Segment } from "sponsorblock-api";
 import TranscriptEditor from "./TranscriptEditor";
 import TranscriptAnnotator from "./TranscriptAnnotator";
+import TranscriptEditWrapper from "./TranscriptEditWrapper";
 const SegmentTranscript = ({
   segment,
   captionsURL,
@@ -21,11 +22,14 @@ const SegmentTranscript = ({
     videoCaptions: captions.data,
     sponsorSegment: segment,
   });
-  const savedTranscriptAnnotations = trpc.transcript.get.useQuery({
-    segmentUUID: segment?.UUID,
-  }, {
-    enabled: !!segment.UUID
-  });
+  const savedTranscriptAnnotations = trpc.transcript.get.useQuery(
+    {
+      segmentUUID: segment?.UUID,
+    },
+    {
+      enabled: !!segment.UUID,
+    }
+  );
   return (
     <div>
       {savedTranscriptAnnotations.isLoading
@@ -47,9 +51,11 @@ const SegmentTranscript = ({
               key={segment.UUID}
               transcript={{
                 segmentUUID: segment.UUID,
-                text: sponsorSegmentTranscripts.transcript,
-                annotations: savedTranscriptAnnotations.data?.[0]?.TranscriptDetails?.[0]?.Annotations,
-                id: undefined,
+                text: savedTranscriptAnnotations.data?.[0]?.text ?? sponsorSegmentTranscripts.transcript,
+                annotations:
+                  savedTranscriptAnnotations.data?.[0]?.TranscriptDetails?.[0]
+                    ?.Annotations,
+                id: savedTranscriptAnnotations.data?.[0]?.id,
               }}
             />
             <span>
@@ -57,6 +63,11 @@ const SegmentTranscript = ({
               {sponsorSegmentTranscripts.transcriptEnd}
             </span>
           </div>
+          <TranscriptEditWrapper
+            key={segment.UUID}
+            segmentUUID={segment.UUID}
+            transcript={savedTranscriptAnnotations.data?.[0]?.text ?? sponsorSegmentTranscripts.transcript}
+          />
           {/* <TranscriptEditor
             key={segment.UUID}
             transcript={sponsorSegmentTranscripts?.transcript ?? ""}
