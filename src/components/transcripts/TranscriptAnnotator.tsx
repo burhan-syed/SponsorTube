@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { TextAnnotate } from "react-text-annotate-blend";
 import Selector from "../ui/common/Selector";
 import { trpc } from "@/utils/trpc";
@@ -32,6 +32,23 @@ const TranscriptAnnotator = ({
         }))
       : []
   );
+  //keep annotations synced with displayed transcript (ie when transcript is edited)
+  useEffect(() => {
+    if (transcript.annotations) {
+      setAnnotations(
+        transcript.annotations.map((a) => ({
+          start: a.start,
+          end: a.end,
+          text: a.text,
+          tag: a.tag,
+          color: TAGS.get(a.tag),
+        }))
+      );
+    }else{
+      setAnnotations([]);
+    }
+  }, [transcript]);
+
   const [tag, setTag] = React.useState<AnnotationTags>("BRAND");
   const submitAnnotations = trpc.transcript.saveAnnotations.useMutation();
   const handleChange = (annotation: any) => {
@@ -41,6 +58,7 @@ const TranscriptAnnotator = ({
   return (
     <>
       <div>
+        <div>transcript id:{transcript.id}</div>
         <TextAnnotate
           className="font-mono"
           content={transcript.text}

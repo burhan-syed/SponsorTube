@@ -30,6 +30,7 @@ const SegmentTranscript = ({
       enabled: !!segment.UUID,
     }
   );
+  console.log("saved segment transcripts?", savedTranscriptAnnotations.data);
   return (
     <div>
       {savedTranscriptAnnotations.isLoading
@@ -46,18 +47,53 @@ const SegmentTranscript = ({
             {/* <p onMouseUp={() => console.log(window.getSelection()?.toString())}>
               {sponsorSegmentTranscripts?.runs?.join("\n")}
             </p> */}
-
-            <TranscriptAnnotator
+            <div className="bg-green-50 p-4">
+              <span>saved</span>
+              {savedTranscriptAnnotations?.data?.map((savedTranscripts) => (
+                <>
+                  <TranscriptAnnotator
+                    key={savedTranscripts.id}
+                    transcript={{
+                      segmentUUID: segment.UUID,
+                      text: savedTranscripts.text,
+                      annotations:
+                        savedTranscripts?.TranscriptDetails?.[0]?.Annotations,
+                      id: savedTranscripts.id,
+                    }}
+                  />
+                  <TranscriptEditWrapper
+                    segmentUUID={segment.UUID}
+                    transcript={savedTranscripts?.text}
+                  />
+                </>
+              ))}
+            </div>
+            <div className="bg-blue-50 p-4">
+              <span>generated</span>
+              <TranscriptAnnotator
+                transcript={{
+                  segmentUUID: segment.UUID,
+                  text: sponsorSegmentTranscripts.transcript,
+                }}
+              />
+              <TranscriptEditWrapper
+                segmentUUID={segment.UUID}
+                transcript={sponsorSegmentTranscripts.transcript}
+              />
+            </div>
+            {/* <TranscriptAnnotator
               key={segment.UUID}
               transcript={{
                 segmentUUID: segment.UUID,
-                text: savedTranscriptAnnotations.data?.[0]?.text ?? sponsorSegmentTranscripts.transcript,
+                text:
+                  savedTranscriptAnnotations.data?.[0]?.text ??
+                  sponsorSegmentTranscripts.transcript,
                 annotations:
                   savedTranscriptAnnotations.data?.[0]?.TranscriptDetails?.[0]
                     ?.Annotations,
                 id: savedTranscriptAnnotations.data?.[0]?.id,
               }}
-            />
+            /> */}
             <span>
               {sponsorSegmentTranscripts.transcriptStart}:
               {sponsorSegmentTranscripts.transcriptEnd}
@@ -66,7 +102,10 @@ const SegmentTranscript = ({
           <TranscriptEditWrapper
             key={segment.UUID}
             segmentUUID={segment.UUID}
-            transcript={savedTranscriptAnnotations.data?.[0]?.text ?? sponsorSegmentTranscripts.transcript}
+            transcript={
+              savedTranscriptAnnotations.data?.[0]?.text ??
+              sponsorSegmentTranscripts.transcript
+            }
           />
           {/* <TranscriptEditor
             key={segment.UUID}

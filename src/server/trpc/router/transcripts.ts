@@ -3,6 +3,8 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { AnnotationTags } from "@prisma/client";
 
+import { md5 } from "@/server/functions/hash";
+
 export const transcriptRouter = router({
   get: publicProcedure
     .input(z.object({ segmentUUID: z.string() }))
@@ -17,9 +19,10 @@ export const transcriptRouter = router({
           startTime: true,
           endTime: true,
           TranscriptDetails: {
-            orderBy: {
-              score: "desc",
-            },
+            orderBy: [
+              {score: "desc"},
+              {created: "asc"}
+            ],
             select: {
               Annotations: true,
             },
@@ -31,41 +34,14 @@ export const transcriptRouter = router({
   saveTranscript: protectedProcedure
     .input(z.object({ segmentUUID: z.string(), text: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      const pTranscript = await ctx.prisma.transcripts.findUnique({
-        where: {
-          segmentUUID_userId: {
-            segmentUUID: input.segmentUUID,
-            userId: ctx.session.user.id,
-          },
-        },
-      });
-      
-      await ctx.prisma.transcripts.upsert({
-        where: {
-          segmentUUID_userId: {
-            segmentUUID: input.segmentUUID,
-            userId: ctx.session.user.id,
-          },
-        },
-        update: {
-          score: 0,
-          text: input.text,
-          TranscriptDetails: {
-            deleteMany: {
-              transcriptId: pTranscript?.id, //annotations will be cascade deleted
-            },
-          },
-          UserTranscriptVotes: {
-            deleteMany: {
-              transcriptId: pTranscript?.id,
-            },
-          },
-        },
-        create: {
+      const textHash = md5(input.text); 
+      const create = await prisma?.transcripts.create({
+        data: {
           segmentUUID: input.segmentUUID,
           text: input.text,
-          userId: ctx.session.user.id,
-        },
+          textHash: textHash,
+          userId: ctx.session.user.id
+        }
       });
     }),
   saveAnnotations: protectedProcedure
@@ -93,10 +69,13 @@ export const transcriptRouter = router({
         input.segmentUUID?.length
       );
       if (!input.transcriptId && input.transcript && input.segmentUUID) {
+        const textHash = md5(input.transcript); 
+
         return await ctx.prisma.transcripts.create({
           data: {
             segmentUUID: input.segmentUUID,
             text: input.transcript,
+            textHash: textHash,
             userId: ctx.session.user.id,
             TranscriptDetails: {
               create: {
@@ -111,35 +90,38 @@ export const transcriptRouter = router({
       }
       //existing transcript
       if (input.transcriptId) {
-        await ctx.prisma.transcriptAnnotations.deleteMany({
-          where: {
-            TranscriptDetails: {
-              userId: ctx.session.user.id,
+        const update = await ctx.prisma.$transaction([
+          ctx.prisma.transcriptAnnotations.deleteMany({
+            where: {
+              TranscriptDetails: {
+                userId: ctx.session.user.id,
+                transcriptId: input.transcriptId,
+              },
+            },
+          }),
+          ctx.prisma.transcriptDetails.upsert({
+            where: {
+              transcriptId_userId: {
+                transcriptId: input.transcriptId,
+                userId: ctx.session.user.id,
+              },
+            },
+            create: {
               transcriptId: input.transcriptId,
-            },
-          },
-        });
-        return await ctx.prisma.transcriptDetails.upsert({
-          where: {
-            transcriptId_userId: {
-              transcriptId: input.transcriptId,
               userId: ctx.session.user.id,
+              Annotations: {
+                createMany: { data: input.annotations },
+              },
             },
-          },
-          create: {
-            transcriptId: input.transcriptId,
-            userId: ctx.session.user.id,
-            Annotations: {
-              createMany: { data: input.annotations },
+            update: {
+              Annotations: {
+                //set: [],
+                createMany: { data: input.annotations },
+              },
             },
-          },
-          update: {
-            Annotations: {
-              //set: [],
-              createMany: { data: input.annotations },
-            },
-          },
-        });
+          })
+        ]);
+        return update[1];
       }
 
       throw new TRPCError({

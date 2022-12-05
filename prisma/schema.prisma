@@ -154,6 +154,7 @@ model Transcripts {
   id                  String                @id @default(cuid())
   segmentUUID         String                
   text                String                @db.Text
+  textHash            String
   created             DateTime              @default(now())
   userId              String?
   score               Int                   @default(0)
@@ -164,7 +165,7 @@ model Transcripts {
   TranscriptDetails   TranscriptDetails[]
   UserTranscriptVotes UserTranscriptVotes[]
 
-  @@unique([segmentUUID, userId])
+  @@unique([segmentUUID, textHash])
 }
 
 model UserTranscriptVotes {
