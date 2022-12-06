@@ -11,7 +11,7 @@ export const transcriptRouter = router({
     .query(async ({ input, ctx }) => {
       const transcripts = await prisma?.transcripts.findMany({
         where: { segmentUUID: input.segmentUUID },
-        orderBy: [{ score: "desc" }, { id: "desc" }],
+        orderBy: [{ score: "desc" }, { created: "asc" }],
         select: {
           id: true,
           segmentUUID: true,
@@ -19,29 +19,50 @@ export const transcriptRouter = router({
           startTime: true,
           endTime: true,
           TranscriptDetails: {
-            orderBy: [
-              {score: "desc"},
-              {created: "asc"}
-            ],
+            orderBy: [{ score: "desc" }, { created: "asc" }],
+            select: {
+              Annotations: true,
+            },
+            take: 5,
+          },
+        },
+        take: 5,
+      });
+      return transcripts;
+    }),
+  getUserSubmissions: protectedProcedure
+    .input(z.object({ segmentUUID: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const userSubmissions = await prisma?.transcripts.findMany({
+        where: { TranscriptDetails: { some: { userId: ctx.session.user.id } } },
+        select: {
+          id: true,
+          segmentUUID: true,
+          text: true,
+          startTime: true,
+          endTime: true,
+          TranscriptDetails: {
+            where: { userId: ctx.session.user.id },
+            orderBy: [{ created: "asc" }],
             select: {
               Annotations: true,
             },
           },
         },
       });
-      return transcripts;
+      return userSubmissions;
     }),
   saveTranscript: protectedProcedure
     .input(z.object({ segmentUUID: z.string(), text: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      const textHash = md5(input.text); 
+      const textHash = md5(input.text);
       const create = await prisma?.transcripts.create({
         data: {
           segmentUUID: input.segmentUUID,
           text: input.text,
           textHash: textHash,
-          userId: ctx.session.user.id
-        }
+          userId: ctx.session.user.id,
+        },
       });
     }),
   saveAnnotations: protectedProcedure
@@ -69,7 +90,7 @@ export const transcriptRouter = router({
         input.segmentUUID?.length
       );
       if (!input.transcriptId && input.transcript && input.segmentUUID) {
-        const textHash = md5(input.transcript); 
+        const textHash = md5(input.transcript);
 
         return await ctx.prisma.transcripts.create({
           data: {
@@ -119,7 +140,7 @@ export const transcriptRouter = router({
                 createMany: { data: input.annotations },
               },
             },
-          })
+          }),
         ]);
         return update[1];
       }
