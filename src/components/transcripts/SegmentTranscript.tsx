@@ -81,36 +81,11 @@ const SegmentTranscript = ({
                 transcript={sponsorSegmentTranscripts.transcript}
               />
             </div>
-            {/* <TranscriptAnnotator
-              key={segment.UUID}
-              transcript={{
-                segmentUUID: segment.UUID,
-                text:
-                  savedTranscriptAnnotations.data?.[0]?.text ??
-                  sponsorSegmentTranscripts.transcript,
-                annotations:
-                  savedTranscriptAnnotations.data?.[0]?.TranscriptDetails?.[0]
-                    ?.Annotations,
-                id: savedTranscriptAnnotations.data?.[0]?.id,
-              }}
-            /> */}
             <span>
               {sponsorSegmentTranscripts.transcriptStart}:
               {sponsorSegmentTranscripts.transcriptEnd}
             </span>
           </div>
-          <TranscriptEditWrapper
-            key={segment.UUID}
-            segmentUUID={segment.UUID}
-            transcript={
-              savedTranscriptAnnotations.data?.[0]?.text ??
-              sponsorSegmentTranscripts.transcript
-            }
-          />
-          {/* <TranscriptEditor
-            key={segment.UUID}
-            transcript={sponsorSegmentTranscripts?.transcript ?? ""}
-          /> */}
         </>
       )}
     </div>

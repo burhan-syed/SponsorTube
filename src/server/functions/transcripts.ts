@@ -18,7 +18,8 @@ export const getTranscriptsInTime = ({
       ((transcripts?.[i - 1]?.start ?? 0) +
         (transcripts?.[i - 1]?.dur ?? 0) >=
         startTimeMS ||
-        line.start > startTimeMS) &&
+        line.start + line.dur >= startTimeMS ||
+        line.start >= startTimeMS) &&
       line.start <= endTimeMS
     ) {
       if (transcriptStart === 0) {
@@ -29,7 +30,7 @@ export const getTranscriptsInTime = ({
             ? transcripts?.[i - 1]?.start ?? 0 / 1000
             : line.start / 1000;
       }
-      transcriptEnd = (line.start + line.dur) / 1000;
+      transcriptEnd = (line.start + line.dur);// / 1000;
       return line.text;
     }
     return "";
