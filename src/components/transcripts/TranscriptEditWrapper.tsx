@@ -1,30 +1,66 @@
-import React from "react";
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
+import React, { useState } from "react";
+
+import Toggle from "../ui/common/Toggle";
+import { MdAdd, MdEditNote } from "react-icons/md";
+import type { TranscriptAnnotations } from "@prisma/client";
+import TranscriptAnnotator from "./TranscriptAnnotator";
+import Tooltip from "../ui/common/Tooltip";
 import TranscriptEditor from "./TranscriptEditor";
-const TranscriptEditWrapper = ({ transcript, segmentUUID }: { transcript: string, segmentUUID: string }) => {
-  const [open, setOpen] = React.useState(false);
+import clsx from "clsx";
+
+type Transcript = {
+  segmentUUID: string;
+  text: string;
+  annotations?: TranscriptAnnotations[];
+  id?: string;
+};
+interface TranscriptEditWrapperProps {
+  transcript: Transcript;
+}
+
+const TranscriptEditWrapper = ({ transcript }: TranscriptEditWrapperProps) => {
+  const [editToggled, setEditToggled] = useState(false);
+  const [annotateToggled, setAnnotateToggled] = useState(false);
   return (
-    <AlertDialog.Root open={open} onOpenChange={setOpen}>
-      <AlertDialog.Trigger asChild>
-        <button>Edit</button>
-      </AlertDialog.Trigger>
-      <AlertDialog.Portal>
-        <AlertDialog.Overlay className="fixed inset-0 bg-black/30" />
-        <AlertDialog.Content className="fixed top-1/2 left-1/2 max-h-[80vh] w-[90vw] max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-md">
-          <AlertDialog.Title>Edit</AlertDialog.Title>
-          <AlertDialog.Description />
-          <TranscriptEditor transcript={transcript} segmentUUID={segmentUUID} setOpen={setOpen} />
-          {/* <div>
-            <AlertDialog.Cancel asChild>
-              <button className="">Cancel</button>
-            </AlertDialog.Cancel>
-            <AlertDialog.Action asChild>
-              <button type="submit" className="">Yes, delete account</button>
-            </AlertDialog.Action>
-          </div> */}
-        </AlertDialog.Content>
-      </AlertDialog.Portal>
-    </AlertDialog.Root>
+    <div>
+      <div className="flex items-center">
+        <Tooltip text="annotate">
+          <Toggle
+            pressed={annotateToggled}
+            onPressedChange={(p) => setAnnotateToggled(p)}
+          >
+            <MdAdd />
+          </Toggle>
+        </Tooltip>
+        <Tooltip text="edit">
+          <Toggle
+            pressed={editToggled}
+            onPressedChange={(p) => setEditToggled(p)}
+          >
+            <MdEditNote />
+          </Toggle>
+        </Tooltip>
+      </div>
+      <div>
+        <TranscriptAnnotator
+          transcript={{
+            segmentUUID: transcript.segmentUUID,
+            text: transcript.text,
+            annotations: transcript.annotations,
+            id: transcript.id,
+          }}
+          editable={annotateToggled}
+        />
+      </div>
+
+      <div className={clsx(editToggled ? "block" : "hidden")}>
+        <TranscriptEditor
+          text={transcript.text}
+          segmentUUID={transcript.segmentUUID}
+          setOpen={(o: boolean) => setEditToggled(o)}
+        />
+      </div>
+    </div>
   );
 };
 

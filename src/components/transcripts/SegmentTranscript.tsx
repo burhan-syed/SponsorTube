@@ -51,7 +51,17 @@ const SegmentTranscript = ({
               <span>saved</span>
               {savedTranscriptAnnotations?.data?.map((savedTranscripts) => (
                 <>
-                  <TranscriptAnnotator
+                  {/* <TranscriptAnnotator
+                    key={savedTranscripts.id}
+                    transcript={{
+                      segmentUUID: segment.UUID,
+                      text: savedTranscripts.text,
+                      annotations:
+                        savedTranscripts?.TranscriptDetails?.[0]?.Annotations,
+                      id: savedTranscripts.id,
+                    }}
+                  /> */}
+                  <TranscriptEditWrapper
                     key={savedTranscripts.id}
                     transcript={{
                       segmentUUID: segment.UUID,
@@ -61,25 +71,32 @@ const SegmentTranscript = ({
                       id: savedTranscripts.id,
                     }}
                   />
-                  <TranscriptEditWrapper
+                  {/* <TranscriptEditWrapper
                     segmentUUID={segment.UUID}
                     transcript={savedTranscripts?.text}
-                  />
+                  /> */}
                 </>
               ))}
             </div>
             <div className="bg-blue-50 p-4">
               <span>generated</span>
-              <TranscriptAnnotator
+              <TranscriptEditWrapper
+                key={`${segment.UUID}_default`}
                 transcript={{
                   segmentUUID: segment.UUID,
                   text: sponsorSegmentTranscripts.transcript,
                 }}
               />
-              <TranscriptEditWrapper
+              {/* <TranscriptAnnotator
+                transcript={{
+                  segmentUUID: segment.UUID,
+                  text: sponsorSegmentTranscripts.transcript,
+                }}
+              /> */}
+              {/* <TranscriptEditWrapper
                 segmentUUID={segment.UUID}
                 transcript={sponsorSegmentTranscripts.transcript}
-              />
+              /> */}
             </div>
             <span>
               {sponsorSegmentTranscripts.transcriptStart}:

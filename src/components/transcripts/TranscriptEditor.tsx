@@ -6,7 +6,7 @@ import { z } from "zod";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 
 const validationSchema = z.object({
-  transcript: z.string(),
+  text: z.string(),
 });
 
 function useZodForm<TSchema extends z.ZodType>(
@@ -23,18 +23,18 @@ function useZodForm<TSchema extends z.ZodType>(
 }
 
 const TranscriptEditor = ({
-  transcript,
+  text,
   segmentUUID,
   setOpen,
 }: {
-  transcript: string;
+  text: string;
   segmentUUID: string;
   setOpen(o: boolean): void;
 }) => {
   const methods = useZodForm({
     schema: validationSchema,
     defaultValues: {
-      transcript: transcript,
+      text: text,
     },
   });
   const utils = trpc.useContext();
@@ -50,7 +50,7 @@ const TranscriptEditor = ({
       <form
         onSubmit={methods.handleSubmit(async (values) => {
           console.log("submit:", values);
-          saveEdit.mutate({ text: values.transcript, segmentUUID });
+          saveEdit.mutate({ text: values.text, segmentUUID });
         })}
       >
         <div className="">
@@ -58,20 +58,20 @@ const TranscriptEditor = ({
             Transcript
             <br />
             <textarea
-              {...methods.register("transcript")}
+              {...methods.register("text")}
               className="w-full border"
             />
           </label>
-          {methods.formState.errors.transcript?.message && (
+          {methods.formState.errors.text?.message && (
             <p className="text-red-700">
-              {methods.formState.errors.transcript?.message}
+              {methods.formState.errors.text?.message}
             </p>
           )}
         </div>
         <div>
-          <AlertDialog.Cancel asChild>
+          {/* <AlertDialog.Cancel asChild>
             <button className="">Cancel</button>
-          </AlertDialog.Cancel>
+          </AlertDialog.Cancel> */}
           <button type="submit" className="">
             Submit
           </button>

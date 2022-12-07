@@ -40,6 +40,7 @@ const SponsorTranscripts = ({
         <>
           {savedSegments.data.length > 0 ? (
             <>
+            {"saved segments"}
               {savedSegments.data.map((segment) => (
                 <SegmentTranscript
                   key={segment.UUID}

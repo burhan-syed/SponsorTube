@@ -20,9 +20,7 @@ const Home: NextPage = () => {
       staleTime: Infinity,
     }
   );
-  const getCaptions = trpc.video.testMutate.useMutation(); 
-
-  
+  const getCaptions = trpc.video.testMutate.useMutation();
 
   console.log("videoInfos:", videoInfo.data);
   return (
@@ -34,45 +32,53 @@ const Home: NextPage = () => {
       </Head>
       <Header />
       <main className="p-4">
-        {videoInfo.isLoading ? (
-          <>{"loading.."}</>
-        ) : videoInfo.data ? (
-          <>
-            {videoInfo.data.basic_info.embed?.iframe_url && (
-              <VideoEmbed
-                styles="outline-none w-full"
-                iFrameSrc={videoInfo.data.basic_info.embed?.iframe_url}
-                width={videoInfo.data.basic_info.embed?.width}
-                height={videoInfo.data.basic_info.embed?.height}
+        <div className="flex flex-col gap-2 lg:flex-row">
+          {videoInfo.isLoading ? (
+            <>{"loading.."}</>
+          ) : videoInfo.data ? (
+            <div className="flex flex-none flex-col lg:w-1/3">
+              {videoInfo.data.basic_info.embed?.iframe_url && (
+                <VideoEmbed
+                  styles="outline-none w-full"
+                  iFrameSrc={videoInfo.data.basic_info.embed?.iframe_url}
+                  width={videoInfo.data.basic_info.embed?.width}
+                  height={videoInfo.data.basic_info.embed?.height}
+                />
+              )}
+              <VideoInfo
+                title={videoInfo.data.basic_info.title}
+                views={videoInfo.data.basic_info.view_count}
+                likes={videoInfo.data.basic_info.like_count}
+                description={videoInfo.data.basic_info.short_description}
+                descriptionRuns={videoInfo.data.basic_info.description?.runs}
+                uploadDate={videoInfo.data.basic_info.upload_date}
+                channelName={videoInfo.data.basic_info.channel.name}
+                channelID={videoInfo.data.basic_info.channel_id}
+                channelSubscribers={
+                  videoInfo.data.basic_info.channel.subscriber_count
+                }
+                channelThumbnail={videoInfo.data.basic_info.channel.thumbnail}
+                channelIsVerified={
+                  videoInfo.data.basic_info.channel.is_verified
+                }
+                channelIsVerifiedArtist={
+                  videoInfo.data.basic_info.channel.is_verified_artist
+                }
+                channelURL={videoInfo.data.basic_info.channel.url}
               />
-            )}
-            <VideoInfo
-              title={videoInfo.data.basic_info.title}
-              views={videoInfo.data.basic_info.view_count}
-              likes={videoInfo.data.basic_info.like_count}
-              description={videoInfo.data.basic_info.short_description}
-              descriptionRuns={videoInfo.data.basic_info.description?.runs}
-              uploadDate={videoInfo.data.basic_info.upload_date}
-              channelName={videoInfo.data.basic_info.channel.name}
-              channelID={videoInfo.data.basic_info.channel_id}
-              channelSubscribers={
-                videoInfo.data.basic_info.channel.subscriber_count
-              }
-              channelThumbnail={videoInfo.data.basic_info.channel.thumbnail}
-              channelIsVerified={videoInfo.data.basic_info.channel.is_verified}
-              channelIsVerifiedArtist={
-                videoInfo.data.basic_info.channel.is_verified_artist
-              }
-              channelURL={videoInfo.data.basic_info.channel.url}
+            </div>
+          ) : videoInfo.error ? (
+            "error"
+          ) : (
+            "something went wrong"
+          )}
+          <div className="">
+            <SponsorTranscripts
+              videoID={videoID}
+              captionTracks={videoInfo.data?.captions.caption_tracks}
             />
-          </>
-        ) : videoInfo.error ? (
-          "error"
-        ) : (
-          "something went wrong"
-        )}
-
-        <SponsorTranscripts videoID={videoID} captionTracks={videoInfo.data?.captions.caption_tracks}/>
+          </div>
+        </div>
 
         <button
           type="button"

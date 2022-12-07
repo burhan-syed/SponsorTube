@@ -4,6 +4,9 @@ import Selector from "../ui/common/Selector";
 import { trpc } from "@/utils/trpc";
 import { AnnotationTags } from "@prisma/client";
 import type { TranscriptAnnotations } from "@prisma/client";
+import clsx from "clsx";
+
+type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
 const TAGS = new Map<AnnotationTags, string>([
   ["BRAND", "rgb(179, 245, 66)"],
@@ -13,6 +16,7 @@ const TAGS = new Map<AnnotationTags, string>([
 
 const TranscriptAnnotator = ({
   transcript,
+  editable,
 }: {
   transcript: {
     text: string;
@@ -20,8 +24,11 @@ const TranscriptAnnotator = ({
     id?: string;
     annotations?: TranscriptAnnotations[];
   };
+  editable: boolean;
 }) => {
-  const [annotations, setAnnotations] = React.useState<any>(() =>
+  const [annotations, setAnnotations] = React.useState<
+    AtLeast<TranscriptAnnotations, "start" | "end" | "text" | "tag">[]
+  >(() =>
     transcript.annotations
       ? transcript.annotations.map((a) => ({
           start: a.start,
@@ -44,7 +51,7 @@ const TranscriptAnnotator = ({
           color: TAGS.get(a.tag),
         }))
       );
-    }else{
+    } else {
       setAnnotations([]);
     }
   }, [transcript]);
@@ -59,8 +66,20 @@ const TranscriptAnnotator = ({
     <>
       <div>
         <div>transcript id:{transcript.id}</div>
+        {editable && (
+          <Selector
+            selectItems={Array.from(TAGS.keys()).map((t) => ({ value: t }))}
+            valuePlaceholder="select.."
+            initialValueIndex={0}
+            handler={(v: AnnotationTags) => setTag(v)}
+          />
+        )}
+
         <TextAnnotate
-          className="font-mono"
+          className={clsx(
+            "font-mono",
+            editable ? " " : " pointer-events-none "
+          )}
           content={transcript.text}
           onChange={handleChange}
           value={annotations}
@@ -72,26 +91,28 @@ const TranscriptAnnotator = ({
         />
       </div>
       <div>
-        <pre>{JSON.stringify(annotations, null, 2)}</pre>
+        <ul>
+          {annotations.map((annotation) => (
+            <li key={annotation.start}>{`${annotation.text} (${annotation.tag})`}</li>
+          ))}
+        </ul>
+        {/* <pre>{JSON.stringify(annotations, null, 2)}</pre> */}
       </div>
-      <button
-        onClick={() => {
-          submitAnnotations.mutate({
-            transcriptId: transcript.id,
-            segmentUUID: transcript.segmentUUID,
-            transcript: transcript.text,
-            annotations,
-          });
-        }}
-      >
-        Submit
-      </button>
-      <Selector
-        selectItems={Array.from(TAGS.keys()).map((t) => ({ value: t }))}
-        valuePlaceholder="select.."
-        initialValueIndex={0}
-        handler={(v: AnnotationTags) => setTag(v)}
-      />
+      {editable && (
+        <button
+          disabled={!editable}
+          onClick={() => {
+            submitAnnotations.mutate({
+              transcriptId: transcript.id,
+              segmentUUID: transcript.segmentUUID,
+              transcript: transcript.text,
+              annotations,
+            });
+          }}
+        >
+          Submit
+        </button>
+      )}
     </>
   );
 };
