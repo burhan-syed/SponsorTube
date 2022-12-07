@@ -14,6 +14,19 @@ type SelectorProps = {
   selectorAriaLabel?: string;
 };
 
+const SelectItem = React.forwardRef<any, any>(
+  ({ children, className, ...props }, forwardedRef) => {
+    return (
+      <Select.Item {...props} className={className} ref={forwardedRef}>
+        <Select.ItemText>{children}</Select.ItemText>
+        <Select.ItemIndicator className="absolute left-0 inline-flex w-6 items-center justify-center">
+          <BiCheck />
+        </Select.ItemIndicator>
+      </Select.Item>
+    );
+  }
+);
+
 const Selector = ({
   selectItems,
   initialValueIndex,
@@ -35,7 +48,7 @@ const Selector = ({
       }}
     >
       <Select.Trigger
-        className="SelectTrigger"
+        className="inline-flex h-9 items-center justify-center rounded bg-white px-4 hover:bg-slate-400 focus:shadow-md"
         aria-label={selectorAriaLabel ?? valuePlaceholder}
       >
         <Select.Value aria-label={value} placeholder={valuePlaceholder}>
@@ -46,15 +59,17 @@ const Selector = ({
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal>
-        <Select.Content className="SelectContent">
+        <Select.Content className="overflow-hidden rounded bg-white shadow">
           <Select.ScrollUpButton className="SelectScrollButton">
             <BiChevronUp />
           </Select.ScrollUpButton>
-          <Select.Viewport className="SelectViewport">
+          <Select.Viewport className="p-1">
             <Select.Group>
               {selectItems.map((item) => (
                 <SelectItem
-                  className={"flex"}
+                  className={
+                    "relative flex h-6 select-none items-center rounded-sm pl-6 p-1 data-[highlighted]:bg-blue-300 data-[highlighted]:outline-none"
+                  }
                   key={item.value}
                   value={item.value}
                 >
@@ -71,18 +86,5 @@ const Selector = ({
     </Select.Root>
   );
 };
-
-const SelectItem = React.forwardRef<any, any>(
-  ({ children, className, ...props }, forwardedRef) => {
-    return (
-      <Select.Item {...props} className={className} ref={forwardedRef}>
-        <Select.ItemText>{children}</Select.ItemText>
-        <Select.ItemIndicator className="SelectItemIndicator">
-          <BiCheck />
-        </Select.ItemIndicator>
-      </Select.Item>
-    );
-  }
-);
 
 export default Selector;
