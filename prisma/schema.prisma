@@ -3,7 +3,7 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
+  // previewFeatures = ["referentialIntegrity"]
 }
 
 datasource db {
@@ -12,7 +12,8 @@ datasource db {
   // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
   // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
   url                  = env("DATABASE_URL")
-  referentialIntegrity = "prisma"
+  //referentialIntegrity = "prisma"
+  relationMode = "prisma"
 }
 
 model Example {
@@ -36,6 +37,7 @@ model Account {
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -44,6 +46,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model User {
@@ -135,6 +139,8 @@ model ChannelStats {
   percentSponsorTimePerSponsoredVideo Float?
 
   Channel Channels @relation(fields: [channelId], references: [id])
+
+  @@index([channelId])
 }
 
 model Videos {
@@ -148,6 +154,8 @@ model Videos {
   SponsorSegments SponsorTimes[]
   Sponsors        Sponsors[]
   Channel         Channels       @relation(fields: [channelId], references: [id])
+
+  @@index([channelId])
 }
 
 model Transcripts {
@@ -166,6 +174,7 @@ model Transcripts {
   UserTranscriptVotes UserTranscriptVotes[]
 
   @@unique([segmentUUID, textHash])
+  @@index([userId])
 }
 
 model UserTranscriptVotes {
@@ -176,6 +185,9 @@ model UserTranscriptVotes {
 
   User      User        @relation(fields: [userId], references: [id])
   Transcript Transcripts @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+
+  @@index([transcriptId])
+  @@index([userId])
 }
 
 model TranscriptDetails {
@@ -191,6 +203,7 @@ model TranscriptDetails {
   Annotations TranscriptAnnotations[]
 
   @@unique([transcriptId, userId])
+  @@index([userId])
 }
 
 model UserTranscriptDetailsVotes {
@@ -201,6 +214,9 @@ model UserTranscriptDetailsVotes {
 
   User              User              @relation(fields: [userId], references: [id])
   TranscriptDetails TranscriptDetails @relation(fields: [transcriptDetailsId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([transcriptDetailsId])
 }
 
 enum AnnotationTags {
@@ -218,6 +234,7 @@ model TranscriptAnnotations {
   transcriptDetailsId String?
 
   TranscriptDetails TranscriptDetails? @relation(fields: [transcriptDetailsId], references: [id], onDelete: Cascade)
+  @@index([transcriptDetailsId])
 }
 
 model Sponsors {
@@ -234,6 +251,10 @@ model Sponsors {
   Video          Videos             @relation(fields: [videoId], references: [id])
   SponsorSegment SponsorTimes?      @relation(fields: [segmentUUID], references: [UUID])
   SponsorType    SponsorTypes?      @relation(fields: [type], references: [id])
+
+  @@index([videoId])
+  @@index([segmentUUID])
+  @@index([type])
 }
 
 model UserSponsorVotes {
@@ -244,6 +265,9 @@ model UserSponsorVotes {
 
   User     User     @relation(fields: [userId], references: [id])
   Sponsors Sponsors @relation(fields: [sponsorsId], references: [id])
+
+  @@index([userId])
+  @@index([sponsorsId])
 }
 
 model SponsorTypes {
@@ -255,4 +279,6 @@ model SponsorTypes {
 
   CreatedBy User?      @relation(fields: [userId], references: [id])
   Sponsors  Sponsors[]
+
+  @@index([userId])
 }
