@@ -8,6 +8,7 @@ import type { Segment } from "sponsorblock-api";
 import TranscriptEditor from "./TranscriptEditor";
 import TranscriptAnnotator from "./TranscriptAnnotator";
 import TranscriptEditWrapper from "./TranscriptEditWrapper";
+import TranscriptVote from "./TranscriptVote";
 const SegmentTranscript = ({
   segment,
   captionsURL,
@@ -61,6 +62,17 @@ const SegmentTranscript = ({
                       id: savedTranscripts.id,
                     }}
                   /> */}
+                  {`(details id: ${savedTranscripts.TranscriptDetails?.[0]?.id})`}
+                  <TranscriptVote
+                    transcriptDetailsId={
+                      savedTranscripts.TranscriptDetails?.[0]?.id ?? ""
+                    }
+                    initialDirection={
+                      savedTranscripts.TranscriptDetails?.[0]?.Votes?.[0]
+                        ?.direction ?? 0
+                    }
+                    transcriptId={savedTranscripts.id}
+                  />
                   <TranscriptEditWrapper
                     key={savedTranscripts.id}
                     transcript={{

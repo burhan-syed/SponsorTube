@@ -57,7 +57,19 @@ const TranscriptAnnotator = ({
   }, [transcript]);
 
   const [tag, setTag] = React.useState<AnnotationTags>("BRAND");
-  const submitAnnotations = trpc.transcript.saveAnnotations.useMutation();
+  const utils = trpc.useContext();
+  const submitAnnotations = trpc.transcript.saveAnnotations.useMutation({
+    onSuccess() {
+      utils.transcript.get.invalidate({ segmentUUID: transcript.segmentUUID });
+      if (transcript?.annotations?.[0]?.transcriptDetailsId) {
+        console.log("invalidating prev votes")
+        utils.transcript.getMyVote.invalidate({
+          transcriptDetailsId:
+            transcript?.annotations?.[0]?.transcriptDetailsId,
+        });
+      }
+    },
+  });
   const handleChange = (annotation: any) => {
     setAnnotations(annotation);
   };
@@ -93,7 +105,9 @@ const TranscriptAnnotator = ({
       <div>
         <ul>
           {annotations.map((annotation) => (
-            <li key={annotation.start}>{`${annotation.text} (${annotation.tag})`}</li>
+            <li
+              key={annotation.start}
+            >{`${annotation.text} (${annotation.tag})`}</li>
           ))}
         </ul>
         {/* <pre>{JSON.stringify(annotations, null, 2)}</pre> */}

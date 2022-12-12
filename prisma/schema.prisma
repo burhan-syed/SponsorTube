@@ -63,7 +63,7 @@ model User {
   UserSponsorVotes           UserSponsorVotes[]
   Transcripts                Transcripts[]
   TranscriptDetails          TranscriptDetails[]
-  UserTranscriptVotes        UserTranscriptVotes[]
+  // UserTranscriptVotes        UserTranscriptVotes[]
   UserTranscriptDetailsVotes UserTranscriptDetailsVotes[]
 }
 
@@ -171,24 +171,25 @@ model Transcripts {
   CreatedBy           User?                 @relation(fields: [userId], references: [id])
   SponsorSegment      SponsorTimes          @relation(fields: [segmentUUID], references: [UUID])
   TranscriptDetails   TranscriptDetails[]
-  UserTranscriptVotes UserTranscriptVotes[]
+  // UserTranscriptVotes UserTranscriptVotes[]
 
   @@unique([segmentUUID, textHash])
   @@index([userId])
 }
 
-model UserTranscriptVotes {
-  id           Int    @id @default(autoincrement())
-  userId       String
-  transcriptId String
-  direction    Int    @default(0)
+//redundant with usertrancriptdetailsvotes - deprecating
+// model UserTranscriptVotes {
+//   id           Int    @id @default(autoincrement())
+//   userId       String
+//   transcriptId String
+//   direction    Int    @default(0)
 
-  User      User        @relation(fields: [userId], references: [id])
-  Transcript Transcripts @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+//   User      User        @relation(fields: [userId], references: [id])
+//   Transcript Transcripts @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
 
-  @@index([transcriptId])
-  @@index([userId])
-}
+//   @@index([transcriptId])
+//   @@index([userId])
+// }
 
 model TranscriptDetails {
   id           String   @id @default(cuid())
@@ -216,6 +217,7 @@ model UserTranscriptDetailsVotes {
   TranscriptDetails TranscriptDetails @relation(fields: [transcriptDetailsId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@unique([userId,transcriptDetailsId])
   @@index([transcriptDetailsId])
 }
 

@@ -21,7 +21,14 @@ export const transcriptRouter = router({
           TranscriptDetails: {
             orderBy: [{ score: "desc" }, { created: "asc" }],
             select: {
+              id: true,
+              score: true,
               Annotations: true,
+              Votes: {
+                where: {
+                  userId: ctx.session?.user?.id,
+                },
+              },
             },
             take: 5,
           },
@@ -101,9 +108,16 @@ export const transcriptRouter = router({
             TranscriptDetails: {
               create: {
                 userId: ctx.session.user.id,
+                score: 1,
                 Annotations: {
                   createMany: { data: input.annotations },
                 },
+                Votes: {
+                  create: {
+                    direction: 1,
+                    userId: ctx.session.user.id
+                  }
+                }
               },
             },
           },
@@ -120,6 +134,7 @@ export const transcriptRouter = router({
               },
             },
           }),
+
           ctx.prisma.transcriptDetails.upsert({
             where: {
               transcriptId_userId: {
@@ -135,9 +150,44 @@ export const transcriptRouter = router({
               },
             },
             update: {
+              score: 0,
               Annotations: {
                 //set: [],
                 createMany: { data: input.annotations },
+              },
+              Transcript: {
+                update: {
+                  score: {
+                    increment:
+                      (await ctx.prisma.userTranscriptDetailsVotes.count({
+                        where: {
+                          TranscriptDetails: {
+                            userId: ctx.session.user.id,
+                            transcriptId: input.transcriptId,
+                          },
+                          direction: -1,
+                        },
+                      })) -
+                      (await ctx.prisma.userTranscriptDetailsVotes.count({
+                        where: {
+                          TranscriptDetails: {
+                            userId: ctx.session.user.id,
+                            transcriptId: input.transcriptId,
+                          },
+                          direction: 1,
+                        },
+                      })),
+                  },
+                },
+              },
+            },
+          }),
+
+          ctx.prisma.userTranscriptDetailsVotes.deleteMany({
+            where: {
+              TranscriptDetails: {
+                userId: ctx.session.user.id,
+                transcriptId: input.transcriptId,
               },
             },
           }),
@@ -148,6 +198,82 @@ export const transcriptRouter = router({
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Missing required data",
+      });
+    }),
+  getMyVote: publicProcedure
+    .input(z.object({ transcriptDetailsId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      if (!ctx.session?.user?.id) return { direction: 0 };
+      const vote = await ctx.prisma.userTranscriptDetailsVotes.findUnique({
+        where: {
+          userId_transcriptDetailsId: {
+            userId: ctx.session.user.id,
+            transcriptDetailsId: input.transcriptDetailsId,
+          },
+        },
+      });
+      return { direction: vote?.direction ?? 0 };
+    }),
+  voteTranscriptDetails: protectedProcedure
+    .input(
+      z.object({
+        transcriptDetailsId: z.string(),
+        previous: z.number(),
+        direction: z.number(),
+        transcriptId: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const scoreUpdate = () =>
+        input.direction === 1
+          ? input.previous === -1
+            ? 2
+            : input.previous === 0
+            ? 1
+            : 0
+          : input.direction === -1
+          ? input.previous === 1
+            ? -2
+            : input.previous === 0
+            ? -1
+            : 0
+          : input.direction === 0
+          ? input.previous === 1
+            ? -1
+            : input.previous === -1
+            ? 1
+            : 0
+          : 0;
+
+      await ctx.prisma.userTranscriptDetailsVotes.upsert({
+        where: {
+          userId_transcriptDetailsId: {
+            userId: ctx.session.user.id,
+            transcriptDetailsId: input.transcriptDetailsId,
+          },
+        },
+        create: {
+          userId: ctx.session.user.id,
+          transcriptDetailsId: input.transcriptDetailsId,
+          direction: input.direction,
+        },
+        update: {
+          direction: input.direction,
+          TranscriptDetails: {
+            update: {
+              score: {
+                increment: scoreUpdate(),
+              },
+              Transcript: {
+                update: {
+                  score: {
+                    increment: scoreUpdate(),
+                  },
+                },
+              },
+            },
+          },
+        },
       });
     }),
 });
