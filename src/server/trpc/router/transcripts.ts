@@ -7,8 +7,48 @@ import { md5 } from "@/server/functions/hash";
 
 export const transcriptRouter = router({
   get: publicProcedure
-    .input(z.object({ segmentUUID: z.string() }))
+    .input(
+      z.object({ segmentUUID: z.string(), userPosts: z.boolean().nullish() })
+    )
     .query(async ({ input, ctx }) => {
+      if (input.userPosts && ctx.session?.user) {
+        const userSubmissions = await prisma?.transcripts.findMany({
+          where: {
+            segmentUUID: input.segmentUUID,
+            AND: {
+              TranscriptDetails: { some: { userId: ctx.session.user.id } },
+              OR: { userId: ctx.session.user.id },
+            },
+          },
+          select: {
+            id: true,
+            segmentUUID: true,
+            text: true,
+            startTime: true,
+            endTime: true,
+            score: true,
+            TranscriptDetails: {
+              orderBy: [{ score: "desc" }, { created: "asc" }],
+              select: {
+                id: true,
+                score: true,
+                Annotations: true,
+                Votes: {
+                  where: {
+                    TranscriptDetails: {
+                      Transcript: {
+                        segmentUUID: input.segmentUUID
+                      }
+                    },
+                    userId: ctx.session?.user?.id,
+                  },
+                },
+              },
+            },
+          },
+        });
+        return userSubmissions;
+      }
       const transcripts = await prisma?.transcripts.findMany({
         where: { segmentUUID: input.segmentUUID },
         orderBy: [{ score: "desc" }, { created: "asc" }],
@@ -37,37 +77,6 @@ export const transcriptRouter = router({
         take: 5,
       });
       return transcripts;
-    }),
-  getUserSubmissions: protectedProcedure
-    .input(z.object({ segmentUUID: z.string() }))
-    .query(async ({ input, ctx }) => {
-      const userSubmissions = await prisma?.transcripts.findMany({
-        where: {
-          TranscriptDetails: { some: { userId: ctx.session.user.id } },
-          OR: { userId: ctx.session.user.id },
-        },
-        select: {
-          id: true,
-          segmentUUID: true,
-          text: true,
-          startTime: true,
-          endTime: true,
-          score: true,
-          TranscriptDetails: {
-            where: { userId: ctx.session.user.id },
-            orderBy: [{ created: "asc" }],
-            select: {
-              Annotations: true,
-              Votes: {
-                where: {
-                  userId: ctx.session?.user?.id,
-                },
-              },
-            },
-          },
-        },
-      });
-      return userSubmissions;
     }),
   saveTranscript: protectedProcedure
     .input(

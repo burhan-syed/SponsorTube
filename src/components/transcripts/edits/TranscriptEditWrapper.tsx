@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 
-import Toggle from "../ui/common/Toggle";
+import Toggle from "../../ui/common/Toggle";
 import { MdAdd, MdEditNote } from "react-icons/md";
 import type { TranscriptAnnotations } from "@prisma/client";
 import TranscriptAnnotator from "./TranscriptAnnotator";
-import Tooltip from "../ui/common/Tooltip";
+import Tooltip from "../../ui/common/Tooltip";
 import TranscriptEditor from "./TranscriptEditor";
 import clsx from "clsx";
 
