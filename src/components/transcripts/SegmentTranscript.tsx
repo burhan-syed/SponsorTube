@@ -62,7 +62,7 @@ const SegmentTranscript = ({
                       id: savedTranscripts.id,
                     }}
                   /> */}
-                  {`(details id: ${savedTranscripts.TranscriptDetails?.[0]?.id})`}
+                  {`(details id: ${savedTranscripts.TranscriptDetails?.[0]?.id} [${savedTranscripts.TranscriptDetails?.[0]?.score} | ${savedTranscripts.score}])`}
                   <TranscriptVote
                     transcriptDetailsId={
                       savedTranscripts.TranscriptDetails?.[0]?.id ?? ""
@@ -81,6 +81,9 @@ const SegmentTranscript = ({
                       annotations:
                         savedTranscripts?.TranscriptDetails?.[0]?.Annotations,
                       id: savedTranscripts.id,
+                      transcriptDetailsId: 
+                        savedTranscripts.TranscriptDetails?.[0]?.id
+                      
                     }}
                   />
                   {/* <TranscriptEditWrapper

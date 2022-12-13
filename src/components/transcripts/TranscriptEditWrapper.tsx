@@ -13,6 +13,7 @@ type Transcript = {
   text: string;
   annotations?: TranscriptAnnotations[];
   id?: string;
+  transcriptDetailsId?: string;
 };
 interface TranscriptEditWrapperProps {
   transcript: Transcript;
@@ -48,8 +49,10 @@ const TranscriptEditWrapper = ({ transcript }: TranscriptEditWrapperProps) => {
             text: transcript.text,
             annotations: transcript.annotations,
             id: transcript.id,
+            transcriptDetailsId: transcript.transcriptDetailsId
           }}
           editable={annotateToggled}
+          setEditable={setAnnotateToggled}
         />
       </div>
 

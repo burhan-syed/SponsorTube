@@ -18,6 +18,7 @@ export const transcriptRouter = router({
           text: true,
           startTime: true,
           endTime: true,
+          score: true,
           TranscriptDetails: {
             orderBy: [{ score: "desc" }, { created: "asc" }],
             select: {
@@ -76,6 +77,7 @@ export const transcriptRouter = router({
     .input(
       z.object({
         transcriptId: z.string().nullish(),
+        transcriptDetailsId: z.string().nullish(),
         transcript: z.string().nullish(),
         segmentUUID: z.string().nullish(),
         annotations: z.array(
@@ -105,6 +107,7 @@ export const transcriptRouter = router({
             text: input.transcript,
             textHash: textHash,
             userId: ctx.session.user.id,
+            score: 1,
             TranscriptDetails: {
               create: {
                 userId: ctx.session.user.id,
@@ -115,16 +118,16 @@ export const transcriptRouter = router({
                 Votes: {
                   create: {
                     direction: 1,
-                    userId: ctx.session.user.id
-                  }
-                }
+                    userId: ctx.session.user.id,
+                  },
+                },
               },
             },
           },
         });
       }
       //existing transcript
-      if (input.transcriptId) {
+      if (input.transcriptId && input.transcriptDetailsId) {
         const update = await ctx.prisma.$transaction([
           ctx.prisma.transcriptAnnotations.deleteMany({
             where: {
@@ -141,54 +144,110 @@ export const transcriptRouter = router({
                 transcriptId: input.transcriptId,
                 userId: ctx.session.user.id,
               },
+              // id: input.transcriptDetailsId, //redundant
             },
             create: {
               transcriptId: input.transcriptId,
               userId: ctx.session.user.id,
+              score: 1,
               Annotations: {
                 createMany: { data: input.annotations },
+              },
+              Votes: {
+                create: {
+                  userId: ctx.session.user.id,
+                  direction: 1,
+                },
               },
             },
             update: {
-              score: 0,
+              score: 1,
               Annotations: {
-                //set: [],
                 createMany: { data: input.annotations },
               },
-              Transcript: {
+              Votes: {
                 update: {
-                  score: {
-                    increment:
-                      (await ctx.prisma.userTranscriptDetailsVotes.count({
-                        where: {
-                          TranscriptDetails: {
-                            userId: ctx.session.user.id,
-                            transcriptId: input.transcriptId,
-                          },
-                          direction: -1,
-                        },
-                      })) -
-                      (await ctx.prisma.userTranscriptDetailsVotes.count({
-                        where: {
-                          TranscriptDetails: {
-                            userId: ctx.session.user.id,
-                            transcriptId: input.transcriptId,
-                          },
-                          direction: 1,
-                        },
-                      })),
+                  where: {
+                    userId_transcriptDetailsId: {
+                      transcriptDetailsId: input.transcriptDetailsId,
+                      userId: ctx.session.user.id,
+                    },
+                  },
+                  data: {
+                    direction: 1,
                   },
                 },
+              },
+              // Transcript: {
+              //   update: {
+              //     score: {
+              //       increment:
+              //         (await ctx.prisma.userTranscriptDetailsVotes.count({
+              //           where: {
+              //             TranscriptDetails: {
+              //               userId: ctx.session.user.id,
+              //               transcriptId: input.transcriptId,
+              //             },
+              //             direction: -1,
+              //             // userId: { not: ctx.session.user.id },
+              //           },
+              //         })) -
+              //         (await ctx.prisma.userTranscriptDetailsVotes.count({
+              //           where: {
+              //             TranscriptDetails: {
+              //               userId: ctx.session.user.id,
+              //               transcriptId: input.transcriptId,
+              //             },
+              //             direction: 1,
+              //             // userId: { not: ctx.session.user.id },
+              //           },
+              //         })) + 1 //auto up-vote by submitted user,
+              //     },
+              //   },
+              // },
+            },
+          }),
+
+          ctx.prisma.transcripts.update({
+            where: {
+              id: input.transcriptId,
+            },
+            data: {
+              score: {
+                increment:
+                  (await ctx.prisma.userTranscriptDetailsVotes.count({
+                    where: {
+                      TranscriptDetails: {
+                        userId: ctx.session.user.id,
+                        transcriptId: input.transcriptId,
+                      },
+                      direction: -1,
+                      // userId: { not: ctx.session.user.id },
+                    },
+                  })) -
+                  (await ctx.prisma.userTranscriptDetailsVotes.count({
+                    where: {
+                      TranscriptDetails: {
+                        userId: ctx.session.user.id,
+                        transcriptId: input.transcriptId,
+                      },
+                      direction: 1,
+                      // userId: { not: ctx.session.user.id },
+                    },
+                  })) +
+                  1, //auto up-vote by submitted user,
               },
             },
           }),
 
           ctx.prisma.userTranscriptDetailsVotes.deleteMany({
             where: {
-              TranscriptDetails: {
-                userId: ctx.session.user.id,
-                transcriptId: input.transcriptId,
-              },
+              // TranscriptDetails: {
+              //   userId: ctx.session.user.id,
+              //   transcriptId: input.transcriptId,
+              // },
+              transcriptDetailsId: input.transcriptDetailsId,
+              userId: { not: ctx.session.user.id },
             },
           }),
         ]);

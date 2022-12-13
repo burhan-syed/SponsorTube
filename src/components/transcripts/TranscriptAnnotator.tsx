@@ -17,14 +17,18 @@ const TAGS = new Map<AnnotationTags, string>([
 const TranscriptAnnotator = ({
   transcript,
   editable,
+  setEditable,
 }: {
   transcript: {
     text: string;
     segmentUUID: string;
     id?: string;
     annotations?: TranscriptAnnotations[];
+    transcriptDetailsId?:string;
+
   };
   editable: boolean;
+  setEditable(b:boolean): void;
 }) => {
   const [annotations, setAnnotations] = React.useState<
     AtLeast<TranscriptAnnotations, "start" | "end" | "text" | "tag">[]
@@ -59,15 +63,16 @@ const TranscriptAnnotator = ({
   const [tag, setTag] = React.useState<AnnotationTags>("BRAND");
   const utils = trpc.useContext();
   const submitAnnotations = trpc.transcript.saveAnnotations.useMutation({
-    onSuccess() {
-      utils.transcript.get.invalidate({ segmentUUID: transcript.segmentUUID });
+    async onSuccess() {
+      const transcriptInvalidate = utils.transcript.get.invalidate({ segmentUUID: transcript.segmentUUID });
       if (transcript?.annotations?.[0]?.transcriptDetailsId) {
-        console.log("invalidating prev votes")
         utils.transcript.getMyVote.invalidate({
           transcriptDetailsId:
             transcript?.annotations?.[0]?.transcriptDetailsId,
         });
       }
+      await transcriptInvalidate; 
+      setEditable(false);
     },
   });
   const handleChange = (annotation: any) => {
@@ -114,12 +119,13 @@ const TranscriptAnnotator = ({
       </div>
       {editable && (
         <button
-          disabled={!editable}
+          disabled={!editable || submitAnnotations.isLoading}
           onClick={() => {
             submitAnnotations.mutate({
               transcriptId: transcript.id,
               segmentUUID: transcript.segmentUUID,
               transcript: transcript.text,
+              transcriptDetailsId: transcript.transcriptDetailsId,
               annotations,
             });
           }}
