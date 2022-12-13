@@ -25,7 +25,8 @@ const TranscriptAnnotator = ({
     id?: string;
     annotations?: TranscriptAnnotations[];
     transcriptDetailsId?:string;
-
+    startTime?:number|null;
+    endTime?:number|null;
   };
   editable: boolean;
   setEditable(b:boolean): void;
@@ -123,6 +124,8 @@ const TranscriptAnnotator = ({
           onClick={() => {
             submitAnnotations.mutate({
               transcriptId: transcript.id,
+              startTime: transcript.startTime, 
+              endTime: transcript.endTime,
               segmentUUID: transcript.segmentUUID,
               transcript: transcript.text,
               transcriptDetailsId: transcript.transcriptDetailsId,

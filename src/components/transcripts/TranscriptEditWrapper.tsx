@@ -14,6 +14,8 @@ type Transcript = {
   annotations?: TranscriptAnnotations[];
   id?: string;
   transcriptDetailsId?: string;
+  startTime?: number|null;
+  endTime?: number|null;
 };
 interface TranscriptEditWrapperProps {
   transcript: Transcript;
@@ -49,7 +51,9 @@ const TranscriptEditWrapper = ({ transcript }: TranscriptEditWrapperProps) => {
             text: transcript.text,
             annotations: transcript.annotations,
             id: transcript.id,
-            transcriptDetailsId: transcript.transcriptDetailsId
+            transcriptDetailsId: transcript.transcriptDetailsId,
+            startTime: transcript.startTime,
+            endTime: transcript.endTime,
           }}
           editable={annotateToggled}
           setEditable={setAnnotateToggled}
@@ -60,6 +64,8 @@ const TranscriptEditWrapper = ({ transcript }: TranscriptEditWrapperProps) => {
         <TranscriptEditor
           text={transcript.text}
           segmentUUID={transcript.segmentUUID}
+          startTime={transcript.startTime}
+          endTime={transcript.endTime}
           setOpen={(o: boolean) => setEditToggled(o)}
         />
       </div>

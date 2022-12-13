@@ -42,18 +42,27 @@ export const transcriptRouter = router({
     .input(z.object({ segmentUUID: z.string() }))
     .query(async ({ input, ctx }) => {
       const userSubmissions = await prisma?.transcripts.findMany({
-        where: { TranscriptDetails: { some: { userId: ctx.session.user.id } } },
+        where: {
+          TranscriptDetails: { some: { userId: ctx.session.user.id } },
+          OR: { userId: ctx.session.user.id },
+        },
         select: {
           id: true,
           segmentUUID: true,
           text: true,
           startTime: true,
           endTime: true,
+          score: true,
           TranscriptDetails: {
             where: { userId: ctx.session.user.id },
             orderBy: [{ created: "asc" }],
             select: {
               Annotations: true,
+              Votes: {
+                where: {
+                  userId: ctx.session?.user?.id,
+                },
+              },
             },
           },
         },
@@ -61,7 +70,14 @@ export const transcriptRouter = router({
       return userSubmissions;
     }),
   saveTranscript: protectedProcedure
-    .input(z.object({ segmentUUID: z.string(), text: z.string() }))
+    .input(
+      z.object({
+        segmentUUID: z.string(),
+        text: z.string(),
+        startTime: z.number().nullish(),
+        endTime: z.number().nullish(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       const textHash = md5(input.text);
       const create = await prisma?.transcripts.create({
@@ -70,6 +86,8 @@ export const transcriptRouter = router({
           text: input.text,
           textHash: textHash,
           userId: ctx.session.user.id,
+          startTime: input.startTime,
+          endTime: input.endTime,
         },
       });
     }),
@@ -79,6 +97,8 @@ export const transcriptRouter = router({
         transcriptId: z.string().nullish(),
         transcriptDetailsId: z.string().nullish(),
         transcript: z.string().nullish(),
+        startTime: z.number().nullish(),
+        endTime: z.number().nullish(),
         segmentUUID: z.string().nullish(),
         annotations: z.array(
           z.object({
@@ -96,7 +116,10 @@ export const transcriptRouter = router({
         "UUID?",
         input.segmentUUID,
         "length?",
-        input.segmentUUID?.length
+        input.segmentUUID?.length,
+        "start?",
+        input.startTime,
+        input.endTime
       );
       if (!input.transcriptId && input.transcript && input.segmentUUID) {
         const textHash = md5(input.transcript);
@@ -107,6 +130,8 @@ export const transcriptRouter = router({
             text: input.transcript,
             textHash: textHash,
             userId: ctx.session.user.id,
+            startTime: input.startTime,
+            endTime: input.endTime,
             score: 1,
             TranscriptDetails: {
               create: {

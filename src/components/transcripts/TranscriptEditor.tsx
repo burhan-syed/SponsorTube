@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, UseFormProps } from "react-hook-form";
 import { trpc } from "@/utils/trpc";
 import { z } from "zod";
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
 
 const validationSchema = z.object({
   text: z.string(),
@@ -26,9 +25,13 @@ const TranscriptEditor = ({
   text,
   segmentUUID,
   setOpen,
+  startTime,
+  endTime,
 }: {
   text: string;
   segmentUUID: string;
+  startTime?: number|null;
+  endTime?: number|null;
   setOpen(o: boolean): void;
 }) => {
   const methods = useZodForm({
@@ -50,7 +53,7 @@ const TranscriptEditor = ({
       <form
         onSubmit={methods.handleSubmit(async (values) => {
           console.log("submit:", values);
-          saveEdit.mutate({ text: values.text, segmentUUID });
+          saveEdit.mutate({ text: values.text, segmentUUID, startTime, endTime });
         })}
       >
         <div className="">
@@ -69,9 +72,6 @@ const TranscriptEditor = ({
           )}
         </div>
         <div>
-          {/* <AlertDialog.Cancel asChild>
-            <button className="">Cancel</button>
-          </AlertDialog.Cancel> */}
           <button type="submit" className="">
             Submit
           </button>

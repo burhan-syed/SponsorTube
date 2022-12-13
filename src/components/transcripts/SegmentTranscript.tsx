@@ -63,29 +63,36 @@ const SegmentTranscript = ({
                     }}
                   /> */}
                   {`(details id: ${savedTranscripts.TranscriptDetails?.[0]?.id} [${savedTranscripts.TranscriptDetails?.[0]?.score} | ${savedTranscripts.score}])`}
-                  <TranscriptVote
-                    transcriptDetailsId={
-                      savedTranscripts.TranscriptDetails?.[0]?.id ?? ""
-                    }
-                    initialDirection={
-                      savedTranscripts.TranscriptDetails?.[0]?.Votes?.[0]
-                        ?.direction ?? 0
-                    }
-                    transcriptId={savedTranscripts.id}
-                  />
+                  {savedTranscripts.TranscriptDetails?.[0]?.id && (
+                    <TranscriptVote
+                      transcriptDetailsId={
+                        savedTranscripts.TranscriptDetails?.[0]?.id
+                      }
+                      initialDirection={
+                        savedTranscripts.TranscriptDetails?.[0]?.Votes?.[0]
+                          ?.direction ?? 0
+                      }
+                      transcriptId={savedTranscripts.id}
+                    />
+                  )}
+
                   <TranscriptEditWrapper
                     key={savedTranscripts.id}
                     transcript={{
                       segmentUUID: segment.UUID,
                       text: savedTranscripts.text,
+                      startTime: savedTranscripts?.startTime,
+                      endTime: savedTranscripts?.endTime,
                       annotations:
                         savedTranscripts?.TranscriptDetails?.[0]?.Annotations,
                       id: savedTranscripts.id,
-                      transcriptDetailsId: 
-                        savedTranscripts.TranscriptDetails?.[0]?.id
-                      
+                      transcriptDetailsId:
+                        savedTranscripts.TranscriptDetails?.[0]?.id,
                     }}
                   />
+                  <span>
+                    {savedTranscripts.startTime}:{savedTranscripts.endTime}
+                  </span>
                   {/* <TranscriptEditWrapper
                     segmentUUID={segment.UUID}
                     transcript={savedTranscripts?.text}
@@ -100,23 +107,15 @@ const SegmentTranscript = ({
                 transcript={{
                   segmentUUID: segment.UUID,
                   text: sponsorSegmentTranscripts.transcript,
+                  startTime: sponsorSegmentTranscripts.transcriptStart,
+                  endTime: sponsorSegmentTranscripts.transcriptEnd,
                 }}
               />
-              {/* <TranscriptAnnotator
-                transcript={{
-                  segmentUUID: segment.UUID,
-                  text: sponsorSegmentTranscripts.transcript,
-                }}
-              /> */}
-              {/* <TranscriptEditWrapper
-                segmentUUID={segment.UUID}
-                transcript={sponsorSegmentTranscripts.transcript}
-              /> */}
+              <span>
+                {sponsorSegmentTranscripts.transcriptStart}:
+                {sponsorSegmentTranscripts.transcriptEnd}
+              </span>
             </div>
-            <span>
-              {sponsorSegmentTranscripts.transcriptStart}:
-              {sponsorSegmentTranscripts.transcriptEnd}
-            </span>
           </div>
         </>
       )}

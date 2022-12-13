@@ -35,7 +35,7 @@ const TranscriptVote = ({
     <>
       {votes?.data?.direction}
       <button
-        disabled={votes.isLoading || votes.isError || vote.isLoading}
+        disabled={!transcriptDetailsId || votes.isLoading || votes.isError || vote.isLoading}
         onClick={() =>
           vote.mutate({
             transcriptDetailsId: transcriptDetailsId,
@@ -48,7 +48,7 @@ const TranscriptVote = ({
         <BiUpArrow />
       </button>
       <button
-        disabled={votes.isLoading || votes.isError || vote.isLoading}
+        disabled={!transcriptDetailsId || votes.isLoading || votes.isError || vote.isLoading}
         onClick={() =>
           vote.mutate({
             transcriptDetailsId: transcriptDetailsId,
