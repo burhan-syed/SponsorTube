@@ -122,12 +122,12 @@ export const transcriptRouter = router({
   saveAnnotations: protectedProcedure
     .input(
       z.object({
+        segmentUUID: z.string(),
         transcriptId: z.string().nullish(),
         transcriptDetailsId: z.string().nullish(),
         transcript: z.string().nullish(),
         startTime: z.number().nullish(),
         endTime: z.number().nullish(),
-        segmentUUID: z.string().nullish(),
         annotations: z.array(
           z.object({
             start: z.number(),
@@ -139,54 +139,21 @@ export const transcriptRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      //case: fresh annotations, no transcript or transcript details
-      console.log(
-        "UUID?",
-        input.segmentUUID,
-        "length?",
-        input.segmentUUID?.length,
-        "start?",
-        input.startTime,
-        input.endTime
-      );
-      if (!input.transcriptId && input.transcript && input.segmentUUID) {
-        const textHash = md5(input.transcript);
+      console.log(">>>annotation mutation", JSON.stringify(input));
 
-        return await ctx.prisma.transcripts.create({
-          data: {
-            segmentUUID: input.segmentUUID,
-            text: input.transcript,
-            textHash: textHash,
-            userId: ctx.session.user.id,
-            startTime: input.startTime,
-            endTime: input.endTime,
-            score: 1,
-            TranscriptDetails: {
-              create: {
-                userId: ctx.session.user.id,
-                score: 1,
-                Annotations: {
-                  createMany: { data: input.annotations },
-                },
-                Votes: {
-                  create: {
-                    direction: 1,
-                    userId: ctx.session.user.id,
-                  },
-                },
-              },
-            },
-          },
-        });
-      }
-      //existing transcript
-      if (input.transcriptId && input.transcriptDetailsId) {
+      const upsertTranscriptAndUserTranscriptAnnotations = async ({
+        transcriptDetailsId,
+        transcriptId,
+      }: {
+        transcriptDetailsId: string;
+        transcriptId: string;
+      }) => {
         const update = await ctx.prisma.$transaction([
           ctx.prisma.transcriptAnnotations.deleteMany({
             where: {
               TranscriptDetails: {
                 userId: ctx.session.user.id,
-                transcriptId: input.transcriptId,
+                transcriptId: transcriptId,
               },
             },
           }),
@@ -194,13 +161,13 @@ export const transcriptRouter = router({
           ctx.prisma.transcriptDetails.upsert({
             where: {
               transcriptId_userId: {
-                transcriptId: input.transcriptId,
+                transcriptId: transcriptId,
                 userId: ctx.session.user.id,
               },
               // id: input.transcriptDetailsId, //redundant
             },
             create: {
-              transcriptId: input.transcriptId,
+              transcriptId: transcriptId,
               userId: ctx.session.user.id,
               score: 1,
               Annotations: {
@@ -222,7 +189,7 @@ export const transcriptRouter = router({
                 update: {
                   where: {
                     userId_transcriptDetailsId: {
-                      transcriptDetailsId: input.transcriptDetailsId,
+                      transcriptDetailsId: transcriptDetailsId,
                       userId: ctx.session.user.id,
                     },
                   },
@@ -263,7 +230,7 @@ export const transcriptRouter = router({
 
           ctx.prisma.transcripts.update({
             where: {
-              id: input.transcriptId,
+              id: transcriptId,
             },
             data: {
               score: {
@@ -272,7 +239,7 @@ export const transcriptRouter = router({
                     where: {
                       TranscriptDetails: {
                         userId: ctx.session.user.id,
-                        transcriptId: input.transcriptId,
+                        transcriptId: transcriptId,
                       },
                       direction: -1,
                       // userId: { not: ctx.session.user.id },
@@ -282,7 +249,7 @@ export const transcriptRouter = router({
                     where: {
                       TranscriptDetails: {
                         userId: ctx.session.user.id,
-                        transcriptId: input.transcriptId,
+                        transcriptId: transcriptId,
                       },
                       direction: 1,
                       // userId: { not: ctx.session.user.id },
@@ -299,12 +266,139 @@ export const transcriptRouter = router({
               //   userId: ctx.session.user.id,
               //   transcriptId: input.transcriptId,
               // },
-              transcriptDetailsId: input.transcriptDetailsId,
+              transcriptDetailsId: transcriptDetailsId,
               userId: { not: ctx.session.user.id },
             },
           }),
         ]);
         return update[1];
+      };
+
+      if (input.transcript && input.segmentUUID) {
+        const textHash = md5(input.transcript);
+        const transcriptDetailsIdPromise = async () =>
+          input?.transcriptDetailsId ??
+          (
+            await ctx.prisma.transcriptDetails.findFirst({
+              where: {
+                Transcript: { segmentUUID: input.segmentUUID, textHash },
+                userId: ctx.session.user.id,
+              },
+              select: {
+                id: true,
+              },
+            })
+          )?.id;
+        const transcriptIdPromise = async () =>
+          input.transcriptId ??
+          (
+            await ctx.prisma.transcripts.findUnique({
+              where: {
+                segmentUUID_textHash: {
+                  segmentUUID: input.segmentUUID,
+                  textHash,
+                },
+              },
+              select: {
+                id: true,
+              },
+            })
+          )?.id;
+        const [transcriptDetailsId, transcriptId] = await Promise.all([
+          transcriptDetailsIdPromise(),
+          transcriptIdPromise(),
+        ]);
+
+        if (transcriptDetailsId && transcriptId) {
+          return await upsertTranscriptAndUserTranscriptAnnotations({
+            transcriptDetailsId,
+            transcriptId,
+          });
+        }
+        //new transcript or user transcript annotations
+        return await ctx.prisma.transcripts.upsert({
+          where: {
+            segmentUUID_textHash: {
+              segmentUUID: input.segmentUUID,
+              textHash
+            }
+          }, 
+          create: {
+            segmentUUID: input.segmentUUID,
+            text: input.transcript,
+            textHash: textHash,
+            userId: ctx.session.user.id,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            score: 1,
+            TranscriptDetails: {
+              create: {
+                userId: ctx.session.user.id,
+                score: 1,
+                Annotations: {
+                  createMany: { data: input.annotations },
+                },
+                Votes: {
+                  create: {
+                    direction: 1,
+                    userId: ctx.session.user.id,
+                  },
+                },
+              },
+            },
+          }, 
+          update: {
+            score: {increment: 1},
+            TranscriptDetails: {
+              create: {
+                userId: ctx.session.user.id,
+                score: 1,
+                Annotations: {
+                  createMany: { data: input.annotations },
+                },
+                Votes: {
+                  create: {
+                    direction: 1,
+                    userId: ctx.session.user.id,
+                  },
+                },
+              },
+            },
+          }
+        })
+        // return await ctx.prisma.transcripts.create({
+        //   data: {
+        //     segmentUUID: input.segmentUUID,
+        //     text: input.transcript,
+        //     textHash: textHash,
+        //     userId: ctx.session.user.id,
+        //     startTime: input.startTime,
+        //     endTime: input.endTime,
+        //     score: 1,
+        //     TranscriptDetails: {
+        //       create: {
+        //         userId: ctx.session.user.id,
+        //         score: 1,
+        //         Annotations: {
+        //           createMany: { data: input.annotations },
+        //         },
+        //         Votes: {
+        //           create: {
+        //             direction: 1,
+        //             userId: ctx.session.user.id,
+        //           },
+        //         },
+        //       },
+        //     },
+        //   },
+        // });
+      }
+      //existing user transcript annotations
+      if (input.transcriptId && input.transcriptDetailsId) {
+        return await upsertTranscriptAndUserTranscriptAnnotations({
+          transcriptId: input.transcriptId,
+          transcriptDetailsId: input.transcriptDetailsId,
+        });
       }
 
       throw new TRPCError({
