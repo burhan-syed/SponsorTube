@@ -312,6 +312,30 @@ export const transcriptRouter = router({
         message: "Missing required data",
       });
     }),
+  delete: protectedProcedure
+    .input(
+      z.object({
+        transcriptId: z.string().nullish(),
+        transcriptDetailsId: z.string().nullish(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (input.transcriptDetailsId) {
+        await ctx.prisma.transcriptDetails.delete({
+          where: { id: input.transcriptDetailsId },
+        });
+      } else if (input.transcriptId) {
+        await ctx.prisma.transcripts.delete({
+          where: { id: input.transcriptId },
+        });
+      } else {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Missing required data. Provide a transcriptId or transcriptDetailsId",
+        });
+      }
+    }),
   getMyVote: publicProcedure
     .input(z.object({ transcriptDetailsId: z.string() }))
     .query(async ({ input, ctx }) => {

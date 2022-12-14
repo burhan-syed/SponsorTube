@@ -26,10 +26,6 @@ const TranscriptTabs = ({
   const [tabValue, setTabValue] = useState<string>("");
 
   useEffect(() => {
-    console.log(
-      savedTranscriptAnnotations.isFetched,
-      savedTranscriptAnnotations?.data?.length ?? 0 > 0
-    );
     if (
       savedTranscriptAnnotations.isFetched &&
       (savedTranscriptAnnotations?.data?.length ?? 0 > 0) &&
@@ -48,10 +44,7 @@ const TranscriptTabs = ({
     tabValue,
   ]);
 
-  if (
-    savedTranscriptAnnotations.isInitialLoading ||
-    !tabValue
-  ) {
+  if (savedTranscriptAnnotations.isInitialLoading || !tabValue) {
     return (
       <div className="h-10 w-full animate-pulse bg-gray-500">loading...</div>
     );

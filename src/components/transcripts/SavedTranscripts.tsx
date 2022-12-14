@@ -1,6 +1,7 @@
 import { trpc } from "@/utils/trpc";
 import React from "react";
 import TranscriptEditWrapper from "./edits/TranscriptEditWrapper";
+import TranscriptDelete from "./TranscriptDelete";
 import TranscriptVote from "./TranscriptVote";
 
 // import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
@@ -49,7 +50,11 @@ const SavedTranscripts = ({
               transcriptId={savedTranscripts.id}
             />
           )}
-
+          <TranscriptDelete
+            segmentUUID={segmentUUID}
+            transcriptId={savedTranscripts.id}
+            transcriptDetailsId={savedTranscripts.TranscriptDetails?.[0]?.id}
+          />
           <TranscriptEditWrapper
             key={savedTranscripts.id}
             transcript={{
