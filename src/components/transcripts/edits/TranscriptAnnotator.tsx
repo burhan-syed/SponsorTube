@@ -18,6 +18,7 @@ const TranscriptAnnotator = ({
   transcript,
   editable,
   setEditable,
+  setTabValue
 }: {
   transcript: {
     text: string;
@@ -30,6 +31,7 @@ const TranscriptAnnotator = ({
   };
   editable: boolean;
   setEditable(b:boolean): void;
+  setTabValue?(v:string):void;
 }) => {
   const [annotations, setAnnotations] = React.useState<
     AtLeast<TranscriptAnnotations, "start" | "end" | "text" | "tag">[]
@@ -74,6 +76,7 @@ const TranscriptAnnotator = ({
       }
       await transcriptInvalidate; 
       setEditable(false);
+      setTabValue && setTabValue("user")
     },
   });
   const handleChange = (annotation: any) => {

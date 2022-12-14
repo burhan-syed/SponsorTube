@@ -7,9 +7,11 @@ import useSegmentTranscript from "@/hooks/useSegmentTranscript";
 const GeneratedTranscripts = ({
   segment,
   captionsURL,
+  setTabValue,
 }: {
   segment: Segment;
   captionsURL: string;
+  setTabValue?(v:string):void;
 }) => {
   const captions = useVideoCaptions({
     captionsURL: captionsURL,
@@ -31,6 +33,7 @@ const GeneratedTranscripts = ({
               startTime: sponsorSegmentTranscripts.transcriptStart,
               endTime: sponsorSegmentTranscripts.transcriptEnd,
             }}
+            setTabValue={setTabValue}
           />
           <span>
             {sponsorSegmentTranscripts.transcriptStart}:

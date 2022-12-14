@@ -8,18 +8,34 @@ import { md5 } from "@/server/functions/hash";
 export const transcriptRouter = router({
   get: publicProcedure
     .input(
-      z.object({ segmentUUID: z.string(), userPosts: z.boolean().nullish() })
+      z.object({
+        segmentUUID: z.string(),
+        userPosts: z.boolean().nullish(),
+        sortBy: z.union([z.literal("date"), z.literal("score")]).nullish(),
+      })
     )
     .query(async ({ input, ctx }) => {
       if (input.userPosts && ctx.session?.user) {
         const userSubmissions = await prisma?.transcripts.findMany({
           where: {
-            segmentUUID: input.segmentUUID,
-            AND: {
-              TranscriptDetails: { some: { userId: ctx.session.user.id } },
-              OR: { userId: ctx.session.user.id },
-            },
+            AND: [
+              { segmentUUID: input.segmentUUID },
+              {
+                OR: [
+                  {
+                    TranscriptDetails: {
+                      some: { userId: ctx.session.user.id },
+                    },
+                  },
+                  { userId: ctx.session.user.id },
+                ],
+              },
+            ],
           },
+          orderBy:
+            input.sortBy === "score"
+              ? [{ score: "desc" }, { created: "desc" }]
+              : [{ created: "desc" }, { score: "desc" }],
           select: {
             id: true,
             segmentUUID: true,
@@ -28,7 +44,10 @@ export const transcriptRouter = router({
             endTime: true,
             score: true,
             TranscriptDetails: {
-              orderBy: [{ score: "desc" }, { created: "asc" }],
+              orderBy:
+                input.sortBy === "score"
+                  ? [{ score: "desc" }, { created: "desc" }]
+                  : [{ created: "desc" }, { score: "desc" }],
               select: {
                 id: true,
                 score: true,
@@ -37,8 +56,8 @@ export const transcriptRouter = router({
                   where: {
                     TranscriptDetails: {
                       Transcript: {
-                        segmentUUID: input.segmentUUID
-                      }
+                        segmentUUID: input.segmentUUID,
+                      },
                     },
                     userId: ctx.session?.user?.id,
                   },

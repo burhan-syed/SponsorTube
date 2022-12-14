@@ -9,21 +9,23 @@ import TranscriptVote from "./TranscriptVote";
 
 const SavedTranscripts = ({
   segmentUUID,
-  userPosts = false, 
+  userPosts = false,
+  setTabValue,
 }: {
   segmentUUID: string;
-  userPosts?: boolean
+  userPosts?: boolean;
+  setTabValue?(v: string): void;
 }) => {
   const savedTranscriptAnnotations = trpc.transcript.get.useQuery(
     {
       segmentUUID,
-      userPosts
+      userPosts,
     },
     {
       enabled: !!segmentUUID,
     }
   );
-  
+
   return (
     <div className="bg-green-50 p-4">
       {savedTranscriptAnnotations.isLoading
@@ -60,6 +62,7 @@ const SavedTranscripts = ({
               id: savedTranscripts.id,
               transcriptDetailsId: savedTranscripts.TranscriptDetails?.[0]?.id,
             }}
+            setTabValue={setTabValue}
           />
           <span>
             {savedTranscripts.startTime}:{savedTranscripts.endTime}

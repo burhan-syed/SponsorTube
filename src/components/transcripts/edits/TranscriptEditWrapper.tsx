@@ -19,9 +19,10 @@ type Transcript = {
 };
 interface TranscriptEditWrapperProps {
   transcript: Transcript;
+  setTabValue?(v:string):void;
 }
 
-const TranscriptEditWrapper = ({ transcript }: TranscriptEditWrapperProps) => {
+const TranscriptEditWrapper = ({ transcript, setTabValue }: TranscriptEditWrapperProps) => {
   const [editToggled, setEditToggled] = useState(false);
   const [annotateToggled, setAnnotateToggled] = useState(false);
   return (
@@ -57,6 +58,7 @@ const TranscriptEditWrapper = ({ transcript }: TranscriptEditWrapperProps) => {
           }}
           editable={annotateToggled}
           setEditable={setAnnotateToggled}
+          setTabValue={setTabValue}
         />
       </div>
 
@@ -67,6 +69,7 @@ const TranscriptEditWrapper = ({ transcript }: TranscriptEditWrapperProps) => {
           startTime={transcript.startTime}
           endTime={transcript.endTime}
           setOpen={(o: boolean) => setEditToggled(o)}
+          setTabValue={setTabValue}
         />
       </div>
     </div>

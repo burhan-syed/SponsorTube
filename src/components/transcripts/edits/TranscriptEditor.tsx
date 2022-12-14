@@ -27,12 +27,14 @@ const TranscriptEditor = ({
   setOpen,
   startTime,
   endTime,
+  setTabValue
 }: {
   text: string;
   segmentUUID: string;
   startTime?: number|null;
   endTime?: number|null;
   setOpen(o: boolean): void;
+  setTabValue?(v:string):void;
 }) => {
   const methods = useZodForm({
     schema: validationSchema,
@@ -42,9 +44,10 @@ const TranscriptEditor = ({
   });
   const utils = trpc.useContext();
   const saveEdit = trpc.transcript.saveTranscript.useMutation({
-    onSuccess() {
+    async onSuccess() {
+      await utils.transcript.get.invalidate({ segmentUUID: segmentUUID });
       setOpen(false); 
-      utils.transcript.get.invalidate({ segmentUUID: segmentUUID });
+      setTabValue && setTabValue("user");
     },
   });
 
