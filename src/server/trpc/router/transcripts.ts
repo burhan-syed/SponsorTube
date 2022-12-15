@@ -38,18 +38,23 @@ export const transcriptRouter = router({
               : [{ created: "desc" }, { score: "desc" }],
           select: {
             id: true,
+            userId: true,
             segmentUUID: true,
             text: true,
             startTime: true,
             endTime: true,
             score: true,
             TranscriptDetails: {
+              where: {
+                userId: ctx.session.user.id,
+              },
               orderBy:
                 input.sortBy === "score"
                   ? [{ score: "desc" }, { created: "desc" }]
                   : [{ created: "desc" }, { score: "desc" }],
               select: {
                 id: true,
+                userId: true,
                 score: true,
                 Annotations: true,
                 Votes: {
@@ -59,7 +64,7 @@ export const transcriptRouter = router({
                         segmentUUID: input.segmentUUID,
                       },
                     },
-                    userId: ctx.session?.user?.id,
+                    userId: ctx.session.user.id,
                   },
                 },
               },
@@ -73,6 +78,7 @@ export const transcriptRouter = router({
         orderBy: [{ score: "desc" }, { created: "asc" }],
         select: {
           id: true,
+          userId: true,
           segmentUUID: true,
           text: true,
           startTime: true,
@@ -82,6 +88,7 @@ export const transcriptRouter = router({
             orderBy: [{ score: "desc" }, { created: "asc" }],
             select: {
               id: true,
+              userId: true,
               score: true,
               Annotations: true,
               Votes: {
@@ -320,9 +327,9 @@ export const transcriptRouter = router({
           where: {
             segmentUUID_textHash: {
               segmentUUID: input.segmentUUID,
-              textHash
-            }
-          }, 
+              textHash,
+            },
+          },
           create: {
             segmentUUID: input.segmentUUID,
             text: input.transcript,
@@ -346,9 +353,9 @@ export const transcriptRouter = router({
                 },
               },
             },
-          }, 
+          },
           update: {
-            score: {increment: 1},
+            score: { increment: 1 },
             TranscriptDetails: {
               create: {
                 userId: ctx.session.user.id,
@@ -364,8 +371,8 @@ export const transcriptRouter = router({
                 },
               },
             },
-          }
-        })
+          },
+        });
         // return await ctx.prisma.transcripts.create({
         //   data: {
         //     segmentUUID: input.segmentUUID,
