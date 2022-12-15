@@ -1,6 +1,9 @@
 import { trpc } from "@/utils/trpc";
-import React from "react";
+import { useSession } from "next-auth/react";
+import React, { useState } from "react";
 import { BiUpArrow, BiDownArrow } from "react-icons/bi";
+import AlertDialogueWrapper from "../ui/dialogue/AlertDialogueWrapper";
+import LoginAlertDialogueContent from "../ui/dialogue/LoginAlertDialogueContent";
 const TranscriptVote = ({
   transcriptDetailsId,
   transcriptId,
@@ -10,6 +13,7 @@ const TranscriptVote = ({
   transcriptId: string;
   initialDirection: number;
 }) => {
+  const { data: sessionData } = useSession();
   const utils = trpc.useContext();
   const votes = trpc.transcript.getMyVote.useQuery(
     {
@@ -30,38 +34,71 @@ const TranscriptVote = ({
   });
 
   console.log("vote?", transcriptDetailsId, votes.data);
+  const [triggerAlertDialogue, setTriggerAlertDialogue] = useState(0);
 
-  return (
+  const voteButtons = (
     <>
       {votes?.data?.direction}
       <button
-        disabled={!transcriptDetailsId || votes.isLoading || votes.isError || vote.isLoading}
+        disabled={
+          !transcriptDetailsId ||
+          votes.isLoading ||
+          votes.isError ||
+          vote.isLoading
+        }
         onClick={() =>
-          vote.mutate({
-            transcriptDetailsId: transcriptDetailsId,
-            previous: votes?.data?.direction ?? 0,
-            direction: votes?.data?.direction === 1 ? 0 : 1,
-            transcriptId: transcriptId,
-          })
+          !sessionData
+            ? setTriggerAlertDialogue((a) => a + 1)
+            : vote.mutate({
+                transcriptDetailsId: transcriptDetailsId,
+                previous: votes?.data?.direction ?? 0,
+                direction: votes?.data?.direction === 1 ? 0 : 1,
+                transcriptId: transcriptId,
+              })
         }
       >
         <BiUpArrow />
       </button>
       <button
-        disabled={!transcriptDetailsId || votes.isLoading || votes.isError || vote.isLoading}
+        disabled={
+          !transcriptDetailsId ||
+          votes.isLoading ||
+          votes.isError ||
+          vote.isLoading
+        }
         onClick={() =>
-          vote.mutate({
-            transcriptDetailsId: transcriptDetailsId,
-            previous: votes?.data?.direction ?? 0,
-            direction: votes?.data?.direction === -1 ? 0 : -1,
-            transcriptId: transcriptId,
-          })
+          !sessionData
+            ? setTriggerAlertDialogue((a) => a + 1)
+            : vote.mutate({
+                transcriptDetailsId: transcriptDetailsId,
+                previous: votes?.data?.direction ?? 0,
+                direction: votes?.data?.direction === -1 ? 0 : -1,
+                transcriptId: transcriptId,
+              })
         }
       >
         <BiDownArrow />
       </button>
     </>
   );
+
+  if (!sessionData) {
+    return (
+      <>
+        <AlertDialogueWrapper
+          triggerAlert={triggerAlertDialogue}
+          content={
+            <>
+              <LoginAlertDialogueContent description="login to vote" />
+            </>
+          }
+        >
+          <>{voteButtons}</>
+        </AlertDialogueWrapper>
+      </>
+    );
+  }
+  return <>{voteButtons}</>;
 };
 
 export default TranscriptVote;

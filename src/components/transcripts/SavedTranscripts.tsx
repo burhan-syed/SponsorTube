@@ -1,4 +1,5 @@
 import { trpc } from "@/utils/trpc";
+import { useSession } from "next-auth/react";
 import React from "react";
 import TranscriptEditWrapper from "./edits/TranscriptEditWrapper";
 import TranscriptDelete from "./TranscriptDelete";
@@ -17,13 +18,14 @@ const SavedTranscripts = ({
   userPosts?: boolean;
   setTabValue?(v: string): void;
 }) => {
+  const { data: sessionData } = useSession();
   const savedTranscriptAnnotations = trpc.transcript.get.useQuery(
     {
       segmentUUID,
       userPosts,
     },
     {
-      enabled: !!segmentUUID,
+      enabled: !!segmentUUID && ((userPosts && !!sessionData) || !userPosts),
     }
   );
 
@@ -50,11 +52,20 @@ const SavedTranscripts = ({
               transcriptId={savedTranscripts.id}
             />
           )}
-          <TranscriptDelete
-            segmentUUID={segmentUUID}
-            transcriptId={savedTranscripts.id}
-            transcriptDetailsId={savedTranscripts.TranscriptDetails?.[0]?.id}
-          />
+          {sessionData &&
+            sessionData.user?.id &&
+            sessionData.user?.id ===
+              (savedTranscripts.TranscriptDetails?.[0]?.userId ??
+                savedTranscripts?.userId) && (
+              <TranscriptDelete
+                segmentUUID={segmentUUID}
+                transcriptId={savedTranscripts.id}
+                transcriptDetailsId={
+                  savedTranscripts.TranscriptDetails?.[0]?.id
+                }
+              />
+            )}
+
           <TranscriptEditWrapper
             key={savedTranscripts.id}
             transcript={{

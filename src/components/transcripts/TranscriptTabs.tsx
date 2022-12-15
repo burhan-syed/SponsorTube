@@ -5,6 +5,7 @@ import SavedTranscripts from "./SavedTranscripts";
 import type { Segment } from "sponsorblock-api";
 import GeneratedTranscripts from "./GeneratedTranscripts";
 import { trpc } from "@/utils/trpc";
+import { useSession } from "next-auth/react";
 const TranscriptTabs = ({
   segment,
   captionsURL,
@@ -24,6 +25,7 @@ const TranscriptTabs = ({
   );
 
   const [tabValue, setTabValue] = useState<string>("");
+  const { data: sessionData } = useSession()
 
   useEffect(() => {
     if (
@@ -65,7 +67,8 @@ const TranscriptTabs = ({
           saved
         </Tabs.Trigger>
         <Tabs.Trigger
-          className="hover:bg-green-200 data-[state=active]:bg-blue-300"
+          disabled={!sessionData}
+          className="hover:bg-green-200 data-[state=active]:bg-blue-300 disabled:opacity-40"
           value="user"
         >
           user
