@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { clsx } from "clsx";
-import { MdSearch, MdClear } from "react-icons/md";
+import { TfiSearch, TfiClose } from "react-icons/tfi";
 const Search = ({ initialValue = "" }: { initialValue?: string }) => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -20,46 +20,53 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
   };
 
   return (
-    <form
-      onSubmit={onFormSubmit}
-      className={clsx(
-        "flex h-full w-full items-center justify-between rounded-full border",
-        focused
-          ? "border-slate-50 bg-slate-50/90 shadow-xl backdrop-blur-3xl"
-          : "border-transparent bg-slate-50/80 shadow-md backdrop-blur-md"
-      )}
-    >
-      <input
-        type="search"
-        className="m-0 w-full border-none bg-transparent pl-4 pr-1 outline-none"
-        value={searchTerm}
-        ref={inputRef}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-      />
-      {searchTerm && (
-        <button
-          type="button"
-          onClick={() => {
-            setSearchTerm("");
-            inputRef.current?.focus();
-          }}
-          className="mr-2"
-        >
-          <MdClear className="h-4 w-4 text-slate-800" />
-        </button>
-      )}
+    <form onSubmit={onFormSubmit} className="inline-flex h-full w-full text-[#111111]">
+      <div
+        className={clsx(
+          "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border shadow-[inset_0_1px_2px_#eeeeee]",
+          focused
+            ? "border-th-searchBorderFocus "
+            : "ml-8 border-r-0 border-th-searchBorder "
+        )}
+      >
+        {focused && (
+          <div>
+            <TfiSearch className="ml-4 h-4 w-4 flex-none" />
+          </div>
+        )}
+
+        <input
+          type="text"
+          placeholder="Search"
+          className="m-0 ml-3 w-full border-none bg-transparent px-1 outline-none"
+          value={searchTerm}
+          ref={inputRef}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+        />
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearchTerm("");
+              inputRef.current?.focus();
+            }}
+            className="absolute -right-2 mr-2 rounded-full p-4 hover:bg-th-additiveBackgroundA10"
+          >
+            <TfiClose className="h-4 w-4" />
+          </button>
+        )}
+      </div>
 
       <button
         type="submit"
         aria-label="search"
         className={clsx(
-          "h-full rounded-r-full border-l border-slate-50/40 px-4",
-          focused ? "border-slate-50/40" : "border-slate-50/10"
+          "h-full rounded-r-full border border-th-searchBorder bg-th-searchButton  px-4 hover:bg-th-searchButtonHover hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] focus:border-th-searchBorderFocus focus:outline-none"
         )}
       >
-        <MdSearch className="h-6 w-6 text-slate-800" />
+        <TfiSearch className="h-5 w-5" />
       </button>
     </form>
   );
