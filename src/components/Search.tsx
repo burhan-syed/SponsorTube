@@ -20,7 +20,7 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
   };
 
   return (
-    <form onSubmit={onFormSubmit} className="inline-flex h-full w-full text-[#111111]">
+    <form onSubmit={onFormSubmit} className="inline-flex h-full w-full text-th-searchText">
       <div
         className={clsx(
           "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border shadow-[inset_0_1px_2px_#eeeeee]",
@@ -66,7 +66,7 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
           "h-full rounded-r-full border border-th-searchBorder bg-th-searchButton  px-4 hover:bg-th-searchButtonHover hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] focus:border-th-searchBorderFocus focus:outline-none"
         )}
       >
-        <TfiSearch className="h-5 w-5" />
+        <TfiSearch className="h-5 w-5 mx-2" />
       </button>
     </form>
   );

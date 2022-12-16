@@ -22,6 +22,8 @@ type VideoInfoProps = {
   channelIsVerifiedArtist?: boolean;
 };
 
+const INITIALDESCRIPTIONRUNS = 2; 
+
 const VideoInfo = ({
   title,
   views,
@@ -40,7 +42,7 @@ const VideoInfo = ({
 }: VideoInfoProps) => {
   const [expandVideoDescription, setExpandVideoDescription] = useState(false);
   return (
-    <div className="">
+    <div className="text-th-textPrimary">
       <h1>{title}</h1>
       <div className="flex items-center justify-between">
         <div className="flex items-center">
@@ -60,7 +62,7 @@ const VideoInfo = ({
             <div></div>
           )}
           <div className="">
-            <div className="flex">
+            <div className="flex text-th-textSecondary">
               <Link href={`/channel/${channelID}`}>
                 <a>{channelName}</a>
               </Link>
@@ -90,15 +92,15 @@ const VideoInfo = ({
         {description && (
           <div
             className={clsx(
-              "text-xs",
+              "text-xs bg-th-chipBackground rounded-lg p-3 ",
               descriptionRuns &&
-                descriptionRuns?.length > 4 &&
+                descriptionRuns?.length > INITIALDESCRIPTIONRUNS &&
                 !expandVideoDescription &&
-                "hover:cursor-pointer"
+                "hover:cursor-pointer hover:bg-th-chipBackgroundHover"
             )}
             onClick={() => {
               descriptionRuns &&
-                descriptionRuns?.length > 4 &&
+                descriptionRuns?.length > INITIALDESCRIPTIONRUNS &&
                 !expandVideoDescription &&
                 setExpandVideoDescription(true);
             }}
@@ -116,27 +118,27 @@ const VideoInfo = ({
               {uploadDate}
             </span>
             <p>
-              {descriptionRuns?.slice(0, 4)?.map((run, i) => (
+              {descriptionRuns?.slice(0, INITIALDESCRIPTIONRUNS)?.map((run, i) => (
                 <>
                   <span
                     key={i}
                     className={clsx(
-                      i === 3 &&
+                      i === (INITIALDESCRIPTIONRUNS-1) &&
                         !expandVideoDescription &&
-                        descriptionRuns?.length > 4 &&
+                        descriptionRuns?.length > INITIALDESCRIPTIONRUNS &&
                         "relative"
                     )}
                   >
                     {run.text}
-                    {i === 3 &&
+                    {i === (INITIALDESCRIPTIONRUNS-1) &&
                       !expandVideoDescription &&
-                      descriptionRuns?.length > 4 && (
+                      descriptionRuns?.length > INITIALDESCRIPTIONRUNS && (
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-white"></div>
                       )}
                   </span>
                 </>
               ))}
-              {descriptionRuns && descriptionRuns?.length > 4 && (
+              {descriptionRuns && descriptionRuns?.length > INITIALDESCRIPTIONRUNS && (
                 <>
                   {expandVideoDescription ? (
                     <>

@@ -10,6 +10,7 @@ module.exports = {
     },
     colors: {
       "transparent": "transparent",
+      "white": "#FFFFFF",
       "th-textPrimary": "var(--textPrimary)",
       "th-textPrimaryInverse": "var(--textPrimaryInverse)",
       "th-textSecondary": "var(--textSecondary)",
@@ -29,6 +30,7 @@ module.exports = {
       "th-verifiedBadgeBackground": "var(--verifiedBadgeBackground)",
       "th-outline": "var(--outline)",
       "th-shadow": "var(--shadow)",
+      "th-touchResponse": "var(--touchResponse)",
       "th-searchBackground": "var(--searchBackground)", 
       "th-searchText": "var(--searchText)",
       "th-searchBorder": "var(--searchBorder)", 
