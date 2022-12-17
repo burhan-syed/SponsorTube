@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 const useIsPressed = () => {
-  const containerRef = useRef<HTMLDivElement>();
+  const containerRef = useRef<HTMLDivElement>() as any;//React.MutableRefObject<HTMLDivElement | HTMLButtonElement>;
   const [isPressed, setIsPressed] = useState(false);
   useEffect(() => {
     const onMouseDown = () => setIsPressed(true);

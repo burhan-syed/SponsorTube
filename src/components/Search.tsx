@@ -2,26 +2,34 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { clsx } from "clsx";
 import { TfiSearch, TfiClose } from "react-icons/tfi";
+import { Button } from "./ui/common/Button";
 const Search = ({ initialValue = "" }: { initialValue?: string }) => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const [focused, setFocused] = useState(false);
   const [searchTerm, setSearchTerm] = useState(() => initialValue);
-
   useEffect(() => {
     setSearchTerm(initialValue);
   }, [initialValue]);
 
-  const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
     if (searchTerm) {
+      console.log("search?", searchTerm)
       router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
     }
   };
 
   return (
-    <form onSubmit={onFormSubmit} className="inline-flex h-full w-full text-th-searchText">
+    <form
+      ref={formRef}
+      onSubmit={onFormSubmit}
+      className="inline-flex h-full w-full text-th-searchText"
+    >
       <div
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         className={clsx(
           "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border shadow-[inset_0_1px_2px_#eeeeee]",
           focused
@@ -42,12 +50,10 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
           value={searchTerm}
           ref={inputRef}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onKeyDown={(e) => e.code === "Enter" &&  onFormSubmit()}
         />
         {searchTerm && (
-          <button
-            type="button"
+          <Button
             onClick={() => {
               setSearchTerm("");
               inputRef.current?.focus();
@@ -55,7 +61,17 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
             className="absolute -right-2 mr-2 rounded-full p-4 hover:bg-th-additiveBackgroundA10"
           >
             <TfiClose className="h-4 w-4" />
-          </button>
+          </Button>
+          // <button
+          //   type="button"
+          //   onClick={() => {
+          //     setSearchTerm("");
+          //     inputRef.current?.focus();
+          //   }}
+          //   className="absolute -right-2 mr-2 rounded-full p-4 hover:bg-th-additiveBackgroundA10"
+          // >
+          //   <TfiClose className="h-4 w-4" />
+          // </button>
         )}
       </div>
 
@@ -66,7 +82,7 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
           "h-full rounded-r-full border border-th-searchBorder bg-th-searchButton  px-4 hover:bg-th-searchButtonHover hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] focus:border-th-searchBorderFocus focus:outline-none"
         )}
       >
-        <TfiSearch className="h-5 w-5 mx-2" />
+        <TfiSearch className="mx-2 h-5 w-5" />
       </button>
     </form>
   );
