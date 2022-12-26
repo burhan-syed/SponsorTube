@@ -5,7 +5,7 @@ interface useIsPressedProps {
 }
 
 const useIsPressed = ({ delay = true }: useIsPressedProps = {}) => {
-  const containerRef = useRef<HTMLDivElement>() as any; //React.MutableRefObject<HTMLDivElement | HTMLButtonElement>;
+  const containerRef = useRef<HTMLDivElement | HTMLButtonElement>() as any; //React.MutableRefObject<HTMLDivElement | HTMLButtonElement>;
   const timeoutRef = useRef<NodeJS.Timeout>();
   const [isPressed, setIsPressed] = useState(false);
   useEffect(() => {
