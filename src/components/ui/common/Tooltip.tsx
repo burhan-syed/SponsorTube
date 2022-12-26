@@ -9,15 +9,17 @@ const TooltipContainer = ({
   text: string;
 }) => {
   return (
-      <TooltipPrimitive.Root>
-        <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
-        <TooltipPrimitive.Portal>
-          <TooltipPrimitive.Content className="TooltipContent" sideOffset={5}>
-            {text}
-            <TooltipPrimitive.Arrow className="TooltipArrow" />
-          </TooltipPrimitive.Content>
-        </TooltipPrimitive.Portal>
-      </TooltipPrimitive.Root>
+    <TooltipPrimitive.Root>
+      <TooltipPrimitive.Trigger asChild>
+        <span tabIndex={0}>{children}</span>
+      </TooltipPrimitive.Trigger>
+      <TooltipPrimitive.Portal>
+        <TooltipPrimitive.Content className="TooltipContent" sideOffset={5}>
+          {text}
+          <TooltipPrimitive.Arrow className="TooltipArrow" />
+        </TooltipPrimitive.Content>
+      </TooltipPrimitive.Portal>
+    </TooltipPrimitive.Root>
   );
 };
 
