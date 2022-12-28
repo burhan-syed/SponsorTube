@@ -7,6 +7,7 @@ import TranscriptAnnotator from "./TranscriptAnnotator";
 import Tooltip from "../../ui/common/Tooltip";
 import TranscriptEditor from "./TranscriptEditor";
 import clsx from "clsx";
+import { trpc } from "@/utils/trpc";
 
 type Transcript = {
   segmentUUID: string;
@@ -14,20 +15,28 @@ type Transcript = {
   annotations?: TranscriptAnnotations[];
   id?: string;
   transcriptDetailsId?: string;
-  startTime?: number|null;
-  endTime?: number|null;
+  startTime?: number | null;
+  endTime?: number | null;
 };
 interface TranscriptEditWrapperProps {
   transcript: Transcript;
-  setTabValue?(v:string):void;
+  setTabValue?(v: string): void;
 }
 
-const TranscriptEditWrapper = ({ transcript, setTabValue }: TranscriptEditWrapperProps) => {
+const TranscriptEditWrapper = ({
+  transcript,
+  setTabValue,
+}: TranscriptEditWrapperProps) => {
   const [editToggled, setEditToggled] = useState(false);
   const [annotateToggled, setAnnotateToggled] = useState(false);
+  const getSegments = trpc.openai.getSegmentAnnotations.useMutation();
+
   return (
     <div>
       <div className="flex items-center">
+        <button onClick={() => getSegments.mutate({ text: transcript.text })}>
+          test
+        </button>
         <Tooltip text="annotate">
           <Toggle
             pressed={annotateToggled}

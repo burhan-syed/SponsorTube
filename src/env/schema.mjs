@@ -20,6 +20,7 @@ export const serverSchema = z.object({
   // DISCORD_CLIENT_SECRET: z.string(),
   GITHUB_CLIENT_ID: z.string(),
   GITHUB_CLIENT_SECRET: z.string(),
+  OPENAI_API_KEY: z.string(),
 });
 
 /**
