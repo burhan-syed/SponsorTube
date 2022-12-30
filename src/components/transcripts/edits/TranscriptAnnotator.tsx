@@ -5,6 +5,7 @@ import { trpc } from "@/utils/trpc";
 import { AnnotationTags } from "@prisma/client";
 import type { TranscriptAnnotations } from "@prisma/client";
 import clsx from "clsx";
+import { textFindIndices } from "@/utils";
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
@@ -18,20 +19,20 @@ const TranscriptAnnotator = ({
   transcript,
   editable,
   setEditable,
-  setTabValue
+  setTabValue,
 }: {
   transcript: {
     text: string;
     segmentUUID: string;
     id?: string;
     annotations?: TranscriptAnnotations[];
-    transcriptDetailsId?:string;
-    startTime?:number|null;
-    endTime?:number|null;
+    transcriptDetailsId?: string;
+    startTime?: number | null;
+    endTime?: number | null;
   };
   editable: boolean;
-  setEditable(b:boolean): void;
-  setTabValue?(v:string):void;
+  setEditable(b: boolean): void;
+  setTabValue?(v: string): void;
 }) => {
   const [annotations, setAnnotations] = React.useState<
     AtLeast<TranscriptAnnotations, "start" | "end" | "text" | "tag">[]
@@ -67,20 +68,61 @@ const TranscriptAnnotator = ({
   const utils = trpc.useContext();
   const submitAnnotations = trpc.transcript.saveAnnotations.useMutation({
     async onSuccess() {
-      const transcriptInvalidate = utils.transcript.get.invalidate({ segmentUUID: transcript.segmentUUID });
+      const transcriptInvalidate = utils.transcript.get.invalidate({
+        segmentUUID: transcript.segmentUUID,
+      });
       if (transcript?.annotations?.[0]?.transcriptDetailsId) {
         utils.transcript.getMyVote.invalidate({
           transcriptDetailsId:
             transcript?.annotations?.[0]?.transcriptDetailsId,
         });
       }
-      await transcriptInvalidate; 
+      await transcriptInvalidate;
       setEditable(false);
-      setTabValue && setTabValue("user")
+      setTabValue && setTabValue("user");
     },
   });
-  const handleChange = (annotation: any) => {
-    setAnnotations(annotation);
+  const handleChange = (
+    annotation: AtLeast<
+      TranscriptAnnotations,
+      "start" | "end" | "text" | "tag"
+    >[]
+  ) => {
+    setAnnotations((p) => {
+      const newAnnotation = annotation?.[annotation.length - 1];
+      // console.log(
+      //   "annotations change?",
+      //   p,
+      //   annotation,
+      //   newAnnotation,
+      //   (!p || annotation.length > p.length) && newAnnotation?.text
+      // );
+
+      if ((!p || annotation.length > p.length) && newAnnotation?.text) {
+        const matchingAnnotations = textFindIndices(
+          transcript.text,
+          newAnnotation.text
+        );
+        const withMatching = [
+          ...p,
+          ...matchingAnnotations.map((i) => ({
+            start: i,
+            end: i + newAnnotation.text.length,
+            text: transcript.text.substring(i, i + newAnnotation.text.length),
+            tag: newAnnotation.tag,
+            color: TAGS.get(newAnnotation.tag),
+          })),
+        ].filter((value, index, self) =>
+        index === self.findIndex((t) => (
+          t.start === value.start || (t.end > value.start && t.start < value.end)
+        ))
+      );
+
+        console.log("matching?", withMatching);
+        return withMatching;
+      }
+      return annotation;
+    });
   };
 
   return (
@@ -127,7 +169,7 @@ const TranscriptAnnotator = ({
           onClick={() => {
             submitAnnotations.mutate({
               transcriptId: transcript.id,
-              startTime: transcript.startTime, 
+              startTime: transcript.startTime,
               endTime: transcript.endTime,
               segmentUUID: transcript.segmentUUID,
               transcript: transcript.text,
