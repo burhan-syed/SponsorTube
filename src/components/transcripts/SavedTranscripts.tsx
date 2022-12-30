@@ -22,7 +22,7 @@ const SavedTranscripts = ({
   const savedTranscriptAnnotations = trpc.transcript.get.useQuery(
     {
       segmentUUID,
-      userPosts,
+      mode: userPosts ? "user" : "score",
     },
     {
       enabled: !!segmentUUID && ((userPosts && !!sessionData) || !userPosts),

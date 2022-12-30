@@ -10,12 +10,76 @@ export const transcriptRouter = router({
     .input(
       z.object({
         segmentUUID: z.string(),
-        userPosts: z.boolean().nullish(),
+        mode: z.union([z.literal("user"), z.literal("score"), z.literal("generated")]).default("score"),
         sortBy: z.union([z.literal("date"), z.literal("score")]).nullish(),
       })
     )
     .query(async ({ input, ctx }) => {
-      if (input.userPosts && ctx.session?.user) {
+      if(input.mode === "generated"){
+        const aiGenAnnotations = await prisma?.transcripts.findMany({
+          where: {
+            AND: [
+              { segmentUUID: input.segmentUUID },
+              {
+                OR: [
+                  {
+                    TranscriptDetails: {
+                      some: { userId: '_openaicurie' },
+                    },
+                  },
+                  { userId: '_openaicurie' },
+                ],
+              },
+            ],
+          },
+          orderBy:
+            input.sortBy === "score"
+              ? [{ score: "desc" }, { created: "desc" }]
+              : [{ created: "desc" }, { score: "desc" }],
+          select: {
+            id: true,
+            userId: true,
+            segmentUUID: true,
+            text: true,
+            startTime: true,
+            endTime: true,
+            score: true,
+            TranscriptDetails: {
+              where: {
+                userId: '_openaicurie',
+              },
+              orderBy:
+                input.sortBy === "score"
+                  ? [{ score: "desc" }, { created: "desc" }]
+                  : [{ created: "desc" }, { score: "desc" }],
+              select: {
+                id: true,
+                userId: true,
+                score: true,
+                Annotations: true,
+                Votes: {
+                  where: {
+                    TranscriptDetails: {
+                      Transcript: {
+                        segmentUUID: input.segmentUUID,
+                      },
+                    },
+                    userId: '_openaicurie',
+                  },
+                },
+              },
+            },
+          },
+        });
+        return aiGenAnnotations;
+      }
+      else if (input.mode === "user") {
+        if (!ctx.session?.user?.id) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Session required",
+          });
+        }
         const userSubmissions = await prisma?.transcripts.findMany({
           where: {
             AND: [

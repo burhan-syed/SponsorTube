@@ -29,12 +29,30 @@ const TranscriptEditWrapper = ({
 }: TranscriptEditWrapperProps) => {
   const [editToggled, setEditToggled] = useState(false);
   const [annotateToggled, setAnnotateToggled] = useState(false);
-  const getSegments = trpc.openai.getSegmentAnnotations.useMutation();
+
+  const utils = trpc.useContext();
+  const getSegments = trpc.openai.getSegmentAnnotations.useMutation({
+    async onSuccess() {
+      await utils.transcript.get.invalidate({
+        segmentUUID: transcript.segmentUUID,
+      });
+      setTabValue && setTabValue("generated");
+    },
+  });
 
   return (
     <div>
       <div className="flex items-center">
-        <button onClick={() => getSegments.mutate({ text: transcript.text })}>
+        <button
+          onClick={() =>
+            getSegments.mutate({
+              segmentUUID: transcript.segmentUUID,
+              transcript: transcript.text,
+              endTime: transcript.endTime,
+              startTime: transcript.startTime,
+            })
+          }
+        >
           test
         </button>
         <Tooltip text="annotate">
