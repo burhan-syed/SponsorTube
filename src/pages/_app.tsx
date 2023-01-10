@@ -8,20 +8,29 @@ import { trpc } from "../utils/trpc";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import Head from "next/head";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
   pageProps: { session, ...pageProps },
 }) => {
   return (
-    <CookiesProvider>
-      <SessionProvider session={session}>
-        <TooltipProvider>
-          <Component {...pageProps} />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </TooltipProvider>
-      </SessionProvider>
-    </CookiesProvider>
+    <>
+      <Head>
+        <meta
+          name="viewport"
+          content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover" //user-scalable="no"
+        />
+      </Head>
+      <CookiesProvider>
+        <SessionProvider session={session}>
+          <TooltipProvider>
+            <Component {...pageProps} />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </TooltipProvider>
+        </SessionProvider>
+      </CookiesProvider>
+    </>
   );
 };
 
