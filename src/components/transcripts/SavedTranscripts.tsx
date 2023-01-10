@@ -13,10 +13,12 @@ const SavedTranscripts = ({
   segmentUUID,
   userPosts = false,
   setTabValue,
+  seekTo
 }: {
   segmentUUID: string;
   userPosts?: boolean;
   setTabValue?(v: string): void;
+  seekTo(start: number, end: number): void;
 }) => {
   const { data: sessionData } = useSession();
   const savedTranscriptAnnotations = trpc.transcript.get.useQuery(
@@ -79,10 +81,8 @@ const SavedTranscripts = ({
               transcriptDetailsId: savedTranscripts.TranscriptDetails?.[0]?.id,
             }}
             setTabValue={setTabValue}
+            seekTo={seekTo}
           />
-          <span>
-            {savedTranscripts.startTime}:{savedTranscripts.endTime}
-          </span>
         </>
       ))}
     </div>

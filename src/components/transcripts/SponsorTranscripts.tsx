@@ -9,11 +9,13 @@ type SponsorTranscriptsProps = {
     base_url: string;
     language_code: string;
   }[];
+  seekTo(start: number, end: number): void;
 };
 
 const SponsorTranscripts = ({
   videoID,
   captionTracks,
+  seekTo,
 }: SponsorTranscriptsProps) => {
   const { segments, savedSegments } = useSponsorBlock({ videoID });
   const engCaptions = useMemo(
@@ -40,12 +42,13 @@ const SponsorTranscripts = ({
         <>
           {savedSegments.data.length > 0 ? (
             <>
-            {"saved segments"}
+              {"saved segments"}
               {savedSegments.data.map((segment) => (
                 <SegmentTranscript
                   key={segment.UUID}
                   segment={segment as unknown as Segment}
                   captionsURL={engCaptions?.[0]?.base_url ?? ""}
+                  seekTo={seekTo}
                 />
               ))}
             </>
@@ -61,6 +64,7 @@ const SponsorTranscripts = ({
                           key={segment.UUID}
                           segment={segment}
                           captionsURL={engCaptions?.[0]?.base_url ?? ""}
+                          seekTo={seekTo}
                         />
                       ))}
                     </>

@@ -6,6 +6,7 @@ import VideoInfo from "../components/ui/VideoInfo";
 import VideoEmbed from "../components/ui/VideoEmbed";
 import SponsorTranscripts from "../components/transcripts/SponsorTranscripts";
 import type { NextPage } from "next";
+import { useState } from "react";
 
 const Home: NextPage = () => {
   const router = useRouter();
@@ -22,6 +23,12 @@ const Home: NextPage = () => {
   );
   const getCaptions = trpc.video.testMutate.useMutation();
 
+  const [videoSeek, setVideoSeek] = useState<[number, number, number]>([
+    0, 0, 0,
+  ]);
+  const seekTo = (start: number, end: number) => {
+    setVideoSeek((p) => [(p?.[0] ?? 0) + 1, start, end]);
+  };
   console.log("videoInfos:", videoInfo.data);
   return (
     <>
@@ -39,10 +46,11 @@ const Home: NextPage = () => {
             <div className="flex flex-none flex-col lg:w-1/3">
               {videoInfo.data.basic_info.embed?.iframe_url && (
                 <VideoEmbed
-                  styles="outline-none w-full"
-                  iFrameSrc={videoInfo.data.basic_info.embed?.iframe_url}
+                  className="w-full outline-none"
+                  videoID={videoInfo.data.basic_info.id}
                   width={videoInfo.data.basic_info.embed?.width}
                   height={videoInfo.data.basic_info.embed?.height}
+                  videoSeek={videoSeek}
                 />
               )}
               <VideoInfo
@@ -76,6 +84,7 @@ const Home: NextPage = () => {
             <SponsorTranscripts
               videoID={videoID}
               captionTracks={videoInfo.data?.captions.caption_tracks}
+              seekTo={seekTo}
             />
           </div>
         </div>

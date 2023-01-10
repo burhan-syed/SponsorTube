@@ -10,10 +10,12 @@ const GeneratedTranscripts = ({
   segment,
   captionsURL,
   setTabValue,
+  seekTo,
 }: {
   segment: Segment;
   captionsURL: string;
   setTabValue?(v:string):void;
+  seekTo(start: number, end: number): void;
 }) => {
   const captions = useVideoCaptions({
     captionsURL: captionsURL,
@@ -56,11 +58,9 @@ const GeneratedTranscripts = ({
               annotations: savedTranscriptAnnotations.data?.[0]?.TranscriptDetails?.[0]?.Annotations
             }}
             setTabValue={setTabValue}
+            seekTo={seekTo}
           />
-          <span>
-            {sponsorSegmentTranscripts.transcriptStart}:
-            {sponsorSegmentTranscripts.transcriptEnd}
-          </span>
+          
         </>
       ) : (
         <>autogen transcripts missing</>

@@ -39,6 +39,7 @@
     "react-icons": "^4.6.0",
     "react-intersection-observer": "^9.4.0",
     "react-text-annotate-blend": "^1.1.0",
+    "react-youtube": "^10.1.0",
     "sponsorblock-api": "^0.2.2",
     "superjson": "1.9.1",
     "ts-node": "^10.9.1",

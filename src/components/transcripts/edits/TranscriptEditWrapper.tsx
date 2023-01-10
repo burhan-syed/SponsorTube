@@ -20,12 +20,14 @@ type Transcript = {
 };
 interface TranscriptEditWrapperProps {
   transcript: Transcript;
+  seekTo(start: number, end: number): void;
   setTabValue?(v: string): void;
 }
 
 const TranscriptEditWrapper = ({
   transcript,
   setTabValue,
+  seekTo,
 }: TranscriptEditWrapperProps) => {
   const [editToggled, setEditToggled] = useState(false);
   const [annotateToggled, setAnnotateToggled] = useState(false);
@@ -99,6 +101,21 @@ const TranscriptEditWrapper = ({
           setTabValue={setTabValue}
         />
       </div>
+      <span>
+        {transcript.startTime && transcript.endTime && (
+          <button
+            onClick={() =>
+              seekTo(
+                transcript.startTime as number,
+                transcript.endTime as number
+              )
+            }
+          >
+            play
+          </button>
+        )}
+        {transcript.startTime}:{transcript.endTime}
+      </span>
     </div>
   );
 };

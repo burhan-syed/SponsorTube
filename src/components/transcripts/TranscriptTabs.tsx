@@ -9,15 +9,17 @@ import { useSession } from "next-auth/react";
 const TranscriptTabs = ({
   segment,
   captionsURL,
+  seekTo,
 }: {
   segment: Segment;
   captionsURL: string;
+  seekTo(start: number, end: number): void;
 }) => {
   //load these prior to tab focus
   const savedTranscriptAnnotations = trpc.transcript.get.useQuery(
     {
       segmentUUID: segment.UUID,
-      userPosts: false,
+      mode: "score",
     },
     {
       enabled: !!segment.UUID,
@@ -25,7 +27,7 @@ const TranscriptTabs = ({
   );
 
   const [tabValue, setTabValue] = useState<string>("");
-  const { data: sessionData } = useSession()
+  const { data: sessionData } = useSession();
 
   useEffect(() => {
     if (
@@ -48,7 +50,7 @@ const TranscriptTabs = ({
 
   if (savedTranscriptAnnotations.isInitialLoading || !tabValue) {
     return (
-      <div className="h-10 w-full animate-pulse bg-gray-500">loading...</div>
+      <div className="bg-gray-500 h-10 w-full animate-pulse">loading...</div>
     );
   }
 
@@ -84,6 +86,7 @@ const TranscriptTabs = ({
         <SavedTranscripts
           segmentUUID={segment.UUID}
           setTabValue={setTabValue}
+          seekTo={seekTo}
         />
       </Tabs.Content>
       <Tabs.Content value="user">
@@ -91,6 +94,7 @@ const TranscriptTabs = ({
           segmentUUID={segment.UUID}
           userPosts={true}
           setTabValue={setTabValue}
+          seekTo={seekTo}
         />
       </Tabs.Content>
       <Tabs.Content value="generated">
@@ -98,6 +102,7 @@ const TranscriptTabs = ({
           segment={segment}
           captionsURL={captionsURL}
           setTabValue={setTabValue}
+          seekTo={seekTo}
         />
       </Tabs.Content>
     </Tabs.Root>
