@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 
 import Toggle from "../../ui/common/Toggle";
-import { MdAdd, MdEditNote } from "react-icons/md";
+import { MdEditNote } from "react-icons/md";
+import { BsInputCursorText } from "react-icons/bs";
 import type { TranscriptAnnotations } from "@prisma/client";
 import TranscriptAnnotator from "./TranscriptAnnotator";
 import Tooltip from "../../ui/common/Tooltip";
@@ -62,15 +63,15 @@ const TranscriptEditWrapper = ({
             pressed={annotateToggled}
             onPressedChange={(p) => setAnnotateToggled(p)}
           >
-            <MdAdd />
+            <MdEditNote />
           </Toggle>
         </Tooltip>
-        <Tooltip text="edit">
+        <Tooltip text="edit text">
           <Toggle
             pressed={editToggled}
             onPressedChange={(p) => setEditToggled(p)}
           >
-            <MdEditNote />
+            <BsInputCursorText />
           </Toggle>
         </Tooltip>
       </div>
