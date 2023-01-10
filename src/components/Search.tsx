@@ -58,7 +58,7 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
               setSearchTerm("");
               inputRef.current?.focus();
             }}
-            className="absolute -right-2 mr-2 rounded-full p-4 hover:bg-th-additiveBackgroundA10"
+            className="absolute -right-2 mr-2 rounded-full p-4 hover:bg-th-additiveBackground hover:bg-opacity-10"
           >
             <TfiClose className="h-4 w-4" />
           </Button>

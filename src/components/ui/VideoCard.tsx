@@ -84,7 +84,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
           )}
 
           <p className="text-xs">{video.snippets?.[0]?.text?.text}</p>
-          <div className="w-full rounded-full bg-th-additiveBackgroundA05 text-sm">
+          <div className="w-full rounded-full bg-th-additiveBackground bg-opacity-5 text-sm">
             {segments.isLoading
               ? "checking for segments.."
               : segments.data

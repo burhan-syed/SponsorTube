@@ -7,20 +7,31 @@ body {
 }
 
 :root {
-  --textPrimary: #030303;
-  --textPrimaryInverse: #ffffff;
-  --textSecondary: #606060;
-  --textDisabled: #909090;
-  --baseBackground: #ffffff;
-  --raisedBackground: #ffffff;
-  --menuBackground: #ffffff;
-  --generalBackgroundA: #f9f9f9;
-  --generalBackgroundB: #f1f1f1;
-  --generalBackgroundC: #e9e9e9;
-  --errorBackground: #181818;
-  --invertedBackground: #0f0f0f;
-  --additiveBackgroundA05: rgba(0, 0, 0, 0.05);
-  --additiveBackgroundA10: rgba(0, 0, 0, 0.1);
+  --textPrimary: 3, 3, 3;
+  --textPrimaryInverse: 255, 255, 255;
+  --textSecondary: 96, 96, 96;
+  --textDisabled: 144, 144, 144;
+  --baseBackground: 255, 255, 255;
+  --raisedBackground: 255, 255, 255;
+  --menuBackground: 255, 255, 255;
+  --generalBackgroundA: 249, 249, 249;
+  --generalBackgroundB: 241, 241, 241;
+  --generalBackgroundC: 233, 233, 233;
+  --errorBackground: 24, 24, 24;
+  --invertedBackground: 15, 15, 15;
+  --additiveBackground: 0, 0, 0;
+  --searchBorder: 204, 204, 204;
+  --searchBorderFocus: 28, 98, 185;
+  --searchButton: 248, 248, 248;
+  --searchButtonBorder: 211, 211, 211;
+  --searchButtonFocus: 233, 233, 233;
+  --searchButtonHover: 240, 240, 240;
+  --searchButtonBorderHover: 198, 198, 198;
+  --callToAction: 6, 95, 212;
+  --callToActionInverse: 6, 95, 212;
+  --suggestedAction: 222, 241, 255;
+  --suggestedActionInverse: 38, 56, 80;
+
   --chipBackground: rgba(0, 0, 0, 0.05);
   --chipBackgroundHover: rgba(0, 0, 0, 0.1);
   --verifiedBadgeBackground: rgba(0, 0, 0, 0.15);
@@ -28,16 +39,5 @@ body {
   --shadow: rgba(0, 0, 0, 0.25);
   --touchResponse: rgba(0, 0, 0, 0.05);
   --searchBackground: hsl(0, 0%, 100%);
-  --searchBorder: #cccccc;
-  --searchBorderFocus: #1c62b9;
   --searchText: hsl(0, 0%, 6.7%);
-  --searchButton: #f8f8f8;
-  --searchButtonBorder: #d3d3d3;
-  --searchButtonFocus: #e9e9e9;
-  --searchButtonHover: #f0f0f0;
-  --searchButtonBorderHover: #c6c6c6;
-  --callToAction: #065fd4;
-  --callToActionInverse: #065fd4;
-  --suggestedAction: #def1ff;
-  --suggestedActionInverse: #263850;
 }

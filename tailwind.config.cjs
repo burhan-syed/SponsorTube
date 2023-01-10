@@ -1,45 +1,55 @@
 /** @type {import('tailwindcss').Config} */
+
+function withOpacity(variableName) {
+  return ({ opacityValue }) => {
+    if (opacityValue !== undefined) {
+      return `rgba(var(${variableName}), ${opacityValue})`;
+    }
+    return `rgb(var(${variableName}))`;
+  };
+}
+
 module.exports = {
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       boxShadow: {
-        "searchFocusShadow": "inset 0 1px 2px",
-        "searchShadow": "inset 0 1px 2px"
-      }
+        searchFocusShadow: "inset 0 1px 2px",
+        searchShadow: "inset 0 1px 2px",
+      },
     },
     colors: {
-      "transparent": "transparent",
-      "white": "#FFFFFF",
-      "th-textPrimary": "var(--textPrimary)",
-      "th-textPrimaryInverse": "var(--textPrimaryInverse)",
-      "th-textSecondary": "var(--textSecondary)",
-      "th-textDisabled": "var(--textDisabled)",
-      "th-baseBackground": "var(--baseBackground)",
-      "th-raisedBackground": "var(--raisedBackground)",
-      "th-menuBackground": "var(--menuBackground)",
-      "th-generalBackgroundA": "var(--generalBackgroundA)",
-      "th-generalBackgroundB": "var(--generalBackgroundB)",
-      "th-generalBackgroundC": "var(--generalBackgroundC)",
-      "th-errorBackground": "var(--errorBackground)",
-      "th-invertedBackground": "var(--invertedBackground)",
-      "th-additiveBackgroundA05": "var(--additiveBackgroundA05)",
-      "th-additiveBackgroundA10": "var(--additiveBackgroundA10)",
+      transparent: "transparent",
+      white: "white",
+      "th-textPrimary": withOpacity("--textPrimary"),
+      "th-textPrimaryInverse": withOpacity("--textPrimaryInverse"),
+      "th-textSecondary": withOpacity("--textSecondary"),
+      "th-textDisabled": withOpacity("--textDisabled"),
+      "th-baseBackground": withOpacity("--baseBackground"),
+      "th-raisedBackground": withOpacity("--raisedBackground"),
+      "th-menuBackground": withOpacity("--menuBackground"),
+      "th-generalBackgroundA": withOpacity("--generalBackgroundA"),
+      "th-generalBackgroundB": withOpacity("--generalBackgroundB"),
+      "th-generalBackgroundC": withOpacity("--generalBackgroundC"),
+      "th-errorBackground": withOpacity("--errorBackground"),
+      "th-invertedBackground": withOpacity("--invertedBackground"),
+      "th-additiveBackground": withOpacity("--additiveBackground"),
+      "th-searchText": "var(--searchText)",
+      "th-searchBorder": withOpacity("--searchBorder"),
+      "th-searchBorderFocus": withOpacity("--searchBorderFocus"),
+      "th-searchButton": withOpacity("--searchButton"),
+      "th-searchButtonBorder": withOpacity("--searchButtonBorder"),
+      "th-searchButtonFocus": withOpacity("--searchButtonFocus"),
+      "th-searchButtonHover": withOpacity("--searchButtonHover"),
+      "th-searchButtonBorderHover": withOpacity("--searchButtonBorderHover"),
+
       "th-chipBackground": "var(--chipBackground)",
       "th-chipBackgroundHover": "var(--chipBackgroundHover)",
       "th-verifiedBadgeBackground": "var(--verifiedBadgeBackground)",
       "th-outline": "var(--outline)",
       "th-shadow": "var(--shadow)",
       "th-touchResponse": "var(--touchResponse)",
-      "th-searchBackground": "var(--searchBackground)", 
-      "th-searchText": "var(--searchText)",
-      "th-searchBorder": "var(--searchBorder)", 
-      "th-searchBorderFocus": "var(--searchBorderFocus)",
-      "th-searchButton": "var(--searchButton)",
-      "th-searchButtonBorder": "var(--searchButtonBorder)",
-      "th-searchButtonFocus": "var(--searchButtonFocus)",
-      "th-searchButtonHover": "var(--searchButtonHover)",
-      "th-searchButtonBorderHover": "var(--searchButtonBorderHover)",
+      "th-searchBackground": "var(--searchBackground)",
     },
   },
   plugins: [],
