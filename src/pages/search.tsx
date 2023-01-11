@@ -26,9 +26,9 @@ const SearchPage = () => {
       <Header searchInitialValue={searchQuery} />
       {searchResults.isLoading ? (
         "Loading.."
-      ) : searchResults.data ? (
+      ) : searchResults?.data ? (
         <div className="flex flex-col gap-2">
-          {searchResults.data.channels.map((channel) => (
+          {searchResults?.data?.channels?.map((channel) => (
             <ChannelCard key={channel.id} channel={channel} />
           ))}
           {searchResults.data.videos?.map((video, i) => (
