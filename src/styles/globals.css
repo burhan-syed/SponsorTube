@@ -2,8 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+html {
   overflow-x: hidden;
+  font-size: 62.5%;
+}
+
+body {
+  @apply text-base;
 }
 
 :root {
