@@ -38,7 +38,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
-      <main className="p-4">
+      <div className="p-4">
         <div className="flex flex-col gap-2 lg:flex-row">
           {videoInfo.isLoading ? (
             <>{"loading.."}</>
@@ -102,7 +102,7 @@ const Home: NextPage = () => {
         >
           get mutations
         </button>
-      </main>
+      </div>
     </>
   );
 };

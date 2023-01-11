@@ -16,14 +16,14 @@ export const searchRouter = router({
     .input(z.object({ searchQuery: z.string() }))
     .query(async ({ input }) => {
       const queryResults = await ytSearchQuery({ query: input.searchQuery });
-      const queryResultVideos = queryResults.videos.filterType(Video)
+      const queryResultVideos = queryResults?.videos?.filterType(Video)
       .map((v) => ({
         ...v,
         //'thumbnails' property is not appearing on client...? Workaround:
         video_thumbnail: v.thumbnails?.[0],
       }));
   
-      const queryResultChannels = queryResults.channels.filterType(Channel);
+      const queryResultChannels = queryResults?.channels?.filterType(Channel);
       return {
         videos: queryResultVideos,
         channels: queryResultChannels,

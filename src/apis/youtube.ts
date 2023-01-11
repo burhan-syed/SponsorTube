@@ -7,13 +7,19 @@ export const getVideoInfo = async ({ videoID }: { videoID: string }) => {
 };
 
 export const ytSearchQuery = async ({ query }: { query: string }) => {
-  const yt = await Innertube.create();
-  const details = await yt.search(query);
-  return details;
+  console.log("s?", query);
+  try {
+    const yt = await Innertube.create({});
+    const details = await yt.search(query);
+    console.log("D?", details);
+    return details;
+  } catch (err) {
+    console.log("ERR:", err);
+  }
 };
 
-export const getChannel = async ({channelID}: {channelID: string} ) => {
-  const yt = await Innertube.create(); 
+export const getChannel = async ({ channelID }: { channelID: string }) => {
+  const yt = await Innertube.create();
   const channel = await yt.getChannel(channelID);
-  return  channel;
-}
+  return channel;
+};

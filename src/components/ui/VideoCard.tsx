@@ -52,7 +52,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
 
         <div className="flex-col">
           <div className="">
-            <h3 className="text-base text-th-textPrimary">
+            <h3 className="text-base text-th-textPrimary font-semibold">
               <Link href={`/video?v=${video.id}`}>
                 {video.title?.text}
               </Link>

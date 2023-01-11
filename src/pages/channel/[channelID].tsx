@@ -33,14 +33,14 @@ const ChannelPage: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
-      <main>
+      <div>
         {channel.data?.channelHeader && (
           <ChannelHeader channel={channel.data?.channelHeader} />
         )}
         {channel.data?.channelVideos.map((video) => (
           <VideoCard key={video.id} video={video} />
         ))}
-      </main>
+      </div>
     </>
   );
 };
@@ -63,7 +63,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   } catch (err) {
     //channel with id does not exist
     const search = await await ytSearchQuery({ query: channelID });
-    const channel = search.channels[0]?.author.id;
+    const channel = search?.channels[0]?.author.id;
     if (channel) {
       return {
         redirect: {
