@@ -46,7 +46,6 @@ const VideoInfo = ({
         <div className="flex items-center">
           {channelThumbnail ? (
             <Link href={`/channel/${channelID}`}>
-              <a>
                 <Image
                   src={channelThumbnail}
                   unoptimized={true}
@@ -54,7 +53,6 @@ const VideoInfo = ({
                   width={40}
                   height={40}
                 ></Image>
-              </a>
             </Link>
           ) : (
             <div></div>
@@ -62,7 +60,7 @@ const VideoInfo = ({
           <div className="">
             <div className="flex text-th-textSecondary">
               <Link href={`/channel/${channelID}`}>
-                <a>{channelName}</a>
+                {channelName}
               </Link>
               {channelIsVerifiedArtist ? (
                 <div>{"(artist)"}</div>

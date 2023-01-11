@@ -11,8 +11,7 @@ type ChannelCardProps = {
 const ChannelCard = ({ channel }: ChannelCardProps) => {
   const thumbnail = channel.author.thumbnails?.[0];
   return (
-    <Link href={`/channel/${channel.id}`}>
-      <a className="flex items-center hover:cursor-pointer text-th-textSecondary text-xs">
+    <Link href={`/channel/${channel.id}`} className="flex items-center hover:cursor-pointer text-th-textSecondary text-xs">
         <div className="flex aspect-video w-80 flex-none items-center justify-center overflow-hidden rounded-2xl">
           <div className="h-32 w-32 overflow-hidden rounded-full">
             {thumbnail?.url && (
@@ -38,7 +37,6 @@ const ChannelCard = ({ channel }: ChannelCardProps) => {
 
           <p>{channel.description_snippet.text}</p>
         </div>
-      </a>
     </Link>
   );
 };
