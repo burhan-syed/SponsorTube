@@ -9,12 +9,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import Head from "next/head";
-import { Roboto, Roboto_Mono } from "@next/font/google";
-const roboto = Roboto({ subsets: ["latin"], weight: "400" });
-const roboto_mono = Roboto_Mono({
-  subsets: ["latin"],
-  variable: "--font-roboto-mono",
-});
+
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
   pageProps: { session, ...pageProps },
@@ -27,7 +22,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
           content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover" //user-scalable="no"
         />
       </Head>
-      <main className={`${roboto.className}`}>
+      <main>
         <CookiesProvider>
           <SessionProvider session={session}>
             <TooltipProvider>

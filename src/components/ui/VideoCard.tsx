@@ -38,7 +38,8 @@ const VideoCard = ({ video }: VideoCardProps) => {
           "flex  items-start rounded-lg p-2 text-xs text-th-textSecondary"
         }
       >
-        <Link href={`/video?v=${video.id}`} className="bg-gray-600 aspect-video w-80 flex-none overflow-hidden rounded-2xl">
+        <Link href={`/video?v=${video.id}`}>
+          <a className="bg-gray-600 aspect-video w-80 flex-none overflow-hidden rounded-2xl">
             {videoThumbnail?.url && (
               <Image
                 src={videoThumbnail?.url}
@@ -48,13 +49,14 @@ const VideoCard = ({ video }: VideoCardProps) => {
                 unoptimized={true}
               />
             )}
+          </a>
         </Link>
 
         <div className="flex-col">
           <div className="">
-            <h3 className="text-base text-th-textPrimary font-semibold">
+            <h3 className="text-base font-semibold text-th-textPrimary">
               <Link href={`/video?v=${video.id}`}>
-                {video.title?.text}
+                <a>{video.title?.text}</a>
               </Link>
             </h3>
             <span>
@@ -63,7 +65,8 @@ const VideoCard = ({ video }: VideoCardProps) => {
             </span>
           </div>
           {video.author.id && video.author.id !== "N/A" && (
-            <Link href={`/channel/${video.author.id}`} className="flex">
+            <Link href={`/channel/${video.author.id}`}>
+              <a className="flex">
                 <div className="h-6 w-6 flex-none overflow-hidden rounded-full">
                   {video.author.thumbnails?.[0]?.url && (
                     <Image
@@ -76,6 +79,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
                   )}
                 </div>
                 <span>{video.author.name}</span>
+              </a>
             </Link>
           )}
 

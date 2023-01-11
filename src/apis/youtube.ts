@@ -7,11 +7,11 @@ export const getVideoInfo = async ({ videoID }: { videoID: string }) => {
 };
 
 export const ytSearchQuery = async ({ query }: { query: string }) => {
-  console.log("s?", query);
+  // console.log("s?", query);
   try {
     const yt = await Innertube.create({});
     const details = await yt.search(query);
-    console.log("D?", details);
+    // console.log("D?", details);
     return details;
   } catch (err) {
     console.log("ERR:", err);

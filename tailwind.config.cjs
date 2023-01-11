@@ -1,4 +1,8 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /** @type {import('tailwindcss').Config} */
+
+// import defaultTheme from 'tailwindcss/defaultTheme'
+const defaultTheme = require('tailwindcss/defaultTheme')
 
 function withOpacity(variableName) {
   return ({ opacityValue }) => {
@@ -51,6 +55,10 @@ module.exports = {
         72: "28.8rem",
         80: "32.0rem",
         96: "38.4rem",
+      },
+      fontFamily: {
+        'sans': ['Roboto', ...defaultTheme.fontFamily.sans],
+        'mono': ['Roboto Mono', ...defaultTheme.fontFamily.mono]
       },
     },
     colors: {
