@@ -68,11 +68,11 @@ const VideoDescription = ({
                 )}
               >
                 {run.text}
-                {i === INITIALDESCRIPTIONRUNS - 1 &&
+                {/* {i === INITIALDESCRIPTIONRUNS - 1 &&
                   !expandVideoDescription &&
                   descriptionRuns?.length > INITIALDESCRIPTIONRUNS && (
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-white"></div>
-                  )}
+                  )} */} 
               </span>
             </>
           ))}

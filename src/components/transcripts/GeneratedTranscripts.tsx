@@ -14,7 +14,7 @@ const GeneratedTranscripts = ({
 }: {
   segment: Segment;
   captionsURL: string;
-  setTabValue?(v:string):void;
+  setTabValue?(v: string): void;
   seekTo(start: number, end: number): void;
 }) => {
   const captions = useVideoCaptions({
@@ -30,40 +30,57 @@ const GeneratedTranscripts = ({
       mode: "generated",
     },
     {
-      enabled: !!segment.UUID
+      enabled: !!segment.UUID,
     }
   );
-  return (
-    <div className="bg-blue-50 p-4">
-      <span>generated</span>
-      {sponsorSegmentTranscripts ? (
-        <>
-         {savedTranscriptAnnotations?.data?.[0]?.TranscriptDetails?.[0]?.id && (
-            <TranscriptVote
-              transcriptDetailsId={savedTranscriptAnnotations?.data?.[0]?.TranscriptDetails?.[0]?.id}
-              initialDirection={
-                savedTranscriptAnnotations?.data?.[0]?.TranscriptDetails?.[0]?.Votes?.[0]
-                  ?.direction ?? 0
-              }
-              transcriptId={savedTranscriptAnnotations?.data?.[0]?.id}
-            />
-          )}
+
+  const TranscriptEditLoadWrapper = (
+    <>
+      {sponsorSegmentTranscripts.isLoading ? (
+        <div className="h-32 w-full animate-pulse rounded-lg bg-th-additiveBackground bg-opacity-5"></div>
+      ) : (
+        sponsorSegmentTranscripts.data ? (
           <TranscriptEditWrapper
             key={`${segment.UUID}_default`}
             transcript={{
               segmentUUID: segment.UUID,
-              text: sponsorSegmentTranscripts.transcript,
-              startTime: sponsorSegmentTranscripts.transcriptStart,
-              endTime: sponsorSegmentTranscripts.transcriptEnd,
-              annotations: savedTranscriptAnnotations.data?.[0]?.TranscriptDetails?.[0]?.Annotations
+              text: sponsorSegmentTranscripts.data.transcript,
+              startTime: sponsorSegmentTranscripts.data.transcriptStart,
+              endTime: sponsorSegmentTranscripts.data.transcriptEnd,
+              annotations:
+                savedTranscriptAnnotations.data?.[0]?.TranscriptDetails?.[0]
+                  ?.Annotations,
             }}
             setTabValue={setTabValue}
             seekTo={seekTo}
           />
-          
-        </>
+        ) : <>missing transcript data</>
+      )}
+    </>
+  );
+
+  return (
+    <div className="bg-blue-50 p-4">
+      {savedTranscriptAnnotations.isLoading ? (
+        <div className="h-32 w-full animate-pulse rounded-lg bg-th-additiveBackground bg-opacity-5"></div>
       ) : (
-        <>autogen transcripts missing</>
+        <>
+          {savedTranscriptAnnotations?.data?.[0]?.TranscriptDetails?.[0]
+            ?.id && (
+            <TranscriptVote
+              transcriptDetailsId={
+                savedTranscriptAnnotations?.data?.[0]?.TranscriptDetails?.[0]
+                  ?.id
+              }
+              initialDirection={
+                savedTranscriptAnnotations?.data?.[0]?.TranscriptDetails?.[0]
+                  ?.Votes?.[0]?.direction ?? 0
+              }
+              transcriptId={savedTranscriptAnnotations?.data?.[0]?.id}
+            />
+          )}
+          {TranscriptEditLoadWrapper}
+        </>
       )}
     </div>
   );

@@ -14,30 +14,30 @@ body {
 }
 
 :root {
-  --textPrimary: 3, 3, 3;
-  --textPrimaryInverse: 255, 255, 255;
-  --textSecondary: 96, 96, 96;
-  --textDisabled: 144, 144, 144;
-  --baseBackground: 255, 255, 255;
-  --raisedBackground: 255, 255, 255;
-  --menuBackground: 255, 255, 255;
-  --generalBackgroundA: 249, 249, 249;
-  --generalBackgroundB: 241, 241, 241;
-  --generalBackgroundC: 233, 233, 233;
-  --errorBackground: 24, 24, 24;
-  --invertedBackground: 15, 15, 15;
-  --additiveBackground: 0, 0, 0;
-  --searchBorder: 204, 204, 204;
-  --searchBorderFocus: 28, 98, 185;
-  --searchButton: 248, 248, 248;
-  --searchButtonBorder: 211, 211, 211;
-  --searchButtonFocus: 233, 233, 233;
-  --searchButtonHover: 240, 240, 240;
-  --searchButtonBorderHover: 198, 198, 198;
-  --callToAction: 6, 95, 212;
-  --callToActionInverse: 6, 95, 212;
-  --suggestedAction: 222, 241, 255;
-  --suggestedActionInverse: 38, 56, 80;
+  --textPrimary: 3, 3, 3; /*rgba(3,3,3)*/
+  --textPrimaryInverse: 255, 255, 255; /*rgba(255, 255, 255)*/
+  --textSecondary: 96, 96, 96; /*rgba(96, 96, 96)*/
+  --textDisabled: 144, 144, 144; /*rgba(144, 144, 144)*/
+  --baseBackground: 255, 255, 255; /*rgba(255, 255, 255)*/
+  --raisedBackground: 255, 255, 255; /*rgba(255, 255, 255)*/
+  --menuBackground: 255, 255, 255; /*rgba(255, 255, 255)*/
+  --generalBackgroundA: 249, 249, 249; /*rgba(249, 249, 249)*/
+  --generalBackgroundB: 241, 241, 241; /*rgba(241, 241, 241)*/
+  --generalBackgroundC: 233, 233, 233; /*rgba(233, 233, 233)*/
+  --errorBackground: 24, 24, 24; /*rgba(24, 24, 24)*/
+  --invertedBackground: 15, 15, 15; /*rgba(15, 15, 15)*/
+  --additiveBackground: 0, 0, 0; /*rgba(0, 0, 0)*/
+  --searchBorder: 204, 204, 204; /*rgba(204, 204, 204)*/
+  --searchBorderFocus: 28, 98, 185; /*rgba(28, 98, 185)*/
+  --searchButton: 248, 248, 248; /*rgba(248, 248, 248)*/
+  --searchButtonBorder: 211, 211, 211; /*rgba(211, 211, 211)*/
+  --searchButtonFocus: 233, 233, 233; /*rgba(233, 233, 233)*/
+  --searchButtonHover: 240, 240, 240; /*rgba(240, 240, 240)*/
+  --searchButtonBorderHover: 198, 198, 198; /*rgba(198, 198, 198)*/
+  --callToAction: 6, 95, 212; /*rgba(6, 95, 212)*/
+  --callToActionInverse: 6, 95, 212; /*rgba(6, 95, 212)*/
+  --suggestedAction: 222, 241, 255; /*rgba(222, 241, 255)*/
+  --suggestedActionInverse: 38, 56, 80; /*rgba(38, 56, 80)*/
 
   --chipBackground: rgba(0, 0, 0, 0.05);
   --chipBackgroundHover: rgba(0, 0, 0, 0.1);

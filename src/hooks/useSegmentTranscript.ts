@@ -14,60 +14,33 @@ const useSegmentTranscript = ({
   sponsorSegment?: Segment;
 }) => {
   const [sponsorSegmentTranscripts, setSponsorSegmentTranscripts] = useState<{
-    // [x: string]: {
-    UUID: string;
-    transcript: string;
-    runs?: (string | null)[];
-    transcriptStart: number;
-    transcriptEnd: number;
-    // };
-  }>();
+    isLoading: boolean; 
+    isError: boolean; 
+    data?: {
+      UUID: string;
+      transcript: string;
+      runs?: (string | null)[];
+      transcriptStart: number;
+      transcriptEnd: number;
+    }
+  }>({isLoading: true, isError: false});
 
   useEffect(() => {
     if (videoCaptions && sponsorSegment) {
       setSponsorSegmentTranscripts(() => ({
-        UUID: sponsorSegment.UUID,
-        ...getTranscriptsInTime({
-          transcripts: videoCaptions,
-          times: {
-            startTimeMS: sponsorSegment.startTime,
-            endTimeMS: sponsorSegment.endTime,
-          },
-        }),
+        isLoading: false,
+        isError: false,
+        data: {
+          UUID: sponsorSegment.UUID,
+          ...getTranscriptsInTime({
+            transcripts: videoCaptions,
+            times: {
+              startTimeMS: sponsorSegment.startTime,
+              endTimeMS: sponsorSegment.endTime,
+            },
+          })
+        }
       }));
-      // sponsorSegments.forEach((segment) => {
-      //   (p) => {
-      //     if (!p) {
-      //       return {
-      //         [segment.UUID]: {
-      //           UUID: sponsorSegment.UUID,
-      //           ...getTranscriptsInTime({
-      //             transcripts: videoCaptions,
-      //             times: {
-      //               startTimeMS: sponsorSegment.startTime,
-      //               endTimeMS: sponsorSegment.endTime,
-      //             },
-      //           }),
-      //         // },
-      //       };
-      //     } else {
-      //       return {
-      //         ...p,
-      //         [segment.UUID]: {
-      //           UUID: sponsorSegment.UUID,
-      //           ...getTranscriptsInTime({
-      //             transcripts: videoCaptions,
-      //             times: {
-      //               startTimeMS: sponsorSegment.startTime,
-      //               endTimeMS: sponsorSegment.endTime,
-      //             },
-      //           }),
-      //         },
-      //       };
-      //     }
-      //   }
-      // );
-      // });
     }
   }, [videoCaptions, sponsorSegment]);
 

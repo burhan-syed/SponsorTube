@@ -13,7 +13,7 @@ const SavedTranscripts = ({
   segmentUUID,
   userPosts = false,
   setTabValue,
-  seekTo
+  seekTo,
 }: {
   segmentUUID: string;
   userPosts?: boolean;
@@ -33,58 +33,75 @@ const SavedTranscripts = ({
 
   return (
     <div className="bg-green-50 p-4">
-      {savedTranscriptAnnotations.isLoading
+      {/* {savedTranscriptAnnotations.isLoading
         ? "waiting for db transcripts.."
         : savedTranscriptAnnotations?.data
         ? `db transcripts: ${savedTranscriptAnnotations.data?.length}`
         : savedTranscriptAnnotations.error
         ? "error fetching db transcripts"
-        : "something went wrong fetching db transcripts"}
-      <span>saved</span>
-      {savedTranscriptAnnotations?.data?.map((savedTranscripts) => (
+        : "something went wrong fetching db transcripts"} */}
+      {/* <span>saved</span> */}
+      {savedTranscriptAnnotations.isLoading ? (
+        <div className="h-32 w-full animate-pulse rounded-lg bg-th-additiveBackground bg-opacity-5"></div>
+      ) : savedTranscriptAnnotations.data ? (
         <>
-          {`(details id: ${savedTranscripts.TranscriptDetails?.[0]?.id} [${savedTranscripts.TranscriptDetails?.[0]?.score} | ${savedTranscripts.score}])`}
-          {savedTranscripts.TranscriptDetails?.[0]?.id && (
-            <TranscriptVote
-              transcriptDetailsId={savedTranscripts.TranscriptDetails?.[0]?.id}
-              initialDirection={
-                savedTranscripts.TranscriptDetails?.[0]?.Votes?.[0]
-                  ?.direction ?? 0
-              }
-              transcriptId={savedTranscripts.id}
-            />
-          )}
-          {sessionData &&
-            sessionData.user?.id &&
-            sessionData.user?.id ===
-              (savedTranscripts.TranscriptDetails?.[0]?.userId ??
-                savedTranscripts?.userId) && (
-              <TranscriptDelete
-                segmentUUID={segmentUUID}
-                transcriptId={savedTranscripts.id}
-                transcriptDetailsId={
-                  savedTranscripts.TranscriptDetails?.[0]?.id
-                }
-              />
-            )}
+          {savedTranscriptAnnotations.data.length > 0 ? (
+            <>
+              {savedTranscriptAnnotations?.data?.map((savedTranscripts) => (
+                <>
+                  {`(details id: ${savedTranscripts.TranscriptDetails?.[0]?.id} [${savedTranscripts.TranscriptDetails?.[0]?.score} | ${savedTranscripts.score}])`}
+                  {savedTranscripts.TranscriptDetails?.[0]?.id && (
+                    <TranscriptVote
+                      transcriptDetailsId={
+                        savedTranscripts.TranscriptDetails?.[0]?.id
+                      }
+                      initialDirection={
+                        savedTranscripts.TranscriptDetails?.[0]?.Votes?.[0]
+                          ?.direction ?? 0
+                      }
+                      transcriptId={savedTranscripts.id}
+                    />
+                  )}
+                  {sessionData &&
+                    sessionData.user?.id &&
+                    sessionData.user?.id ===
+                      (savedTranscripts.TranscriptDetails?.[0]?.userId ??
+                        savedTranscripts?.userId) && (
+                      <TranscriptDelete
+                        segmentUUID={segmentUUID}
+                        transcriptId={savedTranscripts.id}
+                        transcriptDetailsId={
+                          savedTranscripts.TranscriptDetails?.[0]?.id
+                        }
+                      />
+                    )}
 
-          <TranscriptEditWrapper
-            key={savedTranscripts.id}
-            transcript={{
-              segmentUUID: segmentUUID,
-              text: savedTranscripts.text,
-              startTime: savedTranscripts?.startTime,
-              endTime: savedTranscripts?.endTime,
-              annotations:
-                savedTranscripts?.TranscriptDetails?.[0]?.Annotations,
-              id: savedTranscripts.id,
-              transcriptDetailsId: savedTranscripts.TranscriptDetails?.[0]?.id,
-            }}
-            setTabValue={setTabValue}
-            seekTo={seekTo}
-          />
+                  <TranscriptEditWrapper
+                    key={savedTranscripts.id}
+                    transcript={{
+                      segmentUUID: segmentUUID,
+                      text: savedTranscripts.text,
+                      startTime: savedTranscripts?.startTime,
+                      endTime: savedTranscripts?.endTime,
+                      annotations:
+                        savedTranscripts?.TranscriptDetails?.[0]?.Annotations,
+                      id: savedTranscripts.id,
+                      transcriptDetailsId:
+                        savedTranscripts.TranscriptDetails?.[0]?.id,
+                    }}
+                    setTabValue={setTabValue}
+                    seekTo={seekTo}
+                  />
+                </>
+              ))}
+            </>
+          ) : (
+            <>no saved transcripts</>
+          )}
         </>
-      ))}
+      ) : (
+        <>?</>
+      )}
     </div>
   );
 };

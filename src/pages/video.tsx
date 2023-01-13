@@ -7,8 +7,9 @@ import VideoEmbed from "../components/ui/VideoEmbed";
 import SponsorTranscripts from "../components/transcripts/SponsorTranscripts";
 import type { NextPage } from "next";
 import { useState } from "react";
+import VideoPageLoader from "@/components/ui/loaders/VideoPageLoader";
 
-const Home: NextPage = () => {
+const Home: NextPage = ({}) => {
   const router = useRouter();
   const { v } = router.query;
   const videoID = (Array.isArray(v) ? v?.[0] : v) ?? "";
@@ -29,7 +30,7 @@ const Home: NextPage = () => {
   const seekTo = (start: number, end: number) => {
     setVideoSeek((p) => [(p?.[0] ?? 0) + 1, start, end]);
   };
-  console.log("videoInfos:", videoInfo.data);
+  console.log("videoInfos?");
   return (
     <>
       <Head>
@@ -41,46 +42,50 @@ const Home: NextPage = () => {
       <div className="p-4">
         <div className="flex flex-col gap-2 lg:flex-row">
           {videoInfo.isLoading ? (
-            <>{"loading.."}</>
+            <>
+              <VideoPageLoader />
+            </>
           ) : videoInfo.data ? (
-            <div className="flex flex-none flex-col lg:w-1/3">
-              {videoInfo.data.basic_info.embed?.iframe_url && (
-                <VideoEmbed
-                  className="w-full outline-none"
-                  videoID={videoInfo.data.basic_info.id}
-                  width={videoInfo.data.basic_info.embed?.width}
-                  height={videoInfo.data.basic_info.embed?.height}
-                  videoSeek={videoSeek}
+            <>
+              <div className="flex flex-none flex-col lg:w-1/3">
+                {videoInfo.data.basic_info.embed?.iframe_url && (
+                  <VideoEmbed
+                    className="w-full outline-none"
+                    videoID={videoInfo.data.basic_info.id}
+                    width={videoInfo.data.basic_info.embed?.width}
+                    height={videoInfo.data.basic_info.embed?.height}
+                    videoSeek={videoSeek}
+                  />
+                )}
+                <VideoInfo
+                  title={videoInfo.data.basic_info.title}
+                  views={videoInfo.data.basic_info.view_count}
+                  likes={videoInfo.data.basic_info.like_count}
+                  description={videoInfo.data.basic_info.short_description}
+                  descriptionRuns={videoInfo.data.basic_info.description?.runs}
+                  uploadDate={videoInfo.data.basic_info.upload_date}
+                  channelName={videoInfo.data.basic_info.channel.name}
+                  channelID={videoInfo.data.basic_info.channel_id}
+                  channelSubscribers={
+                    videoInfo.data.basic_info.channel.subscriber_count
+                  }
+                  channelThumbnail={videoInfo.data.basic_info.channel.thumbnail}
+                  channelIsVerified={
+                    videoInfo.data.basic_info.channel.is_verified
+                  }
+                  channelIsVerifiedArtist={
+                    videoInfo.data.basic_info.channel.is_verified_artist
+                  }
+                  channelURL={videoInfo.data.basic_info.channel.url}
                 />
-              )}
-              <VideoInfo
-                title={videoInfo.data.basic_info.title}
-                views={videoInfo.data.basic_info.view_count}
-                likes={videoInfo.data.basic_info.like_count}
-                description={videoInfo.data.basic_info.short_description}
-                descriptionRuns={videoInfo.data.basic_info.description?.runs}
-                uploadDate={videoInfo.data.basic_info.upload_date}
-                channelName={videoInfo.data.basic_info.channel.name}
-                channelID={videoInfo.data.basic_info.channel_id}
-                channelSubscribers={
-                  videoInfo.data.basic_info.channel.subscriber_count
-                }
-                channelThumbnail={videoInfo.data.basic_info.channel.thumbnail}
-                channelIsVerified={
-                  videoInfo.data.basic_info.channel.is_verified
-                }
-                channelIsVerifiedArtist={
-                  videoInfo.data.basic_info.channel.is_verified_artist
-                }
-                channelURL={videoInfo.data.basic_info.channel.url}
-              />
-            </div>
-          ) : videoInfo.error ? (
-            "error"
+              </div>
+            </>
           ) : (
-            "something went wrong"
+            (videoInfo.error || true) && "something went wrong"
           )}
-          <div className="">
+
+          <div className="w-full">
+            {/* Display this outside of videoInfoLoader to grab sponsorsegments with videoID*/}
             <SponsorTranscripts
               videoID={videoID}
               captionTracks={videoInfo.data?.captions.caption_tracks}

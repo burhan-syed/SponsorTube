@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import useSponsorBlock from "../../hooks/useSponsorBlock";
 import SegmentTranscript from "./SegmentTranscript";
 import { Segment } from "sponsorblock-api";
+import SegmentsGroupLoader from "../ui/loaders/SegmentsGroupLoader";
 
 type SponsorTranscriptsProps = {
   videoID: string;
@@ -28,16 +29,11 @@ const SponsorTranscripts = ({
   //console.log("caption tracks?", captionTracks)
   //console.log("saved segments?", savedSegments.data, "sb segments?", segments.data);
   return (
-    <div>
-      {segments.isLoading ? (
-        "sb segments loading.."
-      ) : segments.data ? (
-        <>{`sb segments: ${segments.data.length}`}</>
-      ) : (
-        "sponsors error"
-      )}
+    <>
       {savedSegments.isLoading ? (
-        "saved segments loading.."
+        <>
+          <SegmentsGroupLoader />
+        </>
       ) : savedSegments.data ? (
         <>
           {savedSegments.data.length > 0 ? (
@@ -55,7 +51,9 @@ const SponsorTranscripts = ({
           ) : (
             <>
               {"no saved segments"}
-              {segments.data && (
+              {segments.isLoading ? (
+                <SegmentsGroupLoader />
+              ) : segments.data ? (
                 <>
                   {segments.data.length > 0 ? (
                     <>
@@ -72,6 +70,8 @@ const SponsorTranscripts = ({
                     "no sponsors"
                   )}
                 </>
+              ) : (
+                "sponsors error"
               )}
             </>
           )}
@@ -79,7 +79,7 @@ const SponsorTranscripts = ({
       ) : (
         "saved segments error"
       )}
-    </div>
+    </>
   );
 };
 

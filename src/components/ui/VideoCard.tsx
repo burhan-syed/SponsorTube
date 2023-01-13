@@ -39,7 +39,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
         }
       >
         <Link href={`/video?v=${video.id}`}>
-          <a className="bg-gray-600 aspect-video w-80 flex-none overflow-hidden rounded-2xl">
+          <a className="bg-th-additiveBackground bg-opacity-5 aspect-video w-80 flex-none overflow-hidden rounded-2xl">
             {videoThumbnail?.url && (
               <Image
                 src={videoThumbnail?.url}
