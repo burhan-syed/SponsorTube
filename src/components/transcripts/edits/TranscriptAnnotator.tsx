@@ -48,6 +48,36 @@ const TranscriptAnnotator = ({
       : []
   );
   //keep annotations synced with displayed transcript (ie when transcript is edited)
+  const matchAndReturnNewAnnotations = (
+    p: AtLeast<TranscriptAnnotations, "start" | "end" | "text" | "tag">[],
+    newAnnotation: AtLeast<TranscriptAnnotations, "text" | "tag">
+  ) => {
+    const matchingAnnotations = textFindIndices(
+      transcript.text,
+      newAnnotation.text
+    );
+    const withMatching = [
+      ...p,
+      ...matchingAnnotations.map((i) => ({
+        start: i,
+        end: i + newAnnotation.text.length,
+        text: transcript.text.substring(i, i + newAnnotation.text.length),
+        tag: newAnnotation.tag,
+        color: TAGS.get(newAnnotation.tag),
+      })),
+    ].filter(
+      (value, index, self) =>
+        index ===
+        self.findIndex(
+          (t) =>
+            t.start === value.start ||
+            (t.end > value.start && t.start < value.end)
+        )
+    );
+    // console.log("matching?", withMatching);
+    return withMatching;
+  };
+
   useEffect(() => {
     if (transcript.annotations) {
       setAnnotations(
@@ -90,36 +120,9 @@ const TranscriptAnnotator = ({
   ) => {
     setAnnotations((p) => {
       const newAnnotation = annotation?.[annotation.length - 1];
-      // console.log(
-      //   "annotations change?",
-      //   p,
-      //   annotation,
-      //   newAnnotation,
-      //   (!p || annotation.length > p.length) && newAnnotation?.text
-      // );
 
       if ((!p || annotation.length > p.length) && newAnnotation?.text) {
-        const matchingAnnotations = textFindIndices(
-          transcript.text,
-          newAnnotation.text
-        );
-        const withMatching = [
-          ...p,
-          ...matchingAnnotations.map((i) => ({
-            start: i,
-            end: i + newAnnotation.text.length,
-            text: transcript.text.substring(i, i + newAnnotation.text.length),
-            tag: newAnnotation.tag,
-            color: TAGS.get(newAnnotation.tag),
-          })),
-        ].filter((value, index, self) =>
-        index === self.findIndex((t) => (
-          t.start === value.start || (t.end > value.start && t.start < value.end)
-        ))
-      );
-
-        console.log("matching?", withMatching);
-        return withMatching;
+        return matchAndReturnNewAnnotations(p, newAnnotation);
       }
       return annotation;
     });
@@ -127,7 +130,44 @@ const TranscriptAnnotator = ({
 
   return (
     <>
-      <div>
+      <div
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onTouchEnd={(e) => {
+          let selected = window.getSelection()?.toString();
+          //cleanup tag from selection on mobile
+          TAGS.forEach((v, k) => {
+            if (
+              selected &&
+              selected?.length > k.length &&
+              selected.slice(-k.length) === k
+            ) {
+              // console.log(`(${selected.slice(0,selected.length-k.length)})`)
+              selected = selected.slice(0, selected.length - k.length);
+            }
+          });
+          if (editable && selected) {
+            setAnnotations((p) => {
+              if (
+                p &&
+                p.find(
+                  (pred) => pred.text.toUpperCase() === selected?.toUpperCase()
+                )
+              ) {
+                return p.filter(
+                  (pred) => pred.text.toUpperCase() !== selected?.toUpperCase()
+                );
+              }
+              return matchAndReturnNewAnnotations(p, {
+                text: selected ?? "",
+                tag: tag,
+              });
+            });
+          }
+        }}
+      >
         <div>transcript id:{transcript.id}</div>
         {editable && (
           <Selector
