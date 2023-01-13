@@ -2,7 +2,7 @@
 /** @type {import('tailwindcss').Config} */
 
 // import defaultTheme from 'tailwindcss/defaultTheme'
-const defaultTheme = require('tailwindcss/defaultTheme')
+const defaultTheme = require("tailwindcss/defaultTheme");
 
 function withOpacity(variableName) {
   return ({ opacityValue }) => {
@@ -57,42 +57,40 @@ module.exports = {
         96: "38.4rem",
       },
       fontFamily: {
-        'sans': ['Roboto', ...defaultTheme.fontFamily.sans],
-        'mono': ['Roboto Mono', ...defaultTheme.fontFamily.mono]
+        sans: ["Roboto", ...defaultTheme.fontFamily.sans],
+        mono: ["Roboto Mono", ...defaultTheme.fontFamily.mono],
       },
-    },
-    colors: {
-      transparent: "transparent",
-      white: "white",
-      "th-textPrimary": withOpacity("--textPrimary"),
-      "th-textPrimaryInverse": withOpacity("--textPrimaryInverse"),
-      "th-textSecondary": withOpacity("--textSecondary"),
-      "th-textDisabled": withOpacity("--textDisabled"),
-      "th-baseBackground": withOpacity("--baseBackground"),
-      "th-raisedBackground": withOpacity("--raisedBackground"),
-      "th-menuBackground": withOpacity("--menuBackground"),
-      "th-generalBackgroundA": withOpacity("--generalBackgroundA"),
-      "th-generalBackgroundB": withOpacity("--generalBackgroundB"),
-      "th-generalBackgroundC": withOpacity("--generalBackgroundC"),
-      "th-errorBackground": withOpacity("--errorBackground"),
-      "th-invertedBackground": withOpacity("--invertedBackground"),
-      "th-additiveBackground": withOpacity("--additiveBackground"),
-      "th-searchText": "var(--searchText)",
-      "th-searchBorder": withOpacity("--searchBorder"),
-      "th-searchBorderFocus": withOpacity("--searchBorderFocus"),
-      "th-searchButton": withOpacity("--searchButton"),
-      "th-searchButtonBorder": withOpacity("--searchButtonBorder"),
-      "th-searchButtonFocus": withOpacity("--searchButtonFocus"),
-      "th-searchButtonHover": withOpacity("--searchButtonHover"),
-      "th-searchButtonBorderHover": withOpacity("--searchButtonBorderHover"),
+      colors: {
+        "th-textPrimary": withOpacity("--textPrimary"),
+        "th-textPrimaryInverse": withOpacity("--textPrimaryInverse"),
+        "th-textSecondary": withOpacity("--textSecondary"),
+        "th-textDisabled": withOpacity("--textDisabled"),
+        "th-baseBackground": withOpacity("--baseBackground"),
+        "th-raisedBackground": withOpacity("--raisedBackground"),
+        "th-menuBackground": withOpacity("--menuBackground"),
+        "th-generalBackgroundA": withOpacity("--generalBackgroundA"),
+        "th-generalBackgroundB": withOpacity("--generalBackgroundB"),
+        "th-generalBackgroundC": withOpacity("--generalBackgroundC"),
+        "th-errorBackground": withOpacity("--errorBackground"),
+        "th-invertedBackground": withOpacity("--invertedBackground"),
+        "th-additiveBackground": withOpacity("--additiveBackground"),
+        "th-searchText": "var(--searchText)",
+        "th-searchBorder": withOpacity("--searchBorder"),
+        "th-searchBorderFocus": withOpacity("--searchBorderFocus"),
+        "th-searchButton": withOpacity("--searchButton"),
+        "th-searchButtonBorder": withOpacity("--searchButtonBorder"),
+        "th-searchButtonFocus": withOpacity("--searchButtonFocus"),
+        "th-searchButtonHover": withOpacity("--searchButtonHover"),
+        "th-searchButtonBorderHover": withOpacity("--searchButtonBorderHover"),
 
-      "th-chipBackground": "var(--chipBackground)",
-      "th-chipBackgroundHover": "var(--chipBackgroundHover)",
-      "th-verifiedBadgeBackground": "var(--verifiedBadgeBackground)",
-      "th-outline": "var(--outline)",
-      "th-shadow": "var(--shadow)",
-      "th-touchResponse": "var(--touchResponse)",
-      "th-searchBackground": "var(--searchBackground)",
+        "th-chipBackground": "var(--chipBackground)",
+        "th-chipBackgroundHover": "var(--chipBackgroundHover)",
+        "th-verifiedBadgeBackground": "var(--verifiedBadgeBackground)",
+        "th-outline": "var(--outline)",
+        "th-shadow": "var(--shadow)",
+        "th-touchResponse": "var(--touchResponse)",
+        "th-searchBackground": "var(--searchBackground)",
+      },
     },
     fontSize: {
       xxs: ["1.0rem", { lineHeight: "1.4rem" }],

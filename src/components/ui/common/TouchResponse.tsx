@@ -4,16 +4,19 @@ import clsx from "clsx";
 const TouchResponse = ({
   isPressed,
   className,
+  borderClassName = "border"
 }: {
   isPressed: boolean;
   className?: string;
+  borderClassName?: string;
 }) => {
   return (
     <div className={clsx("pointer-events-none absolute inset-0", className)}>
       <div
         className={clsx(
-          "absolute inset-0 border transition-colors",
+          "absolute inset-0 transition-colors",
           className,
+          borderClassName,
           isPressed
             ? "border-th-touchResponse"
             : "border-transparent delay-200 duration-75 ease-out "
@@ -21,7 +24,7 @@ const TouchResponse = ({
       ></div>
       <div
         className={clsx(
-          "absolute inset-0 transition-colors",
+          "absolute inset-0 transition-colors ",
           className,
           isPressed ? "bg-th-touchResponse" : "bg-th-transparent"
         )}

@@ -99,7 +99,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
           </div>
         </div>
       </div>
-      <TouchResponse className="rounded-lg" isPressed={isPressed} />
+      <TouchResponse className="rounded-xl" isPressed={isPressed} />
     </div>
   );
 };

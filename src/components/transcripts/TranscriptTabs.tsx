@@ -1,11 +1,12 @@
-import React, { Suspense, useEffect, useState } from "react";
-import * as Tabs from "@radix-ui/react-tabs";
+import React, { useEffect, useState } from "react";
+import * as TabsPrimitives from "@radix-ui/react-tabs";
 import SavedTranscripts from "./SavedTranscripts";
 
 import type { Segment } from "sponsorblock-api";
 import GeneratedTranscripts from "./GeneratedTranscripts";
 import { trpc } from "@/utils/trpc";
 import { useSession } from "next-auth/react";
+import TabsList from "../ui/common/tabs/TabsList";
 const TranscriptTabs = ({
   segment,
   captionsURL,
@@ -55,57 +56,44 @@ const TranscriptTabs = ({
   }
 
   return (
-    <Tabs.Root
+    <TabsPrimitives.Root
       defaultValue="saved"
       orientation="vertical"
       value={tabValue}
       onValueChange={(value) => setTabValue(value)}
+      className=""
     >
-      <Tabs.List aria-label="tabs example">
-        <Tabs.Trigger
-          className="hover:bg-green-200 data-[state=active]:bg-blue-300"
-          value="saved"
-        >
-          saved
-        </Tabs.Trigger>
-        <Tabs.Trigger
-          disabled={!sessionData}
-          className="hover:bg-green-200 data-[state=active]:bg-blue-300 disabled:opacity-40"
-          value="user"
-        >
-          user
-        </Tabs.Trigger>
-        <Tabs.Trigger
-          className="hover:bg-green-200 data-[state=active]:bg-blue-300"
-          value="generated"
-        >
-          generated
-        </Tabs.Trigger>
-      </Tabs.List>
-      <Tabs.Content value="saved">
+      <TabsList
+        tabsList={[
+          { value: "saved" },
+          { value: "user", disabled: !sessionData },
+          { value: "generated" },
+        ]}
+      />
+      <TabsPrimitives.Content value="saved">
         <SavedTranscripts
           segmentUUID={segment.UUID}
           setTabValue={setTabValue}
           seekTo={seekTo}
         />
-      </Tabs.Content>
-      <Tabs.Content value="user">
+      </TabsPrimitives.Content>
+      <TabsPrimitives.Content value="user">
         <SavedTranscripts
           segmentUUID={segment.UUID}
           userPosts={true}
           setTabValue={setTabValue}
           seekTo={seekTo}
         />
-      </Tabs.Content>
-      <Tabs.Content value="generated">
+      </TabsPrimitives.Content>
+      <TabsPrimitives.Content value="generated">
         <GeneratedTranscripts
           segment={segment}
           captionsURL={captionsURL}
           setTabValue={setTabValue}
           seekTo={seekTo}
         />
-      </Tabs.Content>
-    </Tabs.Root>
+      </TabsPrimitives.Content>
+    </TabsPrimitives.Root>
   );
 };
 
