@@ -27,6 +27,7 @@ body {
   --errorBackground: 24, 24, 24; /*rgba(24, 24, 24)*/
   --invertedBackground: 15, 15, 15; /*rgba(15, 15, 15)*/
   --additiveBackground: 0, 0, 0; /*rgba(0, 0, 0)*/
+  --tonalBackground: 255,255,255; /*rgba(255,255,255)*/
   --searchBorder: 204, 204, 204; /*rgba(204, 204, 204)*/
   --searchBorderFocus: 28, 98, 185; /*rgba(28, 98, 185)*/
   --searchButton: 248, 248, 248; /*rgba(248, 248, 248)*/
