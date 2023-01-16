@@ -48,7 +48,7 @@ const Selector = ({
       }}
     >
       <Select.Trigger
-        className="inline-flex h-9 items-center justify-center rounded bg-white px-4 hover:bg-slate-400 focus:shadow-md"
+        className="inline-flex h-full max-w-full items-center justify-center px-6 rounded-full bg-th-chipBackground hover:bg-th-chipBackgroundHover "
         aria-label={selectorAriaLabel ?? valuePlaceholder}
       >
         <Select.Value aria-label={value} placeholder={valuePlaceholder}>
@@ -58,17 +58,18 @@ const Selector = ({
           <BiChevronDown />
         </Select.Icon>
       </Select.Trigger>
+
       <Select.Portal>
-        <Select.Content className="overflow-hidden rounded bg-white shadow">
+        <Select.Content className="relative z-50 w-full overflow-hidden rounded-lg bg-th-raisedBackground py-2 shadow">
           <Select.ScrollUpButton className="SelectScrollButton">
             <BiChevronUp />
           </Select.ScrollUpButton>
-          <Select.Viewport className="p-1">
+          <Select.Viewport className="">
             <Select.Group>
               {selectItems.map((item) => (
                 <SelectItem
                   className={
-                    "relative flex h-6 select-none items-center rounded-sm pl-6 p-1 data-[highlighted]:bg-blue-300 data-[highlighted]:outline-none"
+                    "relative flex h-9 select-none items-center p-1 pl-6 data-[highlighted]:bg-th-additiveBackground data-[highlighted]:bg-opacity-10 data-[highlighted]:outline-none cursor-pointer"
                   }
                   key={item.value}
                   value={item.value}

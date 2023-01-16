@@ -74,6 +74,7 @@ module.exports = {
         "th-errorBackground": withOpacity("--errorBackground"),
         "th-invertedBackground": withOpacity("--invertedBackground"),
         "th-additiveBackground": withOpacity("--additiveBackground"),
+        "th-tonalBackground": withOpacity("--tonalBackground"),
         "th-searchText": "var(--searchText)",
         "th-searchBorder": withOpacity("--searchBorder"),
         "th-searchBorderFocus": withOpacity("--searchBorderFocus"),
@@ -82,6 +83,8 @@ module.exports = {
         "th-searchButtonFocus": withOpacity("--searchButtonFocus"),
         "th-searchButtonHover": withOpacity("--searchButtonHover"),
         "th-searchButtonBorderHover": withOpacity("--searchButtonBorderHover"),
+        "th-callToAction": withOpacity("--callToAction"),
+        "th-callToActionInverse": withOpacity("--callToActionInverse"),
 
         "th-chipBackground": "var(--chipBackground)",
         "th-chipBackgroundHover": "var(--chipBackgroundHover)",
