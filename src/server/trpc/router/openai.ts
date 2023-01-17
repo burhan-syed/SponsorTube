@@ -6,6 +6,8 @@ import { OpenAIApi, Configuration } from "openai";
 import { transcriptRouter } from "./transcripts";
 import { AnnotationTags } from "@prisma/client";
 import { textFindIndices } from "@/utils";
+import { md5 } from "@/server/functions/hash";
+import { TRPCError } from "@trpc/server";
 const configuration = new Configuration({
   apiKey: env.OPENAI_API_KEY,
 });
@@ -30,6 +32,21 @@ export const openAIRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const textHash = md5(input.transcript);
+      const previousAnnotations = await prisma?.transcriptDetails.findMany({
+        where: {
+          userId: "_openaicurie",
+          Transcript: { textHash: textHash, segmentUUID: input.segmentUUID },
+        },
+      });
+
+      if (previousAnnotations) {
+        throw new TRPCError({
+          message: "Segment already analyzed",
+          code: "BAD_REQUEST",
+        });
+      }
+
       const openai = new OpenAIApi(configuration);
       const prompt = `Create a table to identify sponsor information if there is any in the following text:\n\"${input.transcript}"\n\nSponsor|Product|Offer|\n\n`;
       const response = await openai.createCompletion({
