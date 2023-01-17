@@ -51,9 +51,17 @@ const TranscriptTabs = ({
 
   if (savedTranscriptAnnotations.isInitialLoading || !tabValue) {
     return (
-      <div className="bg-gray-500 h-10 w-full animate-pulse">loading...</div>
+      <div className="h-10 w-full animate-pulse bg-th-additiveBackground bg-opacity-5">
+        loading...
+      </div>
     );
   }
+  type tabValues = "saved" | "user" | "generated";
+  const tabsList = [
+    { value: "saved" },
+    { value: "user", disabled: !sessionData },
+    { value: "generated" },
+  ] as { value: tabValues; disabled?: boolean }[];
 
   return (
     <TabsPrimitives.Root
@@ -61,38 +69,36 @@ const TranscriptTabs = ({
       orientation="vertical"
       value={tabValue}
       onValueChange={(value) => setTabValue(value)}
-      className=""
+      className="outline outline-red-500 sm:grid sm:grid-cols-[2.8rem_1fr] "
     >
-      <TabsList
-        tabsList={[
-          { value: "saved" },
-          { value: "user", disabled: !sessionData },
-          { value: "generated" },
-        ]}
-      />
-      <TabsPrimitives.Content value="saved">
-        <SavedTranscripts
-          segmentUUID={segment.UUID}
-          setTabValue={setTabValue}
-          seekTo={seekTo}
-        />
-      </TabsPrimitives.Content>
-      <TabsPrimitives.Content value="user">
-        <SavedTranscripts
-          segmentUUID={segment.UUID}
-          userPosts={true}
-          setTabValue={setTabValue}
-          seekTo={seekTo}
-        />
-      </TabsPrimitives.Content>
-      <TabsPrimitives.Content value="generated">
-        <GeneratedTranscripts
-          segment={segment}
-          captionsURL={captionsURL}
-          setTabValue={setTabValue}
-          seekTo={seekTo}
-        />
-      </TabsPrimitives.Content>
+      <div className="sm:relative sm:mt-auto sm:h-[25rem] sm:w-[2.8rem]">
+        <div className="h-7 origin-top-left sm:pointer-events-none sm:absolute sm:top-0 sm:w-[25rem] sm:rotate-[270deg]">
+          <div className="h-full w-full sm:pointer-events-auto sm:-translate-x-full ">
+            <TabsList tabsList={tabsList} />
+          </div>
+        </div>
+      </div>
+      <div className="sm:min-h-[30rem]">
+        {tabsList.map(({ value }) => (
+          <TabsPrimitives.Content key={value} value={value}>
+            {value === "generated" ? (
+              <GeneratedTranscripts
+                segment={segment}
+                captionsURL={captionsURL}
+                setTabValue={setTabValue}
+                seekTo={seekTo}
+              />
+            ) : (
+              <SavedTranscripts
+                segmentUUID={segment.UUID}
+                setTabValue={setTabValue}
+                seekTo={seekTo}
+                userPosts={value === "user"}
+              />
+            )}
+          </TabsPrimitives.Content>
+        ))}
+      </div>
     </TabsPrimitives.Root>
   );
 };

@@ -48,7 +48,7 @@ const Selector = ({
       }}
     >
       <Select.Trigger
-        className="inline-flex h-full max-w-full items-center justify-center px-6 rounded-full bg-th-chipBackground hover:bg-th-chipBackgroundHover "
+        className="inline-flex h-full w-full sm:max-w-full items-center justify-center px-6 rounded-full bg-th-chipBackground hover:bg-th-chipBackgroundHover "
         aria-label={selectorAriaLabel ?? valuePlaceholder}
       >
         <Select.Value aria-label={value} placeholder={valuePlaceholder}>

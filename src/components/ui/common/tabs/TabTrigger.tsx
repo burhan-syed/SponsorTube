@@ -18,7 +18,7 @@ const TabTrigger = ({ value, icon, label, disabled }: TabTriggerProps) => {
       key={value}
       ref={containerRef}
       className={clsx(
-        "relative flex items-center justify-center border-b-2 border-transparent p-4 pt-1 pb-0.5 uppercase text-th-textSecondary hover:text-th-textPrimary data-[state=active]:border-th-textSecondary data-[state=active]:text-th-textPrimary select-none",
+        "relative flex h-full select-none items-center justify-center border-b-2 border-transparent p-4 pt-0 pb-0.5 uppercase text-th-textSecondary hover:text-th-textPrimary data-[state=active]:border-th-textSecondary data-[state=active]:text-th-textPrimary",
         disabled && "pointer-events-none opacity-50"
       )}
       value={value}

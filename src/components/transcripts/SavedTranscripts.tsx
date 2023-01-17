@@ -32,15 +32,7 @@ const SavedTranscripts = ({
   );
 
   return (
-    <div className="bg-green-50 p-4">
-      {/* {savedTranscriptAnnotations.isLoading
-        ? "waiting for db transcripts.."
-        : savedTranscriptAnnotations?.data
-        ? `db transcripts: ${savedTranscriptAnnotations.data?.length}`
-        : savedTranscriptAnnotations.error
-        ? "error fetching db transcripts"
-        : "something went wrong fetching db transcripts"} */}
-      {/* <span>saved</span> */}
+    <>
       {savedTranscriptAnnotations.isLoading ? (
         <div className="h-32 w-full animate-pulse rounded-lg bg-th-additiveBackground bg-opacity-5"></div>
       ) : savedTranscriptAnnotations.data ? (
@@ -102,7 +94,7 @@ const SavedTranscripts = ({
       ) : (
         <>?</>
       )}
-    </div>
+    </>
   );
 };
 

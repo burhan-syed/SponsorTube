@@ -6,20 +6,16 @@ import { AnnotationTags } from "@prisma/client";
 import type { TranscriptAnnotations } from "@prisma/client";
 import clsx from "clsx";
 import { textFindIndices } from "@/utils";
+import TAGS from "./TranscriptTagColors";
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
-
-const TAGS = new Map<AnnotationTags, string>([
-  ["BRAND", "rgb(179, 245, 66)"],
-  ["PRODUCT", "#42f5f5"],
-  ["OFFER", "#4b46cd"],
-]);
 
 const TranscriptAnnotator = ({
   transcript,
   editable,
   setEditable,
   setTabValue,
+  editTag,
 }: {
   transcript: {
     text: string;
@@ -33,7 +29,11 @@ const TranscriptAnnotator = ({
   editable: boolean;
   setEditable(b: boolean): void;
   setTabValue?(v: string): void;
+  editTag?: AnnotationTags;
 }) => {
+  const [tag, setTag] = React.useState<AnnotationTags>(
+    () => editTag ?? "BRAND"
+  );
   const [annotations, setAnnotations] = React.useState<
     AtLeast<TranscriptAnnotations, "start" | "end" | "text" | "tag">[]
   >(() =>
@@ -93,8 +93,12 @@ const TranscriptAnnotator = ({
       setAnnotations([]);
     }
   }, [transcript]);
+  useEffect(() => {
+    if (editTag) {
+      setTag(editTag);
+    }
+  }, [editTag]);
 
-  const [tag, setTag] = React.useState<AnnotationTags>("BRAND");
   const utils = trpc.useContext();
   const submitAnnotations = trpc.transcript.saveAnnotations.useMutation({
     async onSuccess() {
@@ -130,6 +134,16 @@ const TranscriptAnnotator = ({
 
   return (
     <>
+      {editable && !editTag && (
+        <div className="h-9 w-32">
+          <Selector
+            selectItems={Array.from(TAGS.keys()).map((t) => ({ value: t }))}
+            valuePlaceholder="select.."
+            initialValueIndex={0}
+            handler={(v: AnnotationTags) => setTag(v)}
+          />
+        </div>
+      )}
       <div
         onContextMenu={(e) => {
           e.preventDefault();
@@ -168,16 +182,6 @@ const TranscriptAnnotator = ({
           }
         }}
       >
-        <div>transcript id:{transcript.id}</div>
-        {editable && (
-          <Selector
-            selectItems={Array.from(TAGS.keys()).map((t) => ({ value: t }))}
-            valuePlaceholder="select.."
-            initialValueIndex={0}
-            handler={(v: AnnotationTags) => setTag(v)}
-          />
-        )}
-
         <TextAnnotate
           className={clsx(
             "font-mono",

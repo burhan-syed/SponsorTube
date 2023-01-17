@@ -60,7 +60,7 @@ const GeneratedTranscripts = ({
   );
 
   return (
-    <div className="bg-blue-50 p-4">
+    <>
       {savedTranscriptAnnotations.isLoading ? (
         <div className="h-32 w-full animate-pulse rounded-lg bg-th-additiveBackground bg-opacity-5"></div>
       ) : (
@@ -82,7 +82,7 @@ const GeneratedTranscripts = ({
           {TranscriptEditLoadWrapper}
         </>
       )}
-    </div>
+    </>
   );
 };
 

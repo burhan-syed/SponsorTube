@@ -13,7 +13,7 @@ type TabsProps = {
 
 const TabsList = ({ tabsList }: TabsProps) => {
   return (
-    <TabsPrimitives.List aria-label="tabs example" className="flex justify-end">
+    <TabsPrimitives.List aria-label="tabs example" className="flex justify-end sm:justify-start h-full">
       {tabsList.map((tab) => (
         <TabTrigger key={tab.value} {...tab} />
       ))}

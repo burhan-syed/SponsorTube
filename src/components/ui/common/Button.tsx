@@ -3,12 +3,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import TouchResponse from "./TouchResponse";
 import useIsPressed from "@/hooks/useIsPressed";
 
-const button = cva("relative outline-none", {
+const button = cva("relative outline-none transition-all flex items-center justify-center", {
   variants: {
     intent: {
       primary: [
-        // "bg-blue-500",
-        // "",
+        "bg-th-chipBackground hover:bg-th-chipBackgroundHover",
+        "border border-transparent hover:border-th-chipBackground",
         // "border-transparent",
         // "hover:bg-blue-600",
       ],
@@ -23,13 +23,16 @@ const button = cva("relative outline-none", {
       small: ["text-sm", "py-1", "px-2"],
       medium: ["text-base", "py-2", "px-4"],
     },
+    shape: {
+      round: ["rounded-full"]
+    }
   },
   compoundVariants: [
     { intent: "primary", size: "medium", className: "uppercase" },
   ],
   defaultVariants: {
-    // intent: "primary",
-    // size: "medium",
+    intent: "primary",
+    shape: "round"
   },
 });
 
