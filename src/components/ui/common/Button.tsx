@@ -1,72 +1,144 @@
-import React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+import { AnchorHTMLAttributes, ButtonHTMLAttributes } from "react";
+import Link from "next/link";
+import { cva, VariantProps } from "class-variance-authority";
+import clsx from "clsx";
 import TouchResponse from "./TouchResponse";
 import useIsPressed from "@/hooks/useIsPressed";
 
-const button = cva(
-  "relative outline-none transition-all flex items-center justify-center",
+type ButtonBaseProps = VariantProps<typeof buttonClasses> & {
+  children: React.ReactNode;
+};
+
+interface ButtonAsAnchorProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+  href: string;
+}
+
+interface ButtonAsButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  href?: never;
+}
+
+type ButtonProps = ButtonBaseProps &
+  (ButtonAsAnchorProps | ButtonAsButtonProps);
+
+const buttonClasses = cva(
+  "relative rounded-full inline-flex items-center justify-center transition-all ease-in-out ",
   {
     variants: {
-      intent: {
+      variant: {
         primary: [
           "bg-th-chipBackground hover:bg-th-chipBackgroundHover",
           "border border-transparent hover:border-th-chipBackground",
-          // "border-transparent",
-          // "hover:bg-blue-600",
+          // "[&_.highlight]:ml-2",
+        ],
+        transparent: [
+          "bg-transparent hover:bg-th-additiveBackground hover:bg-opacity-10",
+          "border border-transparent hover:border-th-chipBackground",
         ],
         secondary: [
-          // "bg-white",
-          // "text-gray-800",
-          // "border-gray-400",
-          // "hover:bg-gray-100",
+          "text-off-white bg-white bg-opacity-10 border border-transparent-white backdrop-filter-[12px] hover:bg-opacity-20 transition-colors ease-in",
+          "[&_.highlight]:bg-transparent-white [&_.highlight]:rounded-full [&_.highlight]:px-2 [&_.highlight:last-child]:ml-2 [&_.highlight:last-child]:-mr-2 [&_.highlight:first-child]:-ml-2 [&_.highlight:first-child]:mr-2",
         ],
       },
       size: {
-        small: ["text-sm", "py-1", "px-2"],
-        medium: ["text-base", "py-2", "px-4"],
+        small: "text-xs  h-7",
+        medium: "text-sm h-9",
+        large: "text-md  h-12",
       },
-      shape: {
-        round: ["rounded-full"],
+      round: {
+        true: "",
+        false: "",
+      },
+      disabled: {
+        true: "pointer-events-none",
       },
     },
     compoundVariants: [
-      { intent: "primary", size: "medium", className: "uppercase" },
+      {
+        size: "small",
+        round: false,
+        className: "px-3",
+      },
+      {
+        size: "small",
+        round: true,
+        className: "w-7",
+      },
+      {
+        size: "medium",
+        round: false,
+        className: "px-4",
+      },
+      {
+        size: "medium",
+        round: true,
+        className: "w-9",
+      },
+      {
+        size: "large",
+        round: false,
+        className: "px-6",
+      },
+      {
+        size: "large",
+        round: true,
+        className: "w-12",
+      },
     ],
     defaultVariants: {
-      intent: "primary",
-      shape: "round",
+      variant: "primary",
+      size: "medium",
+      round: false,
     },
   }
 );
 
-export interface ButtonProps
-  extends React.HTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof button> {
-  disabled?: boolean;
-}
-
-export const Button: React.FC<ButtonProps> = ({
-  className,
-  intent,
-  size,
+export const Highlight = ({
   children,
-  disabled = false,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => <span className={clsx("highlight", className)}>{children}</span>;
+
+export const Button = ({
+  children,
+  variant,
+  size,
+  round,
+  disabled,
   ...props
-}) => {
+}: ButtonProps) => {
+  const classes = buttonClasses({
+    variant,
+    size,
+    round,
+    disabled,
+    className: props.className,
+  });
   const { containerRef, isPressed } = useIsPressed();
+
+  if ("href" in props && props.href !== undefined) {
+    return (
+      <Link {...props} ref={containerRef} className={classes}>
+        {children}
+        <TouchResponse
+          className={""}
+          borderClassName={""}
+          isPressed={isPressed}
+        />
+      </Link>
+    );
+  }
+
   return (
-    <button
-      disabled={disabled}
-      ref={containerRef}
-      className={button({ intent, size, className })}
-      {...props}
-    >
-      {children}
+    <div className={clsx('relative rounded-full')}>
+      <button {...props} ref={containerRef} className={classes}>
+        {children}
+      </button>
       <TouchResponse
-        className={className}
-        borderClassName={className}
+        className={"rounded-full"}
         isPressed={!disabled && isPressed}
       />
-    </button>
+    </div>
   );
 };
