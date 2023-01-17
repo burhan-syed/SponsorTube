@@ -17,7 +17,7 @@ const Toggle = ({ children, pressed, onPressedChange }: ToggleProps) => {
         pressed={pressed}
         onPressedChange={onPressedChange}
         className={
-          "relative z-10 flex h-9 w-9 items-center  justify-center rounded-full border border-transparent bg-th-chipBackground transition-all ease-in-out hover:bg-th-chipBackgroundHover data-[state=on]:border-th-chipBackground data-[state=on]:bg-th-textPrimary data-[state=on]:text-th-textPrimaryInverse    "
+          "relative z-10 flex h-9 w-9 items-center  justify-center rounded-full border border-transparent bg-th-chipBackground transition-all ease-in-out hover:border-th-chipBackground hover:bg-th-chipBackgroundHover data-[state=on]:border-th-chipBackground data-[state=on]:bg-th-textPrimary data-[state=on]:text-th-textPrimaryInverse    "
         }
       >
         {children}

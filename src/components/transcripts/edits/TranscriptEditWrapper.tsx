@@ -53,7 +53,7 @@ const TranscriptEditWrapper = ({
   });
 
   return (
-    <div className="flex flex-grow flex-col justify-between outline outline-green-300">
+    <div className="flex flex-grow flex-col outline outline-green-300">
       <div
         className="flex items-start justify-start gap-2 border sm:translate-x-0 sm:flex-row"
         //-translate-x-1/2
@@ -111,7 +111,7 @@ const TranscriptEditWrapper = ({
 
         <Tooltip text="auto generate">
           <Button
-            className="h-9 w-9"
+            round
             onClick={() =>
               getSegments.mutate({
                 segmentUUID: transcript.segmentUUID,
@@ -125,7 +125,7 @@ const TranscriptEditWrapper = ({
           </Button>
         </Tooltip>
       </div>
-      <div className="mt-auto outline outline-blue-600">
+      <div className="outline outline-blue-600">
         <span>
           {transcript.startTime}:{transcript.endTime}
         </span>

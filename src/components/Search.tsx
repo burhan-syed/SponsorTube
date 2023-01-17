@@ -16,7 +16,7 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
   const onFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (searchTerm) {
-      console.log("search?", searchTerm)
+      console.log("search?", searchTerm);
       router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
     }
   };
@@ -50,28 +50,21 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
           value={searchTerm}
           ref={inputRef}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={(e) => e.code === "Enter" &&  onFormSubmit()}
+          onKeyDown={(e) => e.code === "Enter" && onFormSubmit()}
         />
         {searchTerm && (
           <Button
+            round
+            variant={"transparent"}
+            size={"large"}
             onClick={() => {
               setSearchTerm("");
               inputRef.current?.focus();
             }}
-            className="absolute -right-2 mr-2 rounded-full p-4 hover:bg-th-additiveBackground hover:bg-opacity-10"
+            className="absolute rounded-full p-4"
           >
-            <TfiClose className="h-4 w-4" />
+            <TfiClose className="h-4 w-4 flex-none" />
           </Button>
-          // <button
-          //   type="button"
-          //   onClick={() => {
-          //     setSearchTerm("");
-          //     inputRef.current?.focus();
-          //   }}
-          //   className="absolute -right-2 mr-2 rounded-full p-4 hover:bg-th-additiveBackgroundA10"
-          // >
-          //   <TfiClose className="h-4 w-4" />
-          // </button>
         )}
       </div>
 

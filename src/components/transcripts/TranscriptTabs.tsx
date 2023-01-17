@@ -85,7 +85,7 @@ const TranscriptTabs = ({
       {transcriptTimes?.start && transcriptTimes.end && (
         <div className="flex items-center gap-2">
           <Button
-            className="h-9 w-9"
+            round
             onClick={() =>
               seekTo(
                 transcriptTimes.start as number,
@@ -93,7 +93,7 @@ const TranscriptTabs = ({
               )
             }
           >
-            <BsPlay />
+            <BsPlay className="w-4 h-4 flex-none" />
           </Button>
           <span className="text-th-textSecondary text-xs">
             {secondsToHMS(transcriptTimes.start)} - 

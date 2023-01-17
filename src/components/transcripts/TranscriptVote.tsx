@@ -46,7 +46,7 @@ const TranscriptVote = ({
     <>
       {votes?.data?.direction}
       <Button
-        className="h-9 w-9"
+        round
         disabled={
           !transcriptDetailsId ||
           votes.isLoading ||
@@ -67,7 +67,7 @@ const TranscriptVote = ({
         {votes?.data?.direction === 1 ? <RiThumbUpFill /> : <RiThumbUpLine />}
       </Button>
       <Button
-        className="h-9 w-9"
+        round
         disabled={
           !transcriptDetailsId ||
           votes.isLoading ||
