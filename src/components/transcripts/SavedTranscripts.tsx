@@ -42,7 +42,7 @@ const SavedTranscripts = ({
               {savedTranscriptAnnotations?.data?.map((savedTranscripts) => (
                 <>
                   {`(details id: ${savedTranscripts.TranscriptDetails?.[0]?.id} [${savedTranscripts.TranscriptDetails?.[0]?.score} | ${savedTranscripts.score}])`}
-                  {savedTranscripts.TranscriptDetails?.[0]?.id && (
+                  {/* {savedTranscripts.TranscriptDetails?.[0]?.id && (
                     <TranscriptVote
                       transcriptDetailsId={
                         savedTranscripts.TranscriptDetails?.[0]?.id
@@ -53,7 +53,7 @@ const SavedTranscripts = ({
                       }
                       transcriptId={savedTranscripts.id}
                     />
-                  )}
+                  )} */}
                   {sessionData &&
                     sessionData.user?.id &&
                     sessionData.user?.id ===
@@ -83,6 +83,8 @@ const SavedTranscripts = ({
                     }}
                     setTabValue={setTabValue}
                     seekTo={seekTo}
+                    initialVoteDirection={savedTranscripts.TranscriptDetails?.[0]?.Votes?.[0]
+                      ?.direction ?? 0}
                   />
                 </>
               ))}

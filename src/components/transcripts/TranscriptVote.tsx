@@ -1,9 +1,15 @@
 import { trpc } from "@/utils/trpc";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
-import { BiUpArrow, BiDownArrow } from "react-icons/bi";
+import {
+  RiThumbUpLine,
+  RiThumbUpFill,
+  RiThumbDownLine,
+  RiThumbDownFill,
+} from "react-icons/ri";
 import AlertDialogueWrapper from "../ui/dialogue/AlertDialogueWrapper";
 import LoginAlertDialogueContent from "../ui/dialogue/LoginAlertDialogueContent";
+import { Button } from "../ui/common/Button";
 const TranscriptVote = ({
   transcriptDetailsId,
   transcriptId,
@@ -39,7 +45,8 @@ const TranscriptVote = ({
   const voteButtons = (
     <>
       {votes?.data?.direction}
-      <button
+      <Button
+        className="h-9 w-9"
         disabled={
           !transcriptDetailsId ||
           votes.isLoading ||
@@ -57,9 +64,10 @@ const TranscriptVote = ({
               })
         }
       >
-        <BiUpArrow />
-      </button>
-      <button
+        {votes?.data?.direction === 1 ? <RiThumbUpFill /> : <RiThumbUpLine />}
+      </Button>
+      <Button
+        className="h-9 w-9"
         disabled={
           !transcriptDetailsId ||
           votes.isLoading ||
@@ -77,8 +85,12 @@ const TranscriptVote = ({
               })
         }
       >
-        <BiDownArrow />
-      </button>
+        {votes?.data?.direction === -1 ? (
+          <RiThumbDownFill />
+        ) : (
+          <RiThumbDownLine />
+        )}
+      </Button>
     </>
   );
 

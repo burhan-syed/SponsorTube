@@ -7,6 +7,7 @@ import type { TranscriptAnnotations } from "@prisma/client";
 import clsx from "clsx";
 import { textFindIndices } from "@/utils";
 import TAGS from "./TranscriptTagColors";
+import { Button } from "@/components/ui/common/Button";
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
@@ -208,22 +209,32 @@ const TranscriptAnnotator = ({
         {/* <pre>{JSON.stringify(annotations, null, 2)}</pre> */}
       </div>
       {editable && (
-        <button
-          disabled={!editable || submitAnnotations.isLoading}
-          onClick={() => {
-            submitAnnotations.mutate({
-              transcriptId: transcript.id,
-              startTime: transcript.startTime,
-              endTime: transcript.endTime,
-              segmentUUID: transcript.segmentUUID,
-              transcript: transcript.text,
-              transcriptDetailsId: transcript.transcriptDetailsId,
-              annotations,
-            });
-          }}
-        >
-          Submit
-        </button>
+        <div className="flex flex-wrap items-center justify-center">
+          <Button
+            disabled={!editable || submitAnnotations.isLoading}
+            onClick={() => {
+              submitAnnotations.mutate({
+                transcriptId: transcript.id,
+                startTime: transcript.startTime,
+                endTime: transcript.endTime,
+                segmentUUID: transcript.segmentUUID,
+                transcript: transcript.text,
+                transcriptDetailsId: transcript.transcriptDetailsId,
+                annotations,
+              });
+            }}
+          >
+            Submit
+          </Button>
+          <Button
+            disabled={!editable || submitAnnotations.isLoading}
+            onClick={() => {
+              setEditable(false);
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
       )}
     </>
   );
