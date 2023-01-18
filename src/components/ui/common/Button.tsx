@@ -6,6 +6,7 @@ import TouchResponse from "./TouchResponse";
 import useIsPressed from "@/hooks/useIsPressed";
 import { useSession } from "next-auth/react";
 import useGlobalStore from "@/hooks/useGlobalStore";
+import { CgSpinnerTwoAlt } from "react-icons/cg";
 
 type ButtonBaseProps = VariantProps<typeof buttonClasses> & {
   children: React.ReactNode;
@@ -53,6 +54,9 @@ const buttonClasses = cva(
       },
       disabled: {
         true: "pointer-events-none opacity-50",
+      },
+      loading: {
+        true: "text-transparent", //
       },
     },
     compoundVariants: [
@@ -109,6 +113,7 @@ export const Button = ({
   size,
   round,
   disabled,
+  loading,
   requireSession = { required: false },
   ...props
 }: ButtonProps) => {
@@ -117,6 +122,7 @@ export const Button = ({
     size,
     round,
     disabled,
+    loading,
     className: props.className,
   });
   const { data: sessionData } = useSession();
@@ -142,22 +148,33 @@ export const Button = ({
     <button
       {...props}
       ref={containerRef}
-      className={classes}
+      className={clsx(classes)}
       onClick={(e) => {
         if (requireSession.required && !sessionData) {
           setSessionRequiredTrigger(requireSession?.reason);
-          e.preventDefault(); 
-          e.stopPropagation(); 
+          e.preventDefault();
+          e.stopPropagation();
         } else if (props.onClick) {
           props.onClick(e);
         }
       }}
     >
       {children}
+
       <TouchResponse
         className={"rounded-full"}
         isPressed={!disabled && isPressed}
       />
+      {loading && (
+        <mark
+          className={clsx(
+            "absolute bg-transparent",
+            variant === "accent" && "text-th-textPrimaryInverse"
+          )}
+        >
+          <CgSpinnerTwoAlt className="animate-spin" />
+        </mark>
+      )}
     </button>
   );
 };
