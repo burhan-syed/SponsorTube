@@ -13,8 +13,11 @@ import { trpc } from "@/utils/trpc";
 import { Button } from "@/components/ui/common/Button";
 import Selector from "@/components/ui/common/Selector";
 
-import TAGS from "./TranscriptTagColors";
+import { TAGS } from "./TranscriptTags";
 import TranscriptVote from "../TranscriptVote";
+import { secondsToHMS } from "@/utils";
+import { useSession } from "next-auth/react";
+import TranscriptDelete from "../TranscriptDelete";
 
 type Transcript = {
   segmentUUID: string;
@@ -22,6 +25,7 @@ type Transcript = {
   annotations?: TranscriptAnnotations[];
   id?: string;
   transcriptDetailsId?: string;
+  annotaterId?: string;
   startTime?: number | null;
   endTime?: number | null;
 };
@@ -38,6 +42,7 @@ const TranscriptEditWrapper = ({
   seekTo,
   initialVoteDirection,
 }: TranscriptEditWrapperProps) => {
+  const { data: sessionData } = useSession();
   const [editToggled, setEditToggled] = useState(false);
   const [annotateToggled, setAnnotateToggled] = useState(false);
   const [tag, setTag] = React.useState<AnnotationTags>("BRAND");
@@ -53,9 +58,9 @@ const TranscriptEditWrapper = ({
   });
 
   return (
-    <div className="flex flex-grow flex-col outline outline-green-300">
+    <div className="flex flex-grow flex-col">
       <div
-        className="flex items-start justify-start gap-2 border sm:translate-x-0 sm:flex-row"
+        className="flex items-start justify-start gap-2 rounded-tl-lg bg-th-baseBackground px-2 py-0.5 sm:translate-x-0 sm:flex-row"
         //-translate-x-1/2
       >
         {transcript.id && transcript.transcriptDetailsId && (
@@ -66,7 +71,38 @@ const TranscriptEditWrapper = ({
           />
         )}
 
-      
+        {sessionData &&
+          ((sessionData.user?.id &&
+            sessionData.user?.id === transcript.annotaterId) ||
+            transcript.annotaterId === "_openaicurie") && (
+            <TranscriptDelete
+              segmentUUID={transcript.segmentUUID}
+              transcriptId={transcript.id}
+              transcriptDetailsId={transcript.transcriptDetailsId}
+            />
+          )}
+
+        {transcript?.startTime && transcript.endTime && (
+          <div className="flex items-center gap-2">
+            <Button
+              round
+              onClick={() =>
+                seekTo(
+                  transcript.startTime as number,
+                  transcript.endTime as number
+                )
+              }
+            >
+              <BsPlay className="h-4 w-4 flex-none" />
+            </Button>
+            <span className="flex items-center gap-1 text-xs text-th-textSecondary">
+              {secondsToHMS(transcript.startTime)}
+              <span>-</span>
+              {secondsToHMS(transcript.endTime)}
+            </span>
+          </div>
+        )}
+
         <div className="mx-auto"></div>
         {annotateToggled && (
           // <div
@@ -91,8 +127,12 @@ const TranscriptEditWrapper = ({
           // </div>
         )}
         <div className={clsx(annotateToggled && "hidden")}>
-          <Tooltip text="edit text">
+          <Tooltip text={annotateToggled ? "" : "edit text"}>
             <Toggle
+              disabled={annotateToggled}
+              className={clsx(
+                annotateToggled && "pointer-events-none opacity-50"
+              )}
               pressed={editToggled}
               onPressedChange={(p) => setEditToggled(p)}
             >
@@ -100,18 +140,25 @@ const TranscriptEditWrapper = ({
             </Toggle>
           </Tooltip>
         </div>
-        <Tooltip text="annotate">
+        <Tooltip text={editToggled ? "" : "annotate"}>
           <Toggle
+            disabled={editToggled}
             pressed={annotateToggled}
             onPressedChange={(p) => setAnnotateToggled(p)}
+            className={clsx(editToggled && "pointer-events-none opacity-50")}
           >
             <MdEditNote />
           </Toggle>
         </Tooltip>
 
-        <Tooltip text="auto generate">
+        <Tooltip text={editToggled || annotateToggled ? "" : "auto generate"}>
           <Button
             round
+            disabled={editToggled || annotateToggled}
+            className={clsx(
+              (editToggled || annotateToggled) &&
+                "pointer-events-none opacity-50"
+            )}
             onClick={() =>
               getSegments.mutate({
                 segmentUUID: transcript.segmentUUID,
@@ -125,11 +172,12 @@ const TranscriptEditWrapper = ({
           </Button>
         </Tooltip>
       </div>
-      <div className="outline outline-blue-600">
-        <span>
-          {transcript.startTime}:{transcript.endTime}
-        </span>
-        <div className={clsx(editToggled && "hidden")}>
+      {!editToggled && (
+        <div
+          className={clsx(
+            editToggled ? "hidden" : "flex flex-grow flex-col p-2"
+          )}
+        >
           <TranscriptAnnotator
             transcript={{
               segmentUUID: transcript.segmentUUID,
@@ -146,8 +194,14 @@ const TranscriptEditWrapper = ({
             editTag={tag}
           />
         </div>
+      )}
 
-        <div className={clsx(editToggled ? "block" : "hidden")}>
+      {editToggled && (
+        <div
+          className={clsx(
+            editToggled ? "flex flex-grow flex-col p-2" : "hidden"
+          )}
+        >
           <TranscriptEditor
             text={transcript.text}
             segmentUUID={transcript.segmentUUID}
@@ -157,7 +211,7 @@ const TranscriptEditWrapper = ({
             setTabValue={setTabValue}
           />
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -14,10 +14,12 @@ const TooltipContainer = ({
         <span tabIndex={0}>{children}</span>
       </TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
-        <TooltipPrimitive.Content className="TooltipContent" sideOffset={5}>
-          {text}
-          <TooltipPrimitive.Arrow className="TooltipArrow" />
-        </TooltipPrimitive.Content>
+        {text && (
+          <TooltipPrimitive.Content className="TooltipContent" sideOffset={5}>
+            {text}
+            <TooltipPrimitive.Arrow className="TooltipArrow" />
+          </TooltipPrimitive.Content>
+        )}
       </TooltipPrimitive.Portal>
     </TooltipPrimitive.Root>
   );

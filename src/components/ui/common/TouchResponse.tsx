@@ -4,7 +4,7 @@ import clsx from "clsx";
 const TouchResponse = ({
   isPressed,
   className,
-  borderClassName = "border"
+  borderClassName = "ring-1"
 }: {
   isPressed: boolean;
   className?: string;
@@ -18,8 +18,8 @@ const TouchResponse = ({
           className,
           borderClassName,
           isPressed
-            ? "border-th-touchResponse"
-            : "border-transparent delay-200 duration-75 ease-out "
+            ? "ring-th-touchResponse"
+            : "ring-transparent delay-200 duration-75 ease-out "
         )}
       ></div>
       <div

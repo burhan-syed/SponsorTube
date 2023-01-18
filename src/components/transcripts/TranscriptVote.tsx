@@ -44,7 +44,6 @@ const TranscriptVote = ({
 
   const voteButtons = (
     <>
-      {votes?.data?.direction}
       <Button
         round
         disabled={

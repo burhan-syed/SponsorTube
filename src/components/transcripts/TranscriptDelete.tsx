@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import AlertDialogueWrapper from "../ui/dialogue/AlertDialogueWrapper";
 import LoginAlertDialogueContent from "../ui/dialogue/LoginAlertDialogueContent";
 import ActionAlertDialogueContent from "../ui/dialogue/ActionAlertDialogueContent";
+import { Button } from "../ui/common/Button";
 
 interface TranscriptDeleteProps {
   segmentUUID: string;
@@ -32,7 +33,8 @@ const TranscriptDelete = ({
   const [triggerDeleteAlertDialogue, setTriggerDeleteAlertDialogue] =
     useState(0);
   const deleteButton = (
-    <button
+    <Button
+      round
       disabled={
         deleteTranscript.isLoading || (!transcriptId && !transcriptDetailsId)
       }
@@ -43,7 +45,7 @@ const TranscriptDelete = ({
       }}
     >
       <BiTrashAlt />
-    </button>
+    </Button>
   );
   if (!sessionData) {
     return (

@@ -21,7 +21,7 @@ type ButtonProps = ButtonBaseProps &
   (ButtonAsAnchorProps | ButtonAsButtonProps);
 
 const buttonClasses = cva(
-  "relative rounded-full inline-flex items-center justify-center transition-all ease-in-out ",
+  "relative rounded-full inline-flex items-center justify-center transition-all ease-in-out select-none hover:shadow ",
   {
     variants: {
       variant: {
@@ -34,9 +34,8 @@ const buttonClasses = cva(
           "bg-transparent hover:bg-th-additiveBackground hover:bg-opacity-10",
           "border border-transparent hover:border-th-chipBackground",
         ],
-        secondary: [
-          "text-off-white bg-white bg-opacity-10 border border-transparent-white backdrop-filter-[12px] hover:bg-opacity-20 transition-colors ease-in",
-          "[&_.highlight]:bg-transparent-white [&_.highlight]:rounded-full [&_.highlight]:px-2 [&_.highlight:last-child]:ml-2 [&_.highlight:last-child]:-mr-2 [&_.highlight:first-child]:-ml-2 [&_.highlight:first-child]:mr-2",
+        accent: [
+          "border border-transparent bg-th-textPrimary text-th-textPrimaryInverse hover:border-th-chipBackground hover:shadow-md hover:ring-2 hover:ring-th-callToAction/50",
         ],
       },
       size: {
@@ -49,7 +48,7 @@ const buttonClasses = cva(
         false: "",
       },
       disabled: {
-        true: "pointer-events-none",
+        true: "pointer-events-none hover:shadow-none",
       },
     },
     compoundVariants: [
@@ -131,14 +130,12 @@ export const Button = ({
   }
 
   return (
-    <div className={clsx('relative rounded-full')}>
       <button {...props} ref={containerRef} className={classes}>
         {children}
-      </button>
-      <TouchResponse
+        <TouchResponse
         className={"rounded-full"}
         isPressed={!disabled && isPressed}
       />
-    </div>
+      </button>
   );
 };
