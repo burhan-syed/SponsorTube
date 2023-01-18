@@ -6,8 +6,9 @@ import { AnnotationTags } from "@prisma/client";
 import type { TranscriptAnnotations } from "@prisma/client";
 import clsx from "clsx";
 import { textFindIndices } from "@/utils";
-import TAGS from "./TranscriptTagColors";
+import { TAGS, TAGCLASSES } from "./TranscriptTags";
 import { Button } from "@/components/ui/common/Button";
+import { BsX } from "react-icons/bs";
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
@@ -45,6 +46,7 @@ const TranscriptAnnotator = ({
           text: a.text,
           tag: a.tag,
           color: TAGS.get(a.tag),
+          className: TAGCLASSES,
         }))
       : []
   );
@@ -65,6 +67,7 @@ const TranscriptAnnotator = ({
         text: transcript.text.substring(i, i + newAnnotation.text.length),
         tag: newAnnotation.tag,
         color: TAGS.get(newAnnotation.tag),
+        className: TAGCLASSES,
       })),
     ].filter(
       (value, index, self) =>
@@ -88,6 +91,7 @@ const TranscriptAnnotator = ({
           text: a.text,
           tag: a.tag,
           color: TAGS.get(a.tag),
+          className: TAGCLASSES,
         }))
       );
     } else {
@@ -126,10 +130,10 @@ const TranscriptAnnotator = ({
     setAnnotations((p) => {
       const newAnnotation = annotation?.[annotation.length - 1];
 
-      if ((!p || annotation.length > p.length) && newAnnotation?.text) {
+      if ((!p || annotation.length > p.length) && newAnnotation?.text?.trim()) {
         return matchAndReturnNewAnnotations(p, newAnnotation);
       }
-      return annotation;
+      return annotation.filter((a) => a.text.trim());
     });
   };
 
@@ -185,8 +189,8 @@ const TranscriptAnnotator = ({
       >
         <TextAnnotate
           className={clsx(
-            "font-mono",
-            editable ? " " : " pointer-events-none "
+            "pt-1 leading-loose font-mono",
+            editable ? "  " : " pointer-events-none "
           )}
           content={transcript.text}
           onChange={handleChange}
@@ -198,44 +202,89 @@ const TranscriptAnnotator = ({
           })}
         />
       </div>
-      <div>
-        <ul>
-          {annotations.map((annotation) => (
-            <li
-              key={annotation.start}
-            >{`${annotation.text} (${annotation.tag})`}</li>
-          ))}
+      <div className="mt-auto pt-4">
+        <ul className="flex flex-row flex-wrap items-center gap-1">
+          {annotations
+            .filter(
+              (value, index, self) =>
+                index ===
+                self.findIndex(
+                  (a) =>
+                    a.text.toUpperCase() === value.text.toUpperCase() &&
+                    a.tag === value.tag
+                )
+            )
+            .map((annotation) => (
+              <li key={annotation.start}>
+                <Button
+                  disabled={!editable}
+                  onClick={() =>
+                    setAnnotations((p) =>
+                      p.filter(
+                        (a) =>
+                          !(
+                            a.tag === annotation.tag &&
+                            a.text.toUpperCase() ===
+                              annotation.text.toUpperCase()
+                          )
+                      )
+                    )
+                  }
+                  variant={"primary"}
+                  size={"small"}
+                  className="group"
+                >
+                  <div
+                    className={clsx(
+                      "z-10 flex items-center gap-1",
+                      editable && "-translate-x-1"
+                    )}
+                  >
+                    {editable && (
+                      <BsX className="h-4 w-4 flex-none transition-transform group-hover:scale-125" />
+                    )}
+                    <span className="">{`${annotation.text}`}</span>
+                  </div>
+
+                  <div
+                    className="absolute h-full w-full rounded-full backdrop-blur-md"
+                    style={{ backgroundColor: `${TAGS.get(annotation.tag)}90` }}
+                  ></div>
+                </Button>
+              </li>
+            ))}
+          {editable && (
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
+              <Button
+                disabled={!editable || submitAnnotations.isLoading}
+                onClick={() => {
+                  setEditable(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant={"accent"}
+                disabled={!editable || submitAnnotations.isLoading}
+                onClick={() => {
+                  submitAnnotations.mutate({
+                    transcriptId: transcript.id,
+                    startTime: transcript.startTime,
+                    endTime: transcript.endTime,
+                    segmentUUID: transcript.segmentUUID,
+                    transcript: transcript.text,
+                    transcriptDetailsId: transcript.transcriptDetailsId,
+                    annotations,
+                  });
+                }}
+              >
+                Submit
+              </Button>
+            </div>
+          )}
         </ul>
         {/* <pre>{JSON.stringify(annotations, null, 2)}</pre> */}
       </div>
-      {editable && (
-        <div className="flex flex-wrap items-center justify-center">
-          <Button
-            disabled={!editable || submitAnnotations.isLoading}
-            onClick={() => {
-              submitAnnotations.mutate({
-                transcriptId: transcript.id,
-                startTime: transcript.startTime,
-                endTime: transcript.endTime,
-                segmentUUID: transcript.segmentUUID,
-                transcript: transcript.text,
-                transcriptDetailsId: transcript.transcriptDetailsId,
-                annotations,
-              });
-            }}
-          >
-            Submit
-          </Button>
-          <Button
-            disabled={!editable || submitAnnotations.isLoading}
-            onClick={() => {
-              setEditable(false);
-            }}
-          >
-            Cancel
-          </Button>
-        </div>
-      )}
     </>
   );
 };
