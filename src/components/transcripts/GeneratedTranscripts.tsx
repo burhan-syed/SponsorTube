@@ -10,13 +10,11 @@ const GeneratedTranscripts = ({
   captionsURL,
   setTabValue,
   seekTo,
-  setTranscriptTimes,
 }: {
   segment: Segment;
   captionsURL: string;
   setTabValue?(v: string): void;
   seekTo(start: number, end: number): void;
-  setTranscriptTimes(times: { start: number; end: number }): void;
 }) => {
   const captions = useVideoCaptions({
     captionsURL: captionsURL,
@@ -34,18 +32,6 @@ const GeneratedTranscripts = ({
       enabled: !!segment.UUID,
     }
   );
-
-  useEffect(() => {
-    if (
-      typeof sponsorSegmentTranscripts.data?.transcriptStart === "number" &&
-      typeof sponsorSegmentTranscripts.data?.transcriptEnd === "number"
-    ) {
-      setTranscriptTimes({
-        start: sponsorSegmentTranscripts.data?.transcriptStart,
-        end: sponsorSegmentTranscripts.data?.transcriptEnd,
-      });
-    }
-  }, [sponsorSegmentTranscripts.data]);
 
   return (
     <>

@@ -12,18 +12,14 @@ const SegmentTranscript = ({
   seekTo(start: number, end: number): void;
 }) => {
   return (
-    <div>
-      <>
-        <div className="rounded-3xl p-2" key={segment.UUID}>
-          <h3>{segment.UUID}</h3>
-          <TranscriptTabs
-            segment={segment}
-            captionsURL={captionsURL}
-            seekTo={seekTo}
-          />
-        </div>
-      </>
-    </div>
+    <>
+      <TranscriptTabs
+        key={segment.UUID}
+        segment={segment}
+        captionsURL={captionsURL}
+        seekTo={seekTo}
+      />
+    </>
   );
 };
 

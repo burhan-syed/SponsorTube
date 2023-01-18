@@ -84,7 +84,7 @@ const Home: NextPage = ({}) => {
             (videoInfo.error || true) && "something went wrong"
           )}
 
-          <div className="w-full">
+          <div className="w-full flex flex-col gap-2">
             {/* Display this outside of videoInfoLoader to grab sponsorsegments with videoID*/}
             <SponsorTranscripts
               videoID={videoID}

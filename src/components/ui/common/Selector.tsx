@@ -48,14 +48,14 @@ const Selector = ({
       }}
     >
       <Select.Trigger
-        className="inline-flex h-full w-full sm:max-w-full items-center justify-center px-6 rounded-full bg-th-chipBackground hover:bg-th-chipBackgroundHover "
+        className="inline-flex h-full w-full sm:max-w-full items-center justify-center px-6 rounded-full bg-th-chipBackground hover:bg-th-chipBackgroundHover select-none gap-3 "
         aria-label={selectorAriaLabel ?? valuePlaceholder}
       >
         <Select.Value aria-label={value} placeholder={valuePlaceholder}>
           {value ? value : valuePlaceholder}
         </Select.Value>
-        <Select.Icon className="SelectIcon">
-          <BiChevronDown />
+        <Select.Icon className="w-4 h-4 flex-none flex items-center justify-center">
+          <BiChevronDown className="w-4 h-4 flex-none" />
         </Select.Icon>
       </Select.Trigger>
 

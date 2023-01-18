@@ -26,8 +26,6 @@ const SponsorTranscripts = ({
       ),
     [captionTracks]
   );
-  //console.log("caption tracks?", captionTracks)
-  //console.log("saved segments?", savedSegments.data, "sb segments?", segments.data);
   return (
     <>
       {savedSegments.isLoading ? (
@@ -38,7 +36,6 @@ const SponsorTranscripts = ({
         <>
           {savedSegments.data.length > 0 ? (
             <>
-              {"saved segments"}
               {savedSegments.data.map((segment) => (
                 <SegmentTranscript
                   key={segment.UUID}
@@ -50,7 +47,6 @@ const SponsorTranscripts = ({
             </>
           ) : (
             <>
-              {"no saved segments"}
               {segments.isLoading ? (
                 <SegmentsGroupLoader />
               ) : segments.data ? (

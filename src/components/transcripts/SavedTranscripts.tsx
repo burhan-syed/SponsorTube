@@ -41,33 +41,6 @@ const SavedTranscripts = ({
             <>
               {savedTranscriptAnnotations?.data?.map((savedTranscripts) => (
                 <>
-                  {`(details id: ${savedTranscripts.TranscriptDetails?.[0]?.id} [${savedTranscripts.TranscriptDetails?.[0]?.score} | ${savedTranscripts.score}])`}
-                  {/* {savedTranscripts.TranscriptDetails?.[0]?.id && (
-                    <TranscriptVote
-                      transcriptDetailsId={
-                        savedTranscripts.TranscriptDetails?.[0]?.id
-                      }
-                      initialDirection={
-                        savedTranscripts.TranscriptDetails?.[0]?.Votes?.[0]
-                          ?.direction ?? 0
-                      }
-                      transcriptId={savedTranscripts.id}
-                    />
-                  )} */}
-                  {sessionData &&
-                    sessionData.user?.id &&
-                    sessionData.user?.id ===
-                      (savedTranscripts.TranscriptDetails?.[0]?.userId ??
-                        savedTranscripts?.userId) && (
-                      <TranscriptDelete
-                        segmentUUID={segmentUUID}
-                        transcriptId={savedTranscripts.id}
-                        transcriptDetailsId={
-                          savedTranscripts.TranscriptDetails?.[0]?.id
-                        }
-                      />
-                    )}
-
                   <TranscriptEditWrapper
                     key={savedTranscripts.id}
                     transcript={{
@@ -80,11 +53,14 @@ const SavedTranscripts = ({
                       id: savedTranscripts.id,
                       transcriptDetailsId:
                         savedTranscripts.TranscriptDetails?.[0]?.id,
+                      annotaterId: savedTranscripts.TranscriptDetails?.[0]?.userId ?? savedTranscripts?.userId ?? ""
                     }}
                     setTabValue={setTabValue}
                     seekTo={seekTo}
-                    initialVoteDirection={savedTranscripts.TranscriptDetails?.[0]?.Votes?.[0]
-                      ?.direction ?? 0}
+                    initialVoteDirection={
+                      savedTranscripts.TranscriptDetails?.[0]?.Votes?.[0]
+                        ?.direction ?? 0
+                    }
                   />
                 </>
               ))}

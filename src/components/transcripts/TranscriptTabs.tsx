@@ -7,9 +7,6 @@ import GeneratedTranscripts from "./GeneratedTranscripts";
 import { trpc } from "@/utils/trpc";
 import { useSession } from "next-auth/react";
 import TabsList from "../ui/common/tabs/TabsList";
-import { Button } from "../ui/common/Button";
-import { BsPlay } from "react-icons/bs";
-import { secondsToHMS } from "@/utils";
 const TranscriptTabs = ({
   segment,
   captionsURL,
@@ -19,6 +16,8 @@ const TranscriptTabs = ({
   captionsURL: string;
   seekTo(start: number, end: number): void;
 }) => {
+  const { data: sessionData } = useSession();
+
   //load these prior to tab focus
   const savedTranscriptAnnotations = trpc.transcript.get.useQuery(
     {
@@ -30,12 +29,13 @@ const TranscriptTabs = ({
     }
   );
 
-  const [transcriptTimes, setTranscriptTimes] = useState<{
-    start: number;
-    end: number;
-  }>();
   const [tabValue, setTabValue] = useState<string>("");
-  const { data: sessionData } = useSession();
+  type tabValues = "saved" | "user" | "generated";
+  const tabsList = [
+    { value: "saved" },
+    { value: "user", disabled: !sessionData },
+    { value: "generated" },
+  ] as { value: tabValues; disabled?: boolean }[];
 
   useEffect(() => {
     if (
@@ -46,16 +46,6 @@ const TranscriptTabs = ({
       setTabValue("saved");
     } else if (savedTranscriptAnnotations.isFetched && !tabValue) {
       setTabValue("generated");
-    }
-    if (
-      (savedTranscriptAnnotations?.data?.length ?? 0 > 0) &&
-      typeof savedTranscriptAnnotations.data?.[0]?.startTime === "number" &&
-      typeof savedTranscriptAnnotations.data?.[0]?.endTime === "number"
-    ) {
-      setTranscriptTimes({
-        start: savedTranscriptAnnotations.data?.[0]?.startTime,
-        end: savedTranscriptAnnotations.data?.[0]?.endTime,
-      });
     }
     return () => {
       //
@@ -73,55 +63,22 @@ const TranscriptTabs = ({
       </div>
     );
   }
-  type tabValues = "saved" | "user" | "generated";
-  const tabsList = [
-    { value: "saved" },
-    { value: "user", disabled: !sessionData },
-    { value: "generated" },
-  ] as { value: tabValues; disabled?: boolean }[];
 
   return (
     <>
-      {transcriptTimes?.start && transcriptTimes.end && (
-        <div className="flex items-center gap-2">
-          <Button
-            round
-            onClick={() =>
-              seekTo(
-                transcriptTimes.start as number,
-                transcriptTimes.end as number
-              )
-            }
-          >
-            <BsPlay className="w-4 h-4 flex-none" />
-          </Button>
-          <span className="text-th-textSecondary text-xs">
-            {secondsToHMS(transcriptTimes.start)} - 
-            {secondsToHMS(transcriptTimes.end)}
-          </span>
-        </div>
-      )}
       <TabsPrimitives.Root
         defaultValue="saved"
         orientation="vertical"
         value={tabValue}
         onValueChange={(value) => setTabValue(value)}
-        className="grid grid-cols-[2.8rem_1fr] gap-2 outline outline-red-500 "
+        className="rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA sm:grid sm:grid-cols-[1fr_3.2rem]"
       >
-        <div className="relative mt-auto h-[25rem] w-[2.8rem]">
-          <div className="pointer-events-none absolute top-0 h-7 w-[25rem] origin-top-left rotate-[270deg]">
-            <div className="pointer-events-auto h-full w-full -translate-x-full ">
-              <TabsList tabsList={tabsList} />
-            </div>
-          </div>
-        </div>
-
-        <div className="">
+        <div className="border-r border-r-th-textSecondary">
           {tabsList.map(({ value }) => (
             <TabsPrimitives.Content
               key={value}
               value={value}
-              className=" hidden flex-col border border-orange-400 data-[state=active]:flex data-[state=active]:min-h-[30rem]"
+              className=" hidden flex-col data-[state=active]:flex data-[state=active]:min-h-[30rem]"
             >
               {value === "generated" ? (
                 <GeneratedTranscripts
@@ -129,7 +86,6 @@ const TranscriptTabs = ({
                   captionsURL={captionsURL}
                   setTabValue={setTabValue}
                   seekTo={seekTo}
-                  setTranscriptTimes={setTranscriptTimes}
                 />
               ) : (
                 <SavedTranscripts
@@ -141,6 +97,15 @@ const TranscriptTabs = ({
               )}
             </TabsPrimitives.Content>
           ))}
+        </div>
+        <div className="rounded-lg bg-th-baseBackground">
+          <div className="relative sm:h-[25rem] sm:w-8">
+            <div className="sm:pointer-events-none sm:absolute sm:top-0 sm:h-8 sm:w-[25rem] sm:origin-top-left sm:rotate-90">
+              <div className="pointer-events-auto  sm:h-full sm:w-full sm:-translate-y-full ">
+                <TabsList tabsList={tabsList} />
+              </div>
+            </div>
+          </div>
         </div>
       </TabsPrimitives.Root>
     </>
