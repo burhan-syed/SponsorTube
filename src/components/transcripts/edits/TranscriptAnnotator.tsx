@@ -203,7 +203,7 @@ const TranscriptAnnotator = ({
         />
       </div>
       <div className="mt-auto pt-4">
-        <ul className="flex flex-row flex-wrap items-center gap-1">
+        <ul className={clsx("flex flex-row flex-wrap items-center gap-1",!editable && "py-1")}>
           {annotations
             .filter(
               (value, index, self) =>

@@ -14,10 +14,12 @@ const TranscriptVote = ({
   transcriptDetailsId,
   transcriptId,
   initialDirection,
+  disabled = false,
 }: {
   transcriptDetailsId: string;
   transcriptId: string;
   initialDirection: number;
+  disabled?: boolean;
 }) => {
   const { data: sessionData } = useSession();
   const utils = trpc.useContext();
@@ -47,6 +49,7 @@ const TranscriptVote = ({
       <Button
         round
         disabled={
+          disabled ||
           !transcriptDetailsId ||
           votes.isLoading ||
           votes.isError ||
@@ -68,6 +71,7 @@ const TranscriptVote = ({
       <Button
         round
         disabled={
+          disabled ||
           !transcriptDetailsId ||
           votes.isLoading ||
           votes.isError ||

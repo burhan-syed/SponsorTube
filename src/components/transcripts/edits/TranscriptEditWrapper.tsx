@@ -18,6 +18,7 @@ import TranscriptVote from "../TranscriptVote";
 import { secondsToHMS } from "@/utils";
 import { useSession } from "next-auth/react";
 import TranscriptDelete from "../TranscriptDelete";
+import TranscriptAutoGen from "../TranscriptAutoGen";
 
 type Transcript = {
   segmentUUID: string;
@@ -49,16 +50,6 @@ const TranscriptEditWrapper = ({
   const [annotateToggled, setAnnotateToggled] = useState(false);
   const [tag, setTag] = React.useState<AnnotationTags>("BRAND");
 
-  const utils = trpc.useContext();
-  const getSegments = trpc.openai.getSegmentAnnotations.useMutation({
-    async onSuccess() {
-      await utils.transcript.get.invalidate({
-        segmentUUID: transcript.segmentUUID,
-      });
-      setTabValue && setTabValue("generated");
-    },
-  });
-
   useEffect(() => {
     if (setIsTabDisabled) {
       if (editToggled || annotateToggled) {
@@ -76,11 +67,19 @@ const TranscriptEditWrapper = ({
         //-translate-x-1/2
       >
         {transcript.id && transcript.transcriptDetailsId && (
-          <TranscriptVote
-            initialDirection={initialVoteDirection}
-            transcriptDetailsId={transcript.transcriptDetailsId}
-            transcriptId={transcript.id}
-          />
+          <div
+            className={clsx(
+              annotateToggled || editToggled ? "hidden sm:flex" : "flex",
+              "items-start gap-1 sm:gap-2"
+            )}
+          >
+            <TranscriptVote
+              initialDirection={initialVoteDirection}
+              transcriptDetailsId={transcript.transcriptDetailsId}
+              transcriptId={transcript.id}
+              disabled={annotateToggled || editToggled}
+            />
+          </div>
         )}
 
         {sessionData &&
@@ -164,24 +163,12 @@ const TranscriptEditWrapper = ({
         </Tooltip>
 
         <Tooltip text={editToggled || annotateToggled ? "" : "auto generate"}>
-          <Button
-            round
-            disabled={editToggled || annotateToggled}
-            className={clsx(
-              (editToggled || annotateToggled) &&
-                "pointer-events-none opacity-50"
-            )}
-            onClick={() =>
-              getSegments.mutate({
-                segmentUUID: transcript.segmentUUID,
-                transcript: transcript.text,
-                endTime: transcript.endTime,
-                startTime: transcript.startTime,
-              })
-            }
-          >
-            <BiBrain />
-          </Button>
+          <TranscriptAutoGen
+            transcript={{ ...transcript }}
+            editingToggled={editToggled || annotateToggled}
+            setIsTabDisabled={setIsTabDisabled}
+            setTabValue={setTabValue}
+          />
         </Tooltip>
       </div>
       {!editToggled && (

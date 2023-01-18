@@ -48,7 +48,7 @@ const buttonClasses = cva(
         false: "",
       },
       disabled: {
-        true: "pointer-events-none hover:shadow-none",
+        true: "pointer-events-none opacity-50",
       },
     },
     compoundVariants: [
