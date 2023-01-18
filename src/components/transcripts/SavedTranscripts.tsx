@@ -1,9 +1,6 @@
 import { trpc } from "@/utils/trpc";
 import { useSession } from "next-auth/react";
-import React from "react";
 import TranscriptEditWrapper from "./edits/TranscriptEditWrapper";
-import TranscriptDelete from "./TranscriptDelete";
-import TranscriptVote from "./TranscriptVote";
 
 // import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 // import  {type appRouter } from "@/server/trpc/router";
@@ -13,11 +10,13 @@ const SavedTranscripts = ({
   segmentUUID,
   userPosts = false,
   setTabValue,
+  setIsTabDisabled,
   seekTo,
 }: {
   segmentUUID: string;
   userPosts?: boolean;
   setTabValue?(v: string): void;
+  setIsTabDisabled?(d: boolean): void;
   seekTo(start: number, end: number): void;
 }) => {
   const { data: sessionData } = useSession();
@@ -53,9 +52,13 @@ const SavedTranscripts = ({
                       id: savedTranscripts.id,
                       transcriptDetailsId:
                         savedTranscripts.TranscriptDetails?.[0]?.id,
-                      annotaterId: savedTranscripts.TranscriptDetails?.[0]?.userId ?? savedTranscripts?.userId ?? ""
+                      annotaterId:
+                        savedTranscripts.TranscriptDetails?.[0]?.userId ??
+                        savedTranscripts?.userId ??
+                        "",
                     }}
                     setTabValue={setTabValue}
+                    setIsTabDisabled={setIsTabDisabled}
                     seekTo={seekTo}
                     initialVoteDirection={
                       savedTranscripts.TranscriptDetails?.[0]?.Votes?.[0]

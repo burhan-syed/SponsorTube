@@ -9,13 +9,18 @@ type TabsProps = {
     label?: string;
     disabled?: boolean;
   }[];
+  disabled?: boolean;
 };
 
-const TabsList = ({ tabsList }: TabsProps) => {
+const TabsList = ({ tabsList, disabled = false }: TabsProps) => {
   return (
     <TabsPrimitives.List aria-label="tabs example" className="flex h-full">
       {tabsList.map((tab) => (
-        <TabTrigger key={tab.value} {...tab} />
+        <TabTrigger
+          key={tab.value}
+          {...tab}
+          disabled={disabled ? disabled : tab?.disabled ?? false}
+        />
       ))}
     </TabsPrimitives.List>
   );

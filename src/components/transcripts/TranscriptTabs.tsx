@@ -28,7 +28,7 @@ const TranscriptTabs = ({
       enabled: !!segment.UUID,
     }
   );
-
+  const [isTabDisabled, setIsTabDisabled] = useState(false); 
   const [tabValue, setTabValue] = useState<string>("");
   type tabValues = "saved" | "user" | "generated";
   const tabsList = [
@@ -73,7 +73,16 @@ const TranscriptTabs = ({
         onValueChange={(value) => setTabValue(value)}
         className="rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA sm:grid sm:grid-cols-[1fr_3.2rem]"
       >
-        <div className="border-r border-r-th-textSecondary">
+        <div className="rounded-lg bg-th-baseBackground sm:order-2">
+          <div className="relative sm:h-[25rem] sm:w-8">
+            <div className="sm:pointer-events-none sm:absolute sm:top-0 sm:h-8 sm:w-[25rem] sm:origin-top-left sm:rotate-90">
+              <div className="pointer-events-auto  sm:h-full sm:w-full sm:-translate-y-full ">
+                <TabsList disabled={isTabDisabled} tabsList={tabsList} />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-t-th-textSecondary sm:order-1 sm:border-t-0 sm:border-r sm:border-r-th-textSecondary">
           {tabsList.map(({ value }) => (
             <TabsPrimitives.Content
               key={value}
@@ -85,27 +94,20 @@ const TranscriptTabs = ({
                   segment={segment}
                   captionsURL={captionsURL}
                   setTabValue={setTabValue}
+                  setIsTabDisabled={setIsTabDisabled}
                   seekTo={seekTo}
                 />
               ) : (
                 <SavedTranscripts
                   segmentUUID={segment.UUID}
                   setTabValue={setTabValue}
+                  setIsTabDisabled={setIsTabDisabled}
                   seekTo={seekTo}
                   userPosts={value === "user"}
                 />
               )}
             </TabsPrimitives.Content>
           ))}
-        </div>
-        <div className="rounded-lg bg-th-baseBackground">
-          <div className="relative sm:h-[25rem] sm:w-8">
-            <div className="sm:pointer-events-none sm:absolute sm:top-0 sm:h-8 sm:w-[25rem] sm:origin-top-left sm:rotate-90">
-              <div className="pointer-events-auto  sm:h-full sm:w-full sm:-translate-y-full ">
-                <TabsList tabsList={tabsList} />
-              </div>
-            </div>
-          </div>
         </div>
       </TabsPrimitives.Root>
     </>

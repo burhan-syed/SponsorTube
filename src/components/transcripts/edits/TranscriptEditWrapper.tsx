@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Toggle from "../../ui/common/Toggle";
 import { MdEditNote } from "react-icons/md";
@@ -34,6 +34,7 @@ interface TranscriptEditWrapperProps {
   initialVoteDirection: number;
   seekTo(start: number, end: number): void;
   setTabValue?(v: string): void;
+  setIsTabDisabled?(d: boolean): void;
 }
 
 const TranscriptEditWrapper = ({
@@ -41,6 +42,7 @@ const TranscriptEditWrapper = ({
   setTabValue,
   seekTo,
   initialVoteDirection,
+  setIsTabDisabled,
 }: TranscriptEditWrapperProps) => {
   const { data: sessionData } = useSession();
   const [editToggled, setEditToggled] = useState(false);
@@ -57,10 +59,20 @@ const TranscriptEditWrapper = ({
     },
   });
 
+  useEffect(() => {
+    if (setIsTabDisabled) {
+      if (editToggled || annotateToggled) {
+        setIsTabDisabled(true);
+      } else {
+        setIsTabDisabled(false);
+      }
+    }
+  }, [editToggled, annotateToggled, setIsTabDisabled]);
+
   return (
     <div className="flex flex-grow flex-col">
       <div
-        className="flex items-start justify-start gap-2 rounded-tl-lg bg-th-baseBackground px-2 py-0.5 sm:translate-x-0 sm:flex-row"
+        className="flex items-start justify-end gap-1 rounded-tl-lg bg-th-baseBackground px-1 py-1 sm:translate-x-0 sm:flex-row sm:justify-start sm:gap-2 sm:px-2 sm:py-0.5"
         //-translate-x-1/2
       >
         {transcript.id && transcript.transcriptDetailsId && (
@@ -83,7 +95,7 @@ const TranscriptEditWrapper = ({
           )}
 
         {transcript?.startTime && transcript.endTime && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-0.5 sm:gap-2">
             <Button
               round
               onClick={() =>
@@ -95,7 +107,7 @@ const TranscriptEditWrapper = ({
             >
               <BsPlay className="h-4 w-4 flex-none" />
             </Button>
-            <span className="flex items-center gap-1 text-xs text-th-textSecondary">
+            <span className="flex items-center gap-0.5  text-xs text-th-textSecondary sm:gap-1">
               {secondsToHMS(transcript.startTime)}
               <span>-</span>
               {secondsToHMS(transcript.endTime)}

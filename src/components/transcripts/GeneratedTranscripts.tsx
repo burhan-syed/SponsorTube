@@ -9,11 +9,13 @@ const GeneratedTranscripts = ({
   segment,
   captionsURL,
   setTabValue,
+  setIsTabDisabled,
   seekTo,
 }: {
   segment: Segment;
   captionsURL: string;
   setTabValue?(v: string): void;
+  setIsTabDisabled?(d:boolean):void;
   seekTo(start: number, end: number): void;
 }) => {
   const captions = useVideoCaptions({
@@ -51,6 +53,7 @@ const GeneratedTranscripts = ({
                 ?.Annotations,
           }}
           setTabValue={setTabValue}
+          setIsTabDisabled={setIsTabDisabled}
           seekTo={seekTo}
           initialVoteDirection={
             savedTranscriptAnnotations?.data?.[0]?.TranscriptDetails?.[0]
