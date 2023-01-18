@@ -9,6 +9,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import Head from "next/head";
+import SessionRequiredDialogueWrapper from "@/components/ui/dialogue/SessionRequiredDialogueWrapper";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -26,7 +27,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
         <CookiesProvider>
           <SessionProvider session={session}>
             <TooltipProvider>
-              <Component {...pageProps} />
+              <SessionRequiredDialogueWrapper>
+                <Component {...pageProps} />
+              </SessionRequiredDialogueWrapper>
               <ReactQueryDevtools initialIsOpen={false} />
             </TooltipProvider>
           </SessionProvider>

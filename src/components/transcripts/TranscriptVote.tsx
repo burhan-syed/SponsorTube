@@ -1,14 +1,11 @@
 import { trpc } from "@/utils/trpc";
-import { useSession } from "next-auth/react";
-import React, { useState } from "react";
 import {
   RiThumbUpLine,
   RiThumbUpFill,
   RiThumbDownLine,
   RiThumbDownFill,
 } from "react-icons/ri";
-import AlertDialogueWrapper from "../ui/dialogue/AlertDialogueWrapper";
-import LoginAlertDialogueContent from "../ui/dialogue/LoginAlertDialogueContent";
+
 import { Button } from "../ui/common/Button";
 const TranscriptVote = ({
   transcriptDetailsId,
@@ -21,7 +18,6 @@ const TranscriptVote = ({
   initialDirection: number;
   disabled?: boolean;
 }) => {
-  const { data: sessionData } = useSession();
   const utils = trpc.useContext();
   const votes = trpc.transcript.getMyVote.useQuery(
     {
@@ -42,12 +38,12 @@ const TranscriptVote = ({
   });
 
   console.log("vote?", transcriptDetailsId, votes.data);
-  const [triggerAlertDialogue, setTriggerAlertDialogue] = useState(0);
 
-  const voteButtons = (
+  return (
     <>
       <Button
         round
+        requireSession={{ required: true, reason: "login to vote" }}
         disabled={
           disabled ||
           !transcriptDetailsId ||
@@ -56,20 +52,19 @@ const TranscriptVote = ({
           vote.isLoading
         }
         onClick={() =>
-          !sessionData
-            ? setTriggerAlertDialogue((a) => a + 1)
-            : vote.mutate({
-                transcriptDetailsId: transcriptDetailsId,
-                previous: votes?.data?.direction ?? 0,
-                direction: votes?.data?.direction === 1 ? 0 : 1,
-                transcriptId: transcriptId,
-              })
+          vote.mutate({
+            transcriptDetailsId: transcriptDetailsId,
+            previous: votes?.data?.direction ?? 0,
+            direction: votes?.data?.direction === 1 ? 0 : 1,
+            transcriptId: transcriptId,
+          })
         }
       >
         {votes?.data?.direction === 1 ? <RiThumbUpFill /> : <RiThumbUpLine />}
       </Button>
       <Button
         round
+        requireSession={{ required: true, reason: "login to vote" }}
         disabled={
           disabled ||
           !transcriptDetailsId ||
@@ -78,14 +73,12 @@ const TranscriptVote = ({
           vote.isLoading
         }
         onClick={() =>
-          !sessionData
-            ? setTriggerAlertDialogue((a) => a + 1)
-            : vote.mutate({
-                transcriptDetailsId: transcriptDetailsId,
-                previous: votes?.data?.direction ?? 0,
-                direction: votes?.data?.direction === -1 ? 0 : -1,
-                transcriptId: transcriptId,
-              })
+          vote.mutate({
+            transcriptDetailsId: transcriptDetailsId,
+            previous: votes?.data?.direction ?? 0,
+            direction: votes?.data?.direction === -1 ? 0 : -1,
+            transcriptId: transcriptId,
+          })
         }
       >
         {votes?.data?.direction === -1 ? (
@@ -96,24 +89,6 @@ const TranscriptVote = ({
       </Button>
     </>
   );
-
-  if (!sessionData) {
-    return (
-      <>
-        <AlertDialogueWrapper
-          triggerAlert={triggerAlertDialogue}
-          content={
-            <>
-              <LoginAlertDialogueContent description="login to vote" />
-            </>
-          }
-        >
-          <>{voteButtons}</>
-        </AlertDialogueWrapper>
-      </>
-    );
-  }
-  return <>{voteButtons}</>;
 };
 
 export default TranscriptVote;

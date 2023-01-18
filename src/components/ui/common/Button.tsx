@@ -4,6 +4,8 @@ import { cva, VariantProps } from "class-variance-authority";
 import clsx from "clsx";
 import TouchResponse from "./TouchResponse";
 import useIsPressed from "@/hooks/useIsPressed";
+import { useSession } from "next-auth/react";
+import useGlobalStore from "@/hooks/useGlobalStore";
 
 type ButtonBaseProps = VariantProps<typeof buttonClasses> & {
   children: React.ReactNode;
@@ -18,7 +20,9 @@ interface ButtonAsButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 type ButtonProps = ButtonBaseProps &
-  (ButtonAsAnchorProps | ButtonAsButtonProps);
+  (ButtonAsAnchorProps | ButtonAsButtonProps) & {
+    requireSession?: { required: boolean; reason?: string };
+  };
 
 const buttonClasses = cva(
   "relative rounded-full inline-flex items-center justify-center transition-all ease-in-out select-none hover:shadow ",
@@ -105,6 +109,7 @@ export const Button = ({
   size,
   round,
   disabled,
+  requireSession = { required: false },
   ...props
 }: ButtonProps) => {
   const classes = buttonClasses({
@@ -114,6 +119,10 @@ export const Button = ({
     disabled,
     className: props.className,
   });
+  const { data: sessionData } = useSession();
+  const setSessionRequiredTrigger = useGlobalStore(
+    (state) => state.setSessionRequiredTrigger
+  );
   const { containerRef, isPressed } = useIsPressed();
 
   if ("href" in props && props.href !== undefined) {
@@ -130,12 +139,25 @@ export const Button = ({
   }
 
   return (
-      <button {...props} ref={containerRef} className={classes}>
-        {children}
-        <TouchResponse
+    <button
+      {...props}
+      ref={containerRef}
+      className={classes}
+      onClick={(e) => {
+        if (requireSession.required && !sessionData) {
+          setSessionRequiredTrigger(requireSession?.reason);
+          e.preventDefault(); 
+          e.stopPropagation(); 
+        } else if (props.onClick) {
+          props.onClick(e);
+        }
+      }}
+    >
+      {children}
+      <TouchResponse
         className={"rounded-full"}
         isPressed={!disabled && isPressed}
       />
-      </button>
+    </button>
   );
 };
