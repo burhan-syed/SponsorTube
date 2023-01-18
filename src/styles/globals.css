@@ -27,7 +27,7 @@ body {
   --errorBackground: 24, 24, 24; /*rgba(24, 24, 24)*/
   --invertedBackground: 15, 15, 15; /*rgba(15, 15, 15)*/
   --additiveBackground: 0, 0, 0; /*rgba(0, 0, 0)*/
-  --tonalBackground: 255,255,255; /*rgba(255,255,255)*/
+  --tonalBackground: 255, 255, 255; /*rgba(255,255,255)*/
   --searchBorder: 204, 204, 204; /*rgba(204, 204, 204)*/
   --searchBorderFocus: 28, 98, 185; /*rgba(28, 98, 185)*/
   --searchButton: 248, 248, 248; /*rgba(248, 248, 248)*/
@@ -39,6 +39,8 @@ body {
   --callToActionInverse: 6, 95, 212; /*rgba(6, 95, 212)*/
   --suggestedAction: 222, 241, 255; /*rgba(222, 241, 255)*/
   --suggestedActionInverse: 38, 56, 80; /*rgba(38, 56, 80)*/
+  --tooltipBackground: 97, 97, 97; /*rgba(97,97,97)*/
+  --tooltipText: 255, 255, 255; /*rgba(255, 255, 255)*/
 
   --chipBackground: rgba(0, 0, 0, 0.05);
   --chipBackgroundHover: rgba(0, 0, 0, 0.1);

@@ -85,6 +85,8 @@ module.exports = {
         "th-searchButtonBorderHover": withOpacity("--searchButtonBorderHover"),
         "th-callToAction": withOpacity("--callToAction"),
         "th-callToActionInverse": withOpacity("--callToActionInverse"),
+        "th-tooltipBackground": withOpacity("--tooltipBackground"),
+        "th-tooltipText": withOpacity("--tooltipText"),
 
         "th-chipBackground": "var(--chipBackground)",
         "th-chipBackgroundHover": "var(--chipBackgroundHover)",
@@ -93,6 +95,12 @@ module.exports = {
         "th-shadow": "var(--shadow)",
         "th-touchResponse": "var(--touchResponse)",
         "th-searchBackground": "var(--searchBackground)",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: 0 },
+          "100%": { opacity: 1 },
+        },
       },
     },
     fontSize: {
