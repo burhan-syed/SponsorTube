@@ -10,13 +10,13 @@ const SavedTranscripts = ({
   segmentUUID,
   userPosts = false,
   setTabValue,
-  setIsTabDisabled,
+  setIsNavDisabled,
   seekTo,
 }: {
   segmentUUID: string;
   userPosts?: boolean;
   setTabValue?(v: string): void;
-  setIsTabDisabled?(d: boolean): void;
+  setIsNavDisabled?(d: boolean): void;
   seekTo(start: number, end: number): void;
 }) => {
   const { data: sessionData } = useSession();
@@ -58,7 +58,7 @@ const SavedTranscripts = ({
                         "",
                     }}
                     setTabValue={setTabValue}
-                    setIsTabDisabled={setIsTabDisabled}
+                    setIsNavDisabled={setIsNavDisabled}
                     seekTo={seekTo}
                     initialVoteDirection={
                       savedTranscripts.TranscriptDetails?.[0]?.Votes?.[0]

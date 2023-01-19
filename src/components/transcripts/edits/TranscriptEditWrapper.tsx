@@ -35,7 +35,7 @@ interface TranscriptEditWrapperProps {
   initialVoteDirection: number;
   seekTo(start: number, end: number): void;
   setTabValue?(v: string): void;
-  setIsTabDisabled?(d: boolean): void;
+  setIsNavDisabled?(d: boolean): void;
 }
 
 const TranscriptEditWrapper = ({
@@ -43,7 +43,7 @@ const TranscriptEditWrapper = ({
   setTabValue,
   seekTo,
   initialVoteDirection,
-  setIsTabDisabled,
+  setIsNavDisabled,
 }: TranscriptEditWrapperProps) => {
   const { data: sessionData } = useSession();
   const [editToggled, setEditToggled] = useState(false);
@@ -51,14 +51,14 @@ const TranscriptEditWrapper = ({
   const [tag, setTag] = React.useState<AnnotationTags>("BRAND");
 
   useEffect(() => {
-    if (setIsTabDisabled) {
+    if (setIsNavDisabled) {
       if (editToggled || annotateToggled) {
-        setIsTabDisabled(true);
+        setIsNavDisabled(true);
       } else {
-        setIsTabDisabled(false);
+        setIsNavDisabled(false);
       }
     }
-  }, [editToggled, annotateToggled, setIsTabDisabled]);
+  }, [editToggled, annotateToggled, setIsNavDisabled]);
 
   return (
     <div className="flex flex-grow flex-col">
@@ -166,7 +166,7 @@ const TranscriptEditWrapper = ({
           <TranscriptAutoGen
             transcript={{ ...transcript }}
             editingToggled={editToggled || annotateToggled}
-            setIsTabDisabled={setIsTabDisabled}
+            setIsNavDisabled={setIsNavDisabled}
             setTabValue={setTabValue}
           />
         </Tooltip>

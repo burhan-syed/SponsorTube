@@ -4,13 +4,13 @@ import { trpc } from "@/utils/trpc";
 
 const TranscriptAutoGen = ({
   setTabValue,
-  setIsTabDisabled,
+  setIsNavDisabled,
   transcript,
-  editingToggled
+  editingToggled,
 }: {
   setTabValue?(v: string): void;
-  setIsTabDisabled?(d: boolean): void;
-  editingToggled?:boolean;
+  setIsNavDisabled?(d: boolean): void;
+  editingToggled?: boolean;
   transcript: {
     segmentUUID: string;
     text: string;
@@ -26,13 +26,17 @@ const TranscriptAutoGen = ({
       });
       setTabValue && setTabValue("generated");
     },
+    async onError(error, variables, context) {
+      console.log("error?", error, variables, context);
+    },
   });
 
   return (
     <>
       <Button
         round
-        disabled={editingToggled}
+        disabled={editingToggled || getSegments.isLoading}
+        loading={getSegments.isLoading}
         onClick={() =>
           getSegments.mutate({
             segmentUUID: transcript.segmentUUID,

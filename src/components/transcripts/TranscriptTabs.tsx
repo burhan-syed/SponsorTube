@@ -28,7 +28,7 @@ const TranscriptTabs = ({
       enabled: !!segment.UUID,
     }
   );
-  const [isTabDisabled, setIsTabDisabled] = useState(false); 
+  const [isNavDisabled, setIsNavDisabled] = useState(false); 
   const [tabValue, setTabValue] = useState<string>("");
   type tabValues = "saved" | "user" | "generated";
   const tabsList = [
@@ -77,7 +77,7 @@ const TranscriptTabs = ({
           <div className="relative sm:h-[25rem] sm:w-8">
             <div className="sm:pointer-events-none sm:absolute sm:top-0 sm:h-8 sm:w-[25rem] sm:origin-top-left sm:rotate-90">
               <div className="pointer-events-auto  sm:h-full sm:w-full sm:-translate-y-full ">
-                <TabsList disabled={isTabDisabled} tabsList={tabsList} />
+                <TabsList disabled={isNavDisabled} tabsList={tabsList} />
               </div>
             </div>
           </div>
@@ -94,14 +94,15 @@ const TranscriptTabs = ({
                   segment={segment}
                   captionsURL={captionsURL}
                   setTabValue={setTabValue}
-                  setIsTabDisabled={setIsTabDisabled}
+                  setIsNavDisabled={setIsNavDisabled}
+                  isNavDisabled={isNavDisabled}
                   seekTo={seekTo}
                 />
               ) : (
                 <SavedTranscripts
                   segmentUUID={segment.UUID}
                   setTabValue={setTabValue}
-                  setIsTabDisabled={setIsTabDisabled}
+                  setIsNavDisabled={setIsNavDisabled}
                   seekTo={seekTo}
                   userPosts={value === "user"}
                 />

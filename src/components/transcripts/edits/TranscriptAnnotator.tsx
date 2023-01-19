@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { TextAnnotate } from "react-text-annotate-blend";
 import Selector from "../../ui/common/Selector";
 import { trpc } from "@/utils/trpc";
@@ -83,21 +83,23 @@ const TranscriptAnnotator = ({
   };
 
   useEffect(() => {
-    if (transcript.annotations) {
-      setAnnotations(
-        transcript.annotations.map((a) => ({
-          start: a.start,
-          end: a.end,
-          text: a.text,
-          tag: a.tag,
-          color: TAGS.get(a.tag),
-          className: TAGCLASSES,
-        }))
-      );
-    } else {
-      setAnnotations([]);
+    if (!editable) {
+      if (transcript.annotations) {
+        setAnnotations(
+          transcript.annotations.map((a) => ({
+            start: a.start,
+            end: a.end,
+            text: a.text,
+            tag: a.tag,
+            color: TAGS.get(a.tag),
+            className: TAGCLASSES,
+          }))
+        );
+      } else {
+        setAnnotations([]);
+      }
     }
-  }, [transcript]);
+  }, [transcript, editable]);
   useEffect(() => {
     if (editTag) {
       setTag(editTag);
@@ -136,6 +138,14 @@ const TranscriptAnnotator = ({
       return annotation.filter((a) => a.text.trim());
     });
   };
+
+  //TODO
+  const areSegmentsSame = useMemo(() => {
+    if (!transcript.annotations) {
+      return false;
+    }
+    return true;
+  }, [transcript.annotations, annotations]);
 
   return (
     <>
@@ -189,7 +199,7 @@ const TranscriptAnnotator = ({
       >
         <TextAnnotate
           className={clsx(
-            "pt-1 leading-loose font-mono",
+            "pt-1 font-mono leading-loose",
             editable ? "  " : " pointer-events-none "
           )}
           content={transcript.text}
@@ -203,7 +213,12 @@ const TranscriptAnnotator = ({
         />
       </div>
       <div className="mt-auto pt-4">
-        <ul className={clsx("flex flex-row flex-wrap items-center gap-1",!editable && "py-1")}>
+        <ul
+          className={clsx(
+            "flex flex-row flex-wrap items-center gap-1",
+            !editable && "py-1"
+          )}
+        >
           {annotations
             .filter(
               (value, index, self) =>
@@ -265,7 +280,17 @@ const TranscriptAnnotator = ({
               </Button>
               <Button
                 variant={"accent"}
-                disabled={!editable || submitAnnotations.isLoading}
+                requireSession={{
+                  required: true,
+                  reason: "Please login to submit transcript annotations!",
+                }}
+                disabled={
+                  !editable ||
+                  submitAnnotations.isLoading ||
+                  areSegmentsSame ||
+                  !(annotations.length > 0)
+                }
+                loading={submitAnnotations.isLoading}
                 onClick={() => {
                   submitAnnotations.mutate({
                     transcriptId: transcript.id,

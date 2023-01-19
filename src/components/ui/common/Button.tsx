@@ -147,6 +147,7 @@ export const Button = ({
   return (
     <button
       {...props}
+      disabled={!!disabled}
       ref={containerRef}
       className={clsx(classes)}
       onClick={(e) => {

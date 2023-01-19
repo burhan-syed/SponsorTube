@@ -90,13 +90,15 @@ const TranscriptEditor = ({
               methods.register("text").ref(el);
               if (el) textAreaRef.current = el;
             }}
-            className="h-full w-full resize-none p-0  font-mono leading-loose outline-none bg-transparent"
+            className="h-full w-full resize-none bg-transparent  p-0 font-mono leading-loose outline-none"
           />
           <div className="relative h-[0.1rem] w-full bg-th-textSecondary">
             <div
               className={clsx(
                 "absolute h-[0.2rem]  w-full origin-center bg-th-textPrimary transition-transform ease-in-out",
-                textAreaFocused ? "scale-x-100 duration-500 " : "scale-x-0 duration-[0ms]"
+                textAreaFocused
+                  ? "scale-x-100 duration-500 "
+                  : "scale-x-0 duration-[0ms]"
               )}
             ></div>
           </div>
@@ -118,7 +120,14 @@ const TranscriptEditor = ({
           >
             Cancel
           </Button>
-          <Button variant={"accent"} type="submit" className="">
+          <Button
+            variant={"accent"}
+            requireSession={{required: true, reason: "Please login to submit edited transcripts!"}}
+            disabled={saveEdit.isLoading}
+            loading={saveEdit.isLoading}
+            type="submit"
+            className=""
+          >
             Submit
           </Button>
         </div>
