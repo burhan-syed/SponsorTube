@@ -40,7 +40,7 @@ export const openAIRouter = router({
         },
       });
 
-      if (previousAnnotations) {
+      if (previousAnnotations && previousAnnotations.length > 0) {
         throw new TRPCError({
           message: "Segment already analyzed",
           code: "BAD_REQUEST",
