@@ -10,12 +10,18 @@ export const transcriptRouter = router({
     .input(
       z.object({
         segmentUUID: z.string(),
-        mode: z.union([z.literal("user"), z.literal("score"), z.literal("generated")]).default("score"),
+        mode: z
+          .union([
+            z.literal("user"),
+            z.literal("score"),
+            z.literal("generated"),
+          ])
+          .default("score"),
         sortBy: z.union([z.literal("date"), z.literal("score")]).nullish(),
       })
     )
     .query(async ({ input, ctx }) => {
-      if(input.mode === "generated"){
+      if (input.mode === "generated") {
         const aiGenAnnotations = await prisma?.transcripts.findMany({
           where: {
             AND: [
@@ -24,10 +30,10 @@ export const transcriptRouter = router({
                 OR: [
                   {
                     TranscriptDetails: {
-                      some: { userId: '_openaicurie' },
+                      some: { userId: "_openaicurie" },
                     },
                   },
-                  { userId: '_openaicurie' },
+                  { userId: "_openaicurie" },
                 ],
               },
             ],
@@ -46,7 +52,7 @@ export const transcriptRouter = router({
             score: true,
             TranscriptDetails: {
               where: {
-                userId: '_openaicurie',
+                userId: "_openaicurie",
               },
               orderBy:
                 input.sortBy === "score"
@@ -64,7 +70,7 @@ export const transcriptRouter = router({
                         segmentUUID: input.segmentUUID,
                       },
                     },
-                    userId: '_openaicurie',
+                    userId: "_openaicurie",
                   },
                 },
               },
@@ -72,8 +78,7 @@ export const transcriptRouter = router({
           },
         });
         return aiGenAnnotations;
-      }
-      else if (input.mode === "user") {
+      } else if (input.mode === "user") {
         if (!ctx.session?.user?.id) {
           throw new TRPCError({
             code: "UNAUTHORIZED",
@@ -138,7 +143,14 @@ export const transcriptRouter = router({
         return userSubmissions;
       }
       const transcripts = await prisma?.transcripts.findMany({
-        where: { segmentUUID: input.segmentUUID },
+        where: {
+          AND: [
+            { segmentUUID: input.segmentUUID },
+            {
+              TranscriptDetails: { some: { NOT: { userId: "_openaicurie" } } },
+            },
+          ],
+        },
         orderBy: [{ score: "desc" }, { created: "asc" }],
         select: {
           id: true,
@@ -149,6 +161,7 @@ export const transcriptRouter = router({
           endTime: true,
           score: true,
           TranscriptDetails: {
+            where: { NOT: { userId: "_openaicurie" } },
             orderBy: [{ score: "desc" }, { created: "asc" }],
             select: {
               id: true,
