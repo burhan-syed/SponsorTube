@@ -22,7 +22,6 @@ const Home: NextPage = ({}) => {
       staleTime: Infinity,
     }
   );
-  const getCaptions = trpc.video.testMutate.useMutation();
 
   const [videoSeek, setVideoSeek] = useState<[number, number, number]>([
     0, 0, 0,
@@ -50,7 +49,7 @@ const Home: NextPage = ({}) => {
               <div className="flex flex-none flex-col lg:w-1/3">
                 {videoInfo.data.basic_info.embed?.iframe_url && (
                   <VideoEmbed
-                    className="w-full outline-none"
+                    className="w-full overflow-hidden rounded-lg outline-none"
                     videoID={videoInfo.data.basic_info.id}
                     width={videoInfo.data.basic_info.embed?.width}
                     height={videoInfo.data.basic_info.embed?.height}
@@ -84,7 +83,7 @@ const Home: NextPage = ({}) => {
             (videoInfo.error || true) && "something went wrong"
           )}
 
-          <div className="w-full flex flex-col gap-2">
+          <div className="flex w-full flex-col gap-2">
             {/* Display this outside of videoInfoLoader to grab sponsorsegments with videoID*/}
             <SponsorTranscripts
               videoID={videoID}
@@ -93,20 +92,6 @@ const Home: NextPage = ({}) => {
             />
           </div>
         </div>
-
-        <button
-          type="button"
-          disabled={!videoInfo.data?.captions.caption_tracks?.[0]?.base_url}
-          onClick={() =>
-            videoInfo.data?.captions.caption_tracks?.[0]?.base_url &&
-            getCaptions.mutate({
-              captionURL:
-                videoInfo.data?.captions.caption_tracks?.[0]?.base_url,
-            })
-          }
-        >
-          get mutations
-        </button>
       </div>
     </>
   );
