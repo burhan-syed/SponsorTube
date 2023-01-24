@@ -1,9 +1,10 @@
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { AnnotationTags } from "@prisma/client";
+import { AnnotationTags, SponsorCategories } from "@prisma/client";
 
 import { md5 } from "@/server/functions/hash";
+import { videoRouter } from "./video";
 
 export const transcriptRouter = router({
   get: publicProcedure
@@ -206,7 +207,9 @@ export const transcriptRouter = router({
   saveAnnotations: protectedProcedure
     .input(
       z.object({
-        segmentUUID: z.string(),
+        segment: z.object({
+          UUID: z.string(),
+        }),
         transcriptId: z.string().nullish(),
         transcriptDetailsId: z.string().nullish(),
         transcript: z.string().nullish(),
@@ -220,10 +223,18 @@ export const transcriptRouter = router({
             tag: z.nativeEnum(AnnotationTags),
           })
         ),
+        videoId: z.string(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       console.log(">>>annotation mutation", JSON.stringify(input));
+      const videoRouterCaller = videoRouter.createCaller({
+        ...ctx,
+      });
+      const saveVideo = videoRouterCaller.saveDetails({
+        segmentIDs: [input.segment.UUID],
+        videoId: input.videoId
+      });
 
       const upsertTranscriptAndUserTranscriptAnnotations = async ({
         transcriptDetailsId,
@@ -358,14 +369,14 @@ export const transcriptRouter = router({
         return update[1];
       };
 
-      if (input.transcript && input.segmentUUID) {
+      if (input.transcript && input.segment.UUID) {
         const textHash = md5(input.transcript);
         const transcriptDetailsIdPromise = async () =>
           input?.transcriptDetailsId ??
           (
             await ctx.prisma.transcriptDetails.findFirst({
               where: {
-                Transcript: { segmentUUID: input.segmentUUID, textHash },
+                Transcript: { segmentUUID: input.segment.UUID, textHash },
                 userId: ctx.session.user.id,
               },
               select: {
@@ -379,7 +390,7 @@ export const transcriptRouter = router({
             await ctx.prisma.transcripts.findUnique({
               where: {
                 segmentUUID_textHash: {
-                  segmentUUID: input.segmentUUID,
+                  segmentUUID: input.segment.UUID,
                   textHash,
                 },
               },
@@ -403,12 +414,12 @@ export const transcriptRouter = router({
         return await ctx.prisma.transcripts.upsert({
           where: {
             segmentUUID_textHash: {
-              segmentUUID: input.segmentUUID,
+              segmentUUID: input.segment.UUID,
               textHash,
             },
           },
           create: {
-            segmentUUID: input.segmentUUID,
+            segmentUUID: input.segment.UUID,
             text: input.transcript,
             textHash: textHash,
             userId: ctx.session.user.id,
@@ -484,6 +495,9 @@ export const transcriptRouter = router({
           transcriptDetailsId: input.transcriptDetailsId,
         });
       }
+
+      
+      await saveVideo; 
 
       throw new TRPCError({
         code: "BAD_REQUEST",

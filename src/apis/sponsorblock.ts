@@ -1,6 +1,6 @@
 import { SponsorBlock } from "sponsorblock-api";
 import { Category, ResponseError } from "sponsorblock-api";
-
+import type { SegmentUUID } from "sponsorblock-api/lib/types/segment/Segment";
 export const getVideoSegments = async ({
   userID,
   videoID,
@@ -27,4 +27,16 @@ export const getVideoSegments = async ({
     }
     throw err;
   }
+};
+
+export const getSegmentsByID = async ({
+  userID,
+  UUIDs,
+}: {
+  userID: string;
+  UUIDs: SegmentUUID[];
+}) => {
+  const sponsorBlock = new SponsorBlock(userID);
+  const segmentInfo = await sponsorBlock.getSegmentInfo(UUIDs);
+  return segmentInfo;
 };

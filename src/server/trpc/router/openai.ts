@@ -23,7 +23,10 @@ export const openAIRouter = router({
   getSegmentAnnotations: publicProcedure
     .input(
       z.object({
-        segmentUUID: z.string(),
+        segment: z.object({
+          UUID: z.string(),
+        }),
+        videoId: z.string(),
         transcriptId: z.string().nullish(),
         transcriptDetailsId: z.string().nullish(),
         transcript: z.string(),
@@ -36,7 +39,7 @@ export const openAIRouter = router({
       const previousAnnotations = await prisma?.transcriptDetails.findMany({
         where: {
           userId: "_openaicurie",
-          Transcript: { textHash: textHash, segmentUUID: input.segmentUUID },
+          Transcript: { textHash: textHash, segmentUUID: input.segment.UUID },
         },
       });
 

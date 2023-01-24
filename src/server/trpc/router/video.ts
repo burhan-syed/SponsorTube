@@ -1,7 +1,9 @@
-import { router, publicProcedure } from "../trpc";
+import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { getXMLCaptions } from "../../functions/captions";
 import { getVideoInfo } from "../../../apis/youtube";
+import { getSegmentsByID } from "@/apis/sponsorblock";
+import { TRPCError } from "@trpc/server";
 
 export const videoRouter = router({
   segments: publicProcedure
@@ -16,7 +18,7 @@ export const videoRouter = router({
           endTime: true,
           category: true,
           videoDuration: true,
-        }
+        },
       });
       return videoSegments;
     }),
@@ -45,59 +47,72 @@ export const videoRouter = router({
         captions: { ...videoInfo.captions },
       };
     }),
-  saveDetails: publicProcedure
+  saveDetails: protectedProcedure
     .input(
       z.object({
-        segments: z.array(
-          z.object({
-            UUID: z.string(),
-            startTime: z.number(),
-            endTime: z.number(),
-            category: z.string(),
-          })
-        ),
-        basic_info: z.object({
-          videoID: z.string(),
-          videoTitle: z.string(),
-          videoDuration: z.number(),
-          videoViewCount: z.number(),
-          videoKeywords: z.array(z.string()).nullable(),
-          videoDescription: z.string(),
-          videoThumbnails: z
-            .array(
-              z.object({
-                url: z.string(),
-                width: z.number(),
-                height: z.number(),
-              })
-            )
-            .nullable(),
-          videoEmbed: z.object({
-            iframe_url: z.string(),
-            height: z.number(),
-            width: z.number(),
-          }),
-          channel: z
-            .object({
-              id: z.string(),
-              name: z.string(),
-              url: z.string(),
-            })
-            .nullable(),
-        }),
-        captions: z.object({
-          caption_tracks: z.array(
-            z.object({
-              base_url: z.string(),
-              vss_id: z.string().nullable(),
-              language_code: z.string(),
-            })
-          ),
-        }),
+        segmentIDs: z.array(z.string()),
+        videoId: z.string(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      return "hello";
+      const [segmentInfos, videoInfo] = await Promise.all([
+        getSegmentsByID({
+          userID: ctx.session.user.id,
+          UUIDs: input.segmentIDs,
+        }),
+        getVideoInfo({ videoID: input.videoId }),
+      ]);
+
+      if (
+        !videoInfo.basic_info.channel?.id ||
+        !videoInfo.basic_info.channel?.name
+      ) {
+        throw new TRPCError({
+          message: "Videos without channel information unsupported",
+          code: "PRECONDITION_FAILED",
+        });
+      }
+
+      await ctx.prisma.videos.upsert({
+        where: { id: input.videoId },
+        update: {},
+        create: {
+          id: input.videoId,
+          title: videoInfo.basic_info.title,
+          published: videoInfo.primary_info?.published.text
+            ? new Date(Date.parse(videoInfo.primary_info?.published.text))
+            : undefined,
+          duration: videoInfo.basic_info.duration,
+          Channel: {
+            connectOrCreate: {
+              where: { id: videoInfo.basic_info.channel?.id },
+              create: {
+                id: videoInfo.basic_info.channel?.id,
+                name: videoInfo.basic_info.channel?.name,
+              },
+            },
+          },
+          SponsorSegments: {
+            connectOrCreate: segmentInfos.map((segment) => ({
+              where: { UUID: segment.UUID },
+              create: {
+                // ...segment,
+                UUID: segment.UUID,
+                category: segment.category,
+                startTime: segment.startTime,
+                endTime: segment.endTime,
+                votes: segment.votes,
+                locked: !!segment.locked,
+                userID: segment.userID,
+                timeSubmitted: new Date(segment.timeSubmitted),
+                views: segment.views,
+                hidden: !!segment.hidden,
+                shadowHidden: !!segment.shadowHidden,
+              },
+            })),
+          },
+        },
+      });
     }),
   testMutate: publicProcedure
     .input(z.object({ captionURL: z.string() }))

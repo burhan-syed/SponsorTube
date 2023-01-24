@@ -4,7 +4,6 @@ import Toggle from "../../ui/common/Toggle";
 import { MdEditNote } from "react-icons/md";
 import { BsInputCursorText, BsPlay } from "react-icons/bs";
 import { BiBrain } from "react-icons/bi";
-import type { AnnotationTags, TranscriptAnnotations } from "@prisma/client";
 import TranscriptAnnotator from "./TranscriptAnnotator";
 import Tooltip from "../../ui/common/Tooltip";
 import TranscriptEditor from "./TranscriptEditor";
@@ -20,8 +19,10 @@ import { useSession } from "next-auth/react";
 import TranscriptDelete from "../TranscriptDelete";
 import TranscriptAutoGen from "../TranscriptAutoGen";
 
+import type { AnnotationTags, TranscriptAnnotations } from "@prisma/client";
+import type { Segment } from "sponsorblock-api";
+
 type Transcript = {
-  segmentUUID: string;
   text: string;
   annotations?: TranscriptAnnotations[];
   id?: string;
@@ -31,6 +32,8 @@ type Transcript = {
   endTime?: number | null;
 };
 interface TranscriptEditWrapperProps {
+  segment: Segment;
+  videoID: string;
   transcript: Transcript;
   initialVoteDirection?: number;
   seekTo(start: number, end: number): void;
@@ -39,6 +42,8 @@ interface TranscriptEditWrapperProps {
 }
 
 const TranscriptEditWrapper = ({
+  segment,
+  videoID,
   transcript,
   setTabValue,
   seekTo,
@@ -87,7 +92,7 @@ const TranscriptEditWrapper = ({
             sessionData.user?.id === transcript.annotaterId) ||
             transcript.annotaterId === "_openaicurie") && (
             <TranscriptDelete
-              segmentUUID={transcript.segmentUUID}
+              segmentUUID={segment.UUID}
               transcriptId={transcript.id}
               transcriptDetailsId={transcript.transcriptDetailsId}
             />
@@ -164,10 +169,12 @@ const TranscriptEditWrapper = ({
 
         <Tooltip text={editToggled || annotateToggled ? "" : "auto generate"}>
           <TranscriptAutoGen
-            transcript={{ ...transcript }}
+            transcript={transcript}
+            segment={segment}
             editingToggled={editToggled || annotateToggled}
             setIsNavDisabled={setIsNavDisabled}
             setTabValue={setTabValue}
+            videoID={videoID}
           />
         </Tooltip>
       </div>
@@ -178,15 +185,9 @@ const TranscriptEditWrapper = ({
           )}
         >
           <TranscriptAnnotator
-            transcript={{
-              segmentUUID: transcript.segmentUUID,
-              text: transcript.text,
-              annotations: transcript.annotations,
-              id: transcript.id,
-              transcriptDetailsId: transcript.transcriptDetailsId,
-              startTime: transcript.startTime,
-              endTime: transcript.endTime,
-            }}
+            videoID={videoID}
+            segment={segment}
+            transcript={transcript}
             editable={annotateToggled}
             setEditable={setAnnotateToggled}
             setTabValue={setTabValue}
@@ -203,7 +204,7 @@ const TranscriptEditWrapper = ({
         >
           <TranscriptEditor
             text={transcript.text}
-            segmentUUID={transcript.segmentUUID}
+            segmentUUID={segment.UUID}
             startTime={transcript.startTime}
             endTime={transcript.endTime}
             setOpen={(o: boolean) => setEditToggled(o)}

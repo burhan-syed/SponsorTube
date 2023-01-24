@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import { TextAnnotate } from "react-text-annotate-blend";
 import Selector from "../../ui/common/Selector";
-import { trpc } from "@/utils/trpc";
 import { AnnotationTags } from "@prisma/client";
 import type { TranscriptAnnotations } from "@prisma/client";
 import clsx from "clsx";
@@ -9,19 +8,24 @@ import { textFindIndices } from "@/utils";
 import { TAGS, TAGCLASSES } from "./TranscriptTags";
 import { Button } from "@/components/ui/common/Button";
 import { BsX } from "react-icons/bs";
+import type { Segment } from "sponsorblock-api";
+import TranscriptAnnotationSubmit from "./TranscriptAnnotationSubmit";
 
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 
 const TranscriptAnnotator = ({
+  segment,
+  videoID,
   transcript,
   editable,
   setEditable,
   setTabValue,
   editTag,
 }: {
+  segment: Segment;
+  videoID: string;
   transcript: {
     text: string;
-    segmentUUID: string;
     id?: string;
     annotations?: TranscriptAnnotations[];
     transcriptDetailsId?: string;
@@ -106,23 +110,6 @@ const TranscriptAnnotator = ({
     }
   }, [editTag]);
 
-  const utils = trpc.useContext();
-  const submitAnnotations = trpc.transcript.saveAnnotations.useMutation({
-    async onSuccess() {
-      const transcriptInvalidate = utils.transcript.get.invalidate({
-        segmentUUID: transcript.segmentUUID,
-      });
-      if (transcript?.annotations?.[0]?.transcriptDetailsId) {
-        utils.transcript.getMyVote.invalidate({
-          transcriptDetailsId:
-            transcript?.annotations?.[0]?.transcriptDetailsId,
-        });
-      }
-      await transcriptInvalidate;
-      setEditable(false);
-      setTabValue && setTabValue("user");
-    },
-  });
   const handleChange = (
     annotation: AtLeast<
       TranscriptAnnotations,
@@ -270,41 +257,16 @@ const TranscriptAnnotator = ({
             ))}
           {editable && (
             <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
-              <Button
-                disabled={!editable || submitAnnotations.isLoading}
-                onClick={() => {
-                  setEditable(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant={"accent"}
-                requireSession={{
-                  required: true,
-                  reason: "Please login to submit transcript annotations!",
-                }}
-                disabled={
-                  !editable ||
-                  submitAnnotations.isLoading ||
-                  areSegmentsSame ||
-                  !(annotations.length > 0)
-                }
-                loading={submitAnnotations.isLoading}
-                onClick={() => {
-                  submitAnnotations.mutate({
-                    transcriptId: transcript.id,
-                    startTime: transcript.startTime,
-                    endTime: transcript.endTime,
-                    segmentUUID: transcript.segmentUUID,
-                    transcript: transcript.text,
-                    transcriptDetailsId: transcript.transcriptDetailsId,
-                    annotations,
-                  });
-                }}
-              >
-                Submit
-              </Button>
+              <TranscriptAnnotationSubmit
+                videoID={videoID}
+                transcript={transcript}
+                segment={segment}
+                annotations={annotations}
+                areSegmentsSame={false}
+                editable={editable}
+                setEditable={setEditable}
+                setTabValue={setTabValue}
+              />
             </div>
           )}
         </ul>

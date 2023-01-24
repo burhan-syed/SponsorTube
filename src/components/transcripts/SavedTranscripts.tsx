@@ -1,19 +1,22 @@
 import { trpc } from "@/utils/trpc";
 import { useSession } from "next-auth/react";
 import TranscriptEditWrapper from "./edits/TranscriptEditWrapper";
+import type { Segment } from "sponsorblock-api";
 
 // import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 // import  {type appRouter } from "@/server/trpc/router";
 // type RouterOutput = inferRouterOutputs<typeof appRouter>;
 
 const SavedTranscripts = ({
-  segmentUUID,
+  segment,
+  videoID,
   userPosts = false,
   setTabValue,
   setIsNavDisabled,
   seekTo,
 }: {
-  segmentUUID: string;
+  segment: Segment;
+  videoID: string;
   userPosts?: boolean;
   setTabValue?(v: string): void;
   setIsNavDisabled?(d: boolean): void;
@@ -22,11 +25,11 @@ const SavedTranscripts = ({
   const { data: sessionData } = useSession();
   const savedTranscriptAnnotations = trpc.transcript.get.useQuery(
     {
-      segmentUUID,
+      segmentUUID: segment.UUID,
       mode: userPosts ? "user" : "score",
     },
     {
-      enabled: !!segmentUUID && ((userPosts && !!sessionData) || !userPosts),
+      enabled: !!segment.UUID && ((userPosts && !!sessionData) || !userPosts),
     }
   );
 
@@ -42,8 +45,9 @@ const SavedTranscripts = ({
                 <>
                   <TranscriptEditWrapper
                     key={savedTranscripts.id}
+                    segment={segment}
+                    videoID={videoID}
                     transcript={{
-                      segmentUUID: segmentUUID,
                       text: savedTranscripts.text,
                       startTime: savedTranscripts?.startTime,
                       endTime: savedTranscripts?.endTime,

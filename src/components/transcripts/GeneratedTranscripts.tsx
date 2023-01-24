@@ -8,6 +8,7 @@ import Switch from "../ui/common/Switch";
 
 const GeneratedTranscripts = ({
   segment,
+  videoID,
   captionsURL,
   setTabValue,
   setIsNavDisabled,
@@ -15,6 +16,7 @@ const GeneratedTranscripts = ({
   isNavDisabled = false,
 }: {
   segment: Segment;
+  videoID: string;
   captionsURL: string;
   setTabValue?(v: string): void;
   setIsNavDisabled?(d: boolean): void;
@@ -53,12 +55,13 @@ const GeneratedTranscripts = ({
                   <>
                     <TranscriptEditWrapper
                       key={`${segment.UUID}_${savedTranscriptAnnotations.id}`}
+                      segment={segment}
+                      videoID={videoID}
                       transcript={{
                         id: savedTranscriptAnnotations?.id,
                         transcriptDetailsId:
                           savedTranscriptAnnotations?.TranscriptDetails?.[0]
                             ?.id,
-                        segmentUUID: segment.UUID,
                         text: displayOriginal
                           ? sponsorSegmentTranscripts.data.transcript
                           : savedTranscriptAnnotations?.text ??
@@ -102,8 +105,9 @@ const GeneratedTranscripts = ({
         <>
           <TranscriptEditWrapper
             key={`${segment.UUID}_default`}
+            segment={segment}
+            videoID={videoID}
             transcript={{
-              segmentUUID: segment.UUID,
               text: sponsorSegmentTranscripts.data.transcript,
               startTime: sponsorSegmentTranscripts.data.transcriptStart,
               endTime: sponsorSegmentTranscripts.data.transcriptEnd,

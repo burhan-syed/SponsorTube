@@ -100,7 +100,7 @@ model SponsorTimes {
   votes          Int?
   locked         Boolean?
   incorrectVotes Int?
-  userID         String?           @db.VarChar(38)
+  userID         String?           //@db.VarChar(38)
   timeSubmitted  DateTime?
   views          Int?
   actionType     String?
@@ -109,7 +109,7 @@ model SponsorTimes {
   hidden         Boolean?
   reputation     Float?
   shadowHidden   Boolean?
-  hashedVideoID  String?           @db.VarChar(64)
+  hashedVideoID  String?           //@db.VarChar(64)
   userAgent      String?
   description    String?
 

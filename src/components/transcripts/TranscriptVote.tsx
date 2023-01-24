@@ -37,7 +37,6 @@ const TranscriptVote = ({
     },
   });
 
-  console.log("vote?", transcriptDetailsId, votes.data);
 
   return (
     <>

@@ -8,10 +8,12 @@ import { trpc } from "@/utils/trpc";
 import { useSession } from "next-auth/react";
 import TabsList from "../ui/common/tabs/TabsList";
 const TranscriptTabs = ({
+  videoID,
   segment,
   captionsURL,
   seekTo,
 }: {
+  videoID: string;
   segment: Segment;
   captionsURL: string;
   seekTo(start: number, end: number): void;
@@ -28,7 +30,7 @@ const TranscriptTabs = ({
       enabled: !!segment.UUID,
     }
   );
-  const [isNavDisabled, setIsNavDisabled] = useState(false); 
+  const [isNavDisabled, setIsNavDisabled] = useState(false);
   const [tabValue, setTabValue] = useState<string>("");
   type tabValues = "saved" | "user" | "generated";
   const tabsList = [
@@ -92,6 +94,7 @@ const TranscriptTabs = ({
               {value === "generated" ? (
                 <GeneratedTranscripts
                   segment={segment}
+                  videoID={videoID}
                   captionsURL={captionsURL}
                   setTabValue={setTabValue}
                   setIsNavDisabled={setIsNavDisabled}
@@ -100,7 +103,8 @@ const TranscriptTabs = ({
                 />
               ) : (
                 <SavedTranscripts
-                  segmentUUID={segment.UUID}
+                  segment={segment}
+                  videoID={videoID}
                   setTabValue={setTabValue}
                   setIsNavDisabled={setIsNavDisabled}
                   seekTo={seekTo}

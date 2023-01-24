@@ -1,28 +1,32 @@
 import { Button } from "../ui/common/Button";
 import { BiBrain } from "react-icons/bi";
 import { trpc } from "@/utils/trpc";
+import { Segment } from "sponsorblock-api";
 
 const TranscriptAutoGen = ({
   setTabValue,
+  segment,
   setIsNavDisabled,
   transcript,
   editingToggled,
+  videoID,
 }: {
   setTabValue?(v: string): void;
   setIsNavDisabled?(d: boolean): void;
   editingToggled?: boolean;
+  segment: Segment;
   transcript: {
-    segmentUUID: string;
     text: string;
     startTime?: number | null;
     endTime?: number | null;
   };
+  videoID: string;
 }) => {
   const utils = trpc.useContext();
   const getSegments = trpc.openai.getSegmentAnnotations.useMutation({
     async onSuccess() {
       await utils.transcript.get.invalidate({
-        segmentUUID: transcript.segmentUUID,
+        segmentUUID: segment.UUID,
       });
       setTabValue && setTabValue("generated");
     },
@@ -39,10 +43,11 @@ const TranscriptAutoGen = ({
         loading={getSegments.isLoading}
         onClick={() =>
           getSegments.mutate({
-            segmentUUID: transcript.segmentUUID,
+            segment: segment,
             transcript: transcript.text,
             endTime: transcript.endTime,
             startTime: transcript.startTime,
+            videoId: videoID,
           })
         }
       >

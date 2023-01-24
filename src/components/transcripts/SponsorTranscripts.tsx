@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
 import useSponsorBlock from "../../hooks/useSponsorBlock";
 import SegmentTranscript from "./SegmentTranscript";
-import { Segment } from "sponsorblock-api";
 import SegmentsGroupLoader from "../ui/loaders/SegmentsGroupLoader";
+import type { Segment } from "sponsorblock-api";
 
 type SponsorTranscriptsProps = {
   videoID: string;
@@ -39,6 +39,7 @@ const SponsorTranscripts = ({
               {savedSegments.data.map((segment) => (
                 <SegmentTranscript
                   key={segment.UUID}
+                  videoID={videoID}
                   segment={segment as unknown as Segment}
                   captionsURL={engCaptions?.[0]?.base_url ?? ""}
                   seekTo={seekTo}
@@ -56,6 +57,7 @@ const SponsorTranscripts = ({
                       {segments.data.map((segment) => (
                         <SegmentTranscript
                           key={segment.UUID}
+                          videoID={videoID}
                           segment={segment}
                           captionsURL={engCaptions?.[0]?.base_url ?? ""}
                           seekTo={seekTo}
