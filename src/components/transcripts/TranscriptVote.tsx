@@ -15,7 +15,7 @@ const TranscriptVote = ({
 }: {
   transcriptDetailsId: string;
   transcriptId: string;
-  initialDirection: number;
+  initialDirection?: number;
   disabled?: boolean;
 }) => {
   const utils = trpc.useContext();

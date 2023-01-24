@@ -32,7 +32,7 @@ type Transcript = {
 };
 interface TranscriptEditWrapperProps {
   transcript: Transcript;
-  initialVoteDirection: number;
+  initialVoteDirection?: number;
   seekTo(start: number, end: number): void;
   setTabValue?(v: string): void;
   setIsNavDisabled?(d: boolean): void;

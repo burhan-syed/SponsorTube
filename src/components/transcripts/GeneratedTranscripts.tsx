@@ -39,13 +39,12 @@ const GeneratedTranscripts = ({
   );
 
   const [displayOriginal, setDisplayOriginal] = useState(false);
-
   return (
     <>
       {sponsorSegmentTranscripts.isLoading ||
       savedTranscriptAnnotations.isLoading ? (
         <div className="h-32 w-full animate-pulse rounded-lg bg-th-additiveBackground bg-opacity-5"></div>
-      ) : sponsorSegmentTranscripts.data ? (
+      ) : (savedTranscriptAnnotations?.data?.length ?? 0) > 0 ? (
         <>
           {savedTranscriptAnnotations.data?.map(
             (savedTranscriptAnnotations) => (
@@ -99,6 +98,22 @@ const GeneratedTranscripts = ({
             )
           )}
         </>
+      ) : sponsorSegmentTranscripts.data?.transcript ? (
+        <>
+          <TranscriptEditWrapper
+            key={`${segment.UUID}_default`}
+            transcript={{
+              segmentUUID: segment.UUID,
+              text: sponsorSegmentTranscripts.data.transcript,
+              startTime: sponsorSegmentTranscripts.data.transcriptStart,
+              endTime: sponsorSegmentTranscripts.data.transcriptEnd,
+              annotations: undefined,
+            }}
+            setTabValue={setTabValue}
+            setIsNavDisabled={setIsNavDisabled}
+            seekTo={seekTo}
+          />
+        </>
       ) : (
         <>missing transcript data</>
       )}
@@ -107,48 +122,3 @@ const GeneratedTranscripts = ({
 };
 
 export default GeneratedTranscripts;
-
-{
-  /* <>
-           <TranscriptEditWrapper
-            key={`${segment.UUID}_default`}
-            transcript={{
-              id: savedTranscriptAnnotations.data?.[0]?.id,
-              transcriptDetailsId:
-                savedTranscriptAnnotations.data?.[0]?.TranscriptDetails?.[0]
-                  ?.id,
-              segmentUUID: segment.UUID,
-              text: displayOriginal
-                ? sponsorSegmentTranscripts.data.transcript
-                : savedTranscriptAnnotations.data?.[0]?.text ??
-                  sponsorSegmentTranscripts.data.transcript,
-              startTime: sponsorSegmentTranscripts.data.transcriptStart,
-              endTime: sponsorSegmentTranscripts.data.transcriptEnd,
-              annotations: displayOriginal
-                ? undefined
-                : savedTranscriptAnnotations.data?.[0]?.TranscriptDetails?.[0]
-                    ?.Annotations,
-            }}
-            setTabValue={setTabValue}
-            setIsNavDisabled={setIsNavDisabled}
-            seekTo={seekTo}
-            initialVoteDirection={
-              savedTranscriptAnnotations?.data?.[0]?.TranscriptDetails?.[0]
-                ?.Votes?.[0]?.direction ?? 0
-            }
-          />
-          {savedTranscriptAnnotations.data?.[0]?.text &&
-            savedTranscriptAnnotations.data?.[0]?.text !==
-              sponsorSegmentTranscripts.data.transcript && (
-              <div className="flex items-center text-xs text-th-textSecondary">
-                <Switch
-                  setOnCheckedChange={setDisplayOriginal}
-                  checked={displayOriginal}
-                  label="Display original transcript"
-                  htmlFor={`display_original_switch_${segment.UUID}`}
-                  disabled={isNavDisabled}
-                />
-              </div>
-            )}
-        </> */
-}
