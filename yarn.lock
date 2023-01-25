@@ -3334,10 +3334,10 @@ youtube-player@5.5.2:
     load-script "^1.0.0"
     sister "^3.0.0"
 
-youtubei.js@^2.5.1:
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/youtubei.js/-/youtubei.js-2.5.1.tgz#f4537244e1abf6a4286f388d4606ab87198aa6d4"
-  integrity sha512-FfECiEfaF/BO0QSw+Pqy9pycSA6uWtCjQQoj3sqPXj1T68Ksc+ZjO84+Haa5AYURi5nfihML8CRuj4nGUNFc7A==
+youtubei.js@^2.9.0:
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/youtubei.js/-/youtubei.js-2.9.0.tgz#17426dfb0555169cddede509d50d3db62c102270"
+  integrity sha512-paxfeQGwxGw0oPeKdC96jNalS0OnYQ5xdJY27k3J+vamzVcwX6Ky+idALW6Ej9aUC7FISbchBsEVg0Wa7wgGyA==
   dependencies:
     "@protobuf-ts/runtime" "^2.7.0"
     jintr "^0.3.1"

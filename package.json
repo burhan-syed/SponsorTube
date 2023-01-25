@@ -45,7 +45,7 @@
     "superjson": "1.9.1",
     "ts-node": "^10.9.1",
     "uuid": "^9.0.0",
-    "youtubei.js": "^2.5.1",
+    "youtubei.js": "^2.9.0",
     "zod": "^3.18.0",
     "zustand": "^4.3.2"
   },
