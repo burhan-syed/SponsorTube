@@ -56,6 +56,14 @@ const TranscriptAnnotationSubmit = ({
   return (
     <>
       <Button
+        disabled={!editable || submitAnnotations.isLoading}
+        onClick={() => {
+          setEditable(false);
+        }}
+      >
+        Cancel
+      </Button>
+      <Button
         variant={"accent"}
         requireSession={{
           required: true,
