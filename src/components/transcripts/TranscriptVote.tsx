@@ -8,11 +8,13 @@ import {
 
 import { Button } from "../ui/common/Button";
 const TranscriptVote = ({
+  videoId,
   transcriptDetailsId,
   transcriptId,
   initialDirection,
   disabled = false,
 }: {
+  videoId: string;
   transcriptDetailsId: string;
   transcriptId: string;
   initialDirection?: number;
@@ -28,6 +30,7 @@ const TranscriptVote = ({
       initialData: { direction: initialDirection },
     }
   );
+  const updateSponsors = trpc.video.updateSponsors.useMutation();
   const vote = trpc.transcript.voteTranscriptDetails.useMutation({
     onMutate(variables) {
       utils.transcript.getMyVote.setData(
@@ -35,8 +38,10 @@ const TranscriptVote = ({
         () => ({ direction: variables.direction })
       );
     },
+    onSuccess() {
+      updateSponsors.mutate({ videoId: videoId });
+    },
   });
-
 
   return (
     <>

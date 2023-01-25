@@ -4,6 +4,7 @@ import { getXMLCaptions } from "../../functions/captions";
 import { getVideoInfo } from "../../../apis/youtube";
 import { getSegmentsByID } from "@/apis/sponsorblock";
 import { TRPCError } from "@trpc/server";
+import { updateVideoSponsorsFromDB } from "@/server/functions/db/sponsors";
 
 export const videoRouter = router({
   segments: publicProcedure
@@ -75,7 +76,27 @@ export const videoRouter = router({
 
       await ctx.prisma.videos.upsert({
         where: { id: input.videoId },
-        update: {},
+        update: {
+          SponsorSegments: {
+            connectOrCreate: segmentInfos.map((segment) => ({
+              where: { UUID: segment.UUID },
+              create: {
+                // ...segment,
+                UUID: segment.UUID,
+                category: segment.category,
+                startTime: segment.startTime,
+                endTime: segment.endTime,
+                votes: segment.votes,
+                locked: !!segment.locked,
+                userID: segment.userID,
+                timeSubmitted: new Date(segment.timeSubmitted),
+                views: segment.views,
+                hidden: !!segment.hidden,
+                shadowHidden: !!segment.shadowHidden,
+              },
+            })),
+          },
+        },
         create: {
           id: input.videoId,
           title: videoInfo.basic_info.title,
@@ -114,9 +135,14 @@ export const videoRouter = router({
         },
       });
     }),
-  testMutate: publicProcedure
-    .input(z.object({ captionURL: z.string() }))
+  updateSponsors: publicProcedure
+    .input(z.object({ videoId: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      await getXMLCaptions(input.captionURL);
+      await updateVideoSponsorsFromDB({ videoId: input.videoId });
+    }),
+  testMutate: publicProcedure
+    .input(z.object({ videoID: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      console.log("test:", input.videoID);
     }),
 });

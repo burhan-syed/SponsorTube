@@ -257,6 +257,7 @@ const TranscriptAnnotator = ({
             ))}
           {editable && (
             <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
+             
               <TranscriptAnnotationSubmit
                 videoID={videoID}
                 transcript={transcript}

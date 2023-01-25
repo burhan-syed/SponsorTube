@@ -2,16 +2,16 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   // previewFeatures = ["referentialIntegrity"]
 }
 
 datasource db {
-  provider             = "mysql"
+  provider     = "mysql"
   // Further reading: 
   // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
   // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-  url                  = env("DATABASE_URL")
+  url          = env("DATABASE_URL")
   //referentialIntegrity = "prisma"
   relationMode = "prisma"
 }
@@ -100,7 +100,7 @@ model SponsorTimes {
   votes          Int?
   locked         Boolean?
   incorrectVotes Int?
-  userID         String?           //@db.VarChar(38)
+  userID         String? //@db.VarChar(38)
   timeSubmitted  DateTime?
   views          Int?
   actionType     String?
@@ -109,13 +109,12 @@ model SponsorTimes {
   hidden         Boolean?
   reputation     Float?
   shadowHidden   Boolean?
-  hashedVideoID  String?           //@db.VarChar(64)
+  hashedVideoID  String? //@db.VarChar(64)
   userAgent      String?
   description    String?
 
   Video       Videos?       @relation(fields: [videoID], references: [id])
   Transcripts Transcripts[]
-  Sponsors    Sponsors[]
 
   @@index([videoID])
 }
@@ -159,18 +158,18 @@ model Videos {
 }
 
 model Transcripts {
-  id                  String                @id @default(cuid())
-  segmentUUID         String                
-  text                String                @db.Text
-  textHash            String
-  created             DateTime              @default(now())
-  userId              String?
-  score               Int                   @default(0)
-  startTime           Float?
-  endTime             Float?
-  CreatedBy           User?                 @relation(fields: [userId], references: [id])
-  SponsorSegment      SponsorTimes          @relation(fields: [segmentUUID], references: [UUID])
-  TranscriptDetails   TranscriptDetails[]
+  id                String              @id @default(cuid())
+  segmentUUID       String
+  text              String              @db.Text
+  textHash          String
+  created           DateTime            @default(now())
+  userId            String?
+  score             Int                 @default(0)
+  startTime         Float?
+  endTime           Float?
+  CreatedBy         User?               @relation(fields: [userId], references: [id])
+  SponsorSegment    SponsorTimes        @relation(fields: [segmentUUID], references: [UUID])
+  TranscriptDetails TranscriptDetails[]
   // UserTranscriptVotes UserTranscriptVotes[]
 
   @@unique([segmentUUID, textHash])
@@ -202,6 +201,7 @@ model TranscriptDetails {
   Transcript  Transcripts                  @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
   Votes       UserTranscriptDetailsVotes[]
   Annotations TranscriptAnnotations[]
+  Sponsors    Sponsors[]
 
   @@unique([transcriptId, userId])
   @@index([userId])
@@ -216,8 +216,8 @@ model UserTranscriptDetailsVotes {
   User              User              @relation(fields: [userId], references: [id])
   TranscriptDetails TranscriptDetails @relation(fields: [transcriptDetailsId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, transcriptDetailsId])
   @@index([userId])
-  @@unique([userId,transcriptDetailsId])
   @@index([transcriptDetailsId])
 }
 
@@ -236,26 +236,29 @@ model TranscriptAnnotations {
   transcriptDetailsId String?
 
   TranscriptDetails TranscriptDetails? @relation(fields: [transcriptDetailsId], references: [id], onDelete: Cascade)
+
   @@index([transcriptDetailsId])
 }
 
 model Sponsors {
-  id          String  @id @default(cuid())
-  videoId     String
-  segmentUUID String
-  brand       String
-  product     String?
-  type        Int?
-  offer       String?
-  locked      Boolean @default(false)
+  id                  String  @id @default(cuid())
+  videoId             String
+  transcriptDetailsId String
+  brand               String
+  product             String?
+  type                Int?
+  offer               String?
+  locked              Boolean @default(false)
 
-  Votes          UserSponsorVotes[]
-  Video          Videos             @relation(fields: [videoId], references: [id])
-  SponsorSegment SponsorTimes?      @relation(fields: [segmentUUID], references: [UUID])
-  SponsorType    SponsorTypes?      @relation(fields: [type], references: [id])
+  Votes             UserSponsorVotes[]
+  Video             Videos             @relation(fields: [videoId], references: [id])
+  TranscriptDetails TranscriptDetails? @relation(fields: [transcriptDetailsId], references: [id])
+  SponsorType       SponsorTypes?      @relation(fields: [type], references: [id])
 
+  @@unique([videoId, brand])
   @@index([videoId])
-  @@index([segmentUUID])
+  @@index([brand])
+  @@index([transcriptDetailsId])
   @@index([type])
 }
 

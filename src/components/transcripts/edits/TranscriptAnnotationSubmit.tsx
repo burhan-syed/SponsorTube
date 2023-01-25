@@ -36,6 +36,7 @@ const TranscriptAnnotationSubmit = ({
   setTabValue?(v: string): void;
 }) => {
   const utils = trpc.useContext();
+  const updateSponsors = trpc.video.updateSponsors.useMutation();
   const submitAnnotations = trpc.transcript.saveAnnotations.useMutation({
     async onSuccess() {
       const transcriptInvalidate = utils.transcript.get.invalidate({
@@ -47,6 +48,7 @@ const TranscriptAnnotationSubmit = ({
             transcript?.annotations?.[0]?.transcriptDetailsId,
         });
       }
+      updateSponsors.mutate({ videoId: videoID });
       await transcriptInvalidate;
       setEditable(false);
       setTabValue && setTabValue("user");

@@ -79,6 +79,7 @@ const TranscriptEditWrapper = ({
             )}
           >
             <TranscriptVote
+              videoId={videoID}
               initialDirection={initialVoteDirection}
               transcriptDetailsId={transcript.transcriptDetailsId}
               transcriptId={transcript.id}

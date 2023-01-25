@@ -233,7 +233,7 @@ export const transcriptRouter = router({
       });
       const saveVideo = videoRouterCaller.saveDetails({
         segmentIDs: [input.segment.UUID],
-        videoId: input.videoId
+        videoId: input.videoId,
       });
 
       const upsertTranscriptAndUserTranscriptAnnotations = async ({
@@ -293,33 +293,6 @@ export const transcriptRouter = router({
                   },
                 },
               },
-              // Transcript: {
-              //   update: {
-              //     score: {
-              //       increment:
-              //         (await ctx.prisma.userTranscriptDetailsVotes.count({
-              //           where: {
-              //             TranscriptDetails: {
-              //               userId: ctx.session.user.id,
-              //               transcriptId: input.transcriptId,
-              //             },
-              //             direction: -1,
-              //             // userId: { not: ctx.session.user.id },
-              //           },
-              //         })) -
-              //         (await ctx.prisma.userTranscriptDetailsVotes.count({
-              //           where: {
-              //             TranscriptDetails: {
-              //               userId: ctx.session.user.id,
-              //               transcriptId: input.transcriptId,
-              //             },
-              //             direction: 1,
-              //             // userId: { not: ctx.session.user.id },
-              //           },
-              //         })) + 1 //auto up-vote by submitted user,
-              //     },
-              //   },
-              // },
             },
           }),
 
@@ -405,13 +378,15 @@ export const transcriptRouter = router({
         ]);
 
         if (transcriptDetailsId && transcriptId) {
-          return await upsertTranscriptAndUserTranscriptAnnotations({
+          const r = await upsertTranscriptAndUserTranscriptAnnotations({
             transcriptDetailsId,
             transcriptId,
           });
+          await saveVideo;
+          return r;
         }
         //new transcript or user transcript annotations
-        return await ctx.prisma.transcripts.upsert({
+        const r = await ctx.prisma.transcripts.upsert({
           where: {
             segmentUUID_textHash: {
               segmentUUID: input.segment.UUID,
@@ -461,43 +436,18 @@ export const transcriptRouter = router({
             },
           },
         });
-        // return await ctx.prisma.transcripts.create({
-        //   data: {
-        //     segmentUUID: input.segmentUUID,
-        //     text: input.transcript,
-        //     textHash: textHash,
-        //     userId: ctx.session.user.id,
-        //     startTime: input.startTime,
-        //     endTime: input.endTime,
-        //     score: 1,
-        //     TranscriptDetails: {
-        //       create: {
-        //         userId: ctx.session.user.id,
-        //         score: 1,
-        //         Annotations: {
-        //           createMany: { data: input.annotations },
-        //         },
-        //         Votes: {
-        //           create: {
-        //             direction: 1,
-        //             userId: ctx.session.user.id,
-        //           },
-        //         },
-        //       },
-        //     },
-        //   },
-        // });
+        await saveVideo;
+        return r;
       }
       //existing user transcript annotations
       if (input.transcriptId && input.transcriptDetailsId) {
-        return await upsertTranscriptAndUserTranscriptAnnotations({
+        const r = await upsertTranscriptAndUserTranscriptAnnotations({
           transcriptId: input.transcriptId,
           transcriptDetailsId: input.transcriptDetailsId,
         });
+        await saveVideo;
+        return r;
       }
-
-      
-      await saveVideo; 
 
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -573,7 +523,7 @@ export const transcriptRouter = router({
             : 0
           : 0;
 
-      await ctx.prisma.userTranscriptDetailsVotes.upsert({
+        await ctx.prisma.userTranscriptDetailsVotes.upsert({
         where: {
           userId_transcriptDetailsId: {
             userId: ctx.session.user.id,
