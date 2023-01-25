@@ -23,11 +23,19 @@ const TranscriptAutoGen = ({
   videoID: string;
 }) => {
   const utils = trpc.useContext();
+  const updateSponsors = trpc.video.updateSponsors.useMutation({
+    onSuccess() {
+      utils.video.getSponsors.invalidate({
+        videoId: videoID,
+      });
+    },
+  });
   const getSegments = trpc.openai.getSegmentAnnotations.useMutation({
     async onSuccess() {
       await utils.transcript.get.invalidate({
         segmentUUID: segment.UUID,
       });
+      updateSponsors.mutate({ videoId: videoID });
       setTabValue && setTabValue("generated");
     },
     async onError(error, variables, context) {

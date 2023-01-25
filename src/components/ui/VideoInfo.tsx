@@ -3,8 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { MdOutlineThumbUpAlt } from "react-icons/md";
 import VideoDescription from "./VideoDescription";
+import VideoSponsors from "../VideoSponsors";
 
 type VideoInfoProps = {
+  videoId: string;
   title?: string;
   views?: number;
   viewsString?: string;
@@ -26,6 +28,7 @@ type VideoInfoProps = {
 const VideoInfo = ({
   title,
   views,
+  videoId,
   viewsString,
   likes,
   uploadDate,
@@ -40,7 +43,7 @@ const VideoInfo = ({
   channelIsVerifiedArtist,
 }: VideoInfoProps) => {
   return (
-    <div className="text-th-textPrimary">
+    <div className="flex flex-col gap-2 text-th-textPrimary">
       <h1>{title}</h1>
       <div className="flex items-center justify-between">
         <div className="flex items-center">
@@ -86,7 +89,7 @@ const VideoInfo = ({
           )}
         </div>
       </div>
-      <div>
+      <div className="order-1">
         {description && (
           <VideoDescription
             views={views}
@@ -94,6 +97,9 @@ const VideoInfo = ({
             uploadDate={uploadDate}
           />
         )}
+      </div>
+      <div className="order-2">
+        <VideoSponsors videoId={videoId} />
       </div>
     </div>
   );

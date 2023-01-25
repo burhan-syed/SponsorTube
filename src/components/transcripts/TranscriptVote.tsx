@@ -30,7 +30,13 @@ const TranscriptVote = ({
       initialData: { direction: initialDirection },
     }
   );
-  const updateSponsors = trpc.video.updateSponsors.useMutation();
+  const updateSponsors = trpc.video.updateSponsors.useMutation({
+    onSuccess() {
+      utils.video.getSponsors.invalidate({
+        videoId: videoId,
+      });
+    },
+  });
   const vote = trpc.transcript.voteTranscriptDetails.useMutation({
     onMutate(variables) {
       utils.transcript.getMyVote.setData(

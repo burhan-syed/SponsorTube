@@ -30,11 +30,11 @@ const VideoDescription = ({
       <div
         ref={containerRef}
         className={clsx(
-          "rounded-lg bg-th-chipBackground p-3 text-xs ",
+          "rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-3 text-xs group",
           descriptionRuns &&
             descriptionRuns?.length > INITIALDESCRIPTIONRUNS &&
             !expandVideoDescription &&
-            "hover:cursor-pointer hover:bg-th-chipBackgroundHover"
+            "hover:cursor-pointer hover:bg-th-chipBackground"
         )}
         onClick={() => {
           descriptionRuns &&
@@ -55,7 +55,7 @@ const VideoDescription = ({
           )}
           {uploadDate}
         </span>
-        <p>
+        <p className="">
           {descriptionRuns?.slice(0, INITIALDESCRIPTIONRUNS)?.map((run, i) => (
             <>
               <span
@@ -68,11 +68,11 @@ const VideoDescription = ({
                 )}
               >
                 {run.text}
-                {/* {i === INITIALDESCRIPTIONRUNS - 1 &&
+                {i === INITIALDESCRIPTIONRUNS - 1 &&
                   !expandVideoDescription &&
                   descriptionRuns?.length > INITIALDESCRIPTIONRUNS && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-white"></div>
-                  )} */} 
+                    <span className="">...</span>
+                  )}
               </span>
             </>
           ))}
@@ -87,7 +87,7 @@ const VideoDescription = ({
                   ))}
                   <br />
                   <button
-                    className="mt-4 font-semibold"
+                    className="mt-4 font-bold hover:font-extrabold"
                     onClick={() => {
                       setExpandVideoDescription(false);
                       containerRef?.current.scrollIntoView({
@@ -101,7 +101,7 @@ const VideoDescription = ({
                 </>
               ) : (
                 <button
-                  className=" z-10 font-semibold"
+                  className="font-bold hover:font-extrabold"
                   onClick={() => setExpandVideoDescription(true)}
                 >
                   Show more

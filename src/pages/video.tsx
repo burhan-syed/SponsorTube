@@ -57,6 +57,7 @@ const Home: NextPage = ({}) => {
                   />
                 )}
                 <VideoInfo
+                  videoId={videoID}
                   title={videoInfo.data.basic_info.title}
                   views={videoInfo.data.basic_info.view_count}
                   likes={videoInfo.data.basic_info.like_count}

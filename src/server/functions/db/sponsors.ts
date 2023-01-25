@@ -36,12 +36,12 @@ export const updateVideoSponsorsFromDB = async ({
     },
   });
 
-  const flatPerSegmentSorted = segments
-    .map((s) => [...s.Transcripts.map((t) => t.TranscriptDetails)])
-    .flat()
-    .flat()
-    .flat()
-    .sort((a, b) => b.score - a.score);
+  const flatPerSegmentSorted = segments.map((s) =>
+    [...s.Transcripts.map((t) => t.TranscriptDetails)]
+      .flat()
+      .flat()
+      .sort((a, b) => b.score - a.score)
+  );
 
   const annotationinfos = new Map<
     string,
@@ -55,35 +55,37 @@ export const updateVideoSponsorsFromDB = async ({
 
   const products = new Map<string, string[]>();
   const offers = new Map<string, string[]>();
-  flatPerSegmentSorted?.[0]?.Annotations.forEach((annotation) => {
-    const transcriptId = flatPerSegmentSorted?.[0]?.id;
-    if (transcriptId) {
-      switch (annotation.tag) {
-        case "BRAND":
-          annotationinfos.set(annotation.text.toUpperCase(), {
-            brand: annotation.text,
-            transcriptDetailsId: transcriptId,
-          });
-          break;
-        case "PRODUCT":
-          const p = products.get(transcriptId);
-          products.set(
-            transcriptId,
-            p ? [...p, annotation.text] : [annotation.text]
-          );
-          break;
-        case "OFFER":
-          const o = offers.get(transcriptId);
-          offers.set(
-            transcriptId,
-            o ? [...o, annotation.text] : [annotation.text]
-          );
-          break;
-        default:
-          break;
+  flatPerSegmentSorted.map((td) =>
+    td?.[0]?.Annotations.forEach((annotation) => {
+      const transcriptId = td?.[0]?.id;
+      if (transcriptId) {
+        switch (annotation.tag) {
+          case "BRAND":
+            annotationinfos.set(annotation.text.toUpperCase(), {
+              brand: annotation.text,
+              transcriptDetailsId: transcriptId,
+            });
+            break;
+          case "PRODUCT":
+            const p = products.get(transcriptId);
+            products.set(
+              transcriptId,
+              p ? [...p, annotation.text] : [annotation.text]
+            );
+            break;
+          case "OFFER":
+            const o = offers.get(transcriptId);
+            offers.set(
+              transcriptId,
+              o ? [...o, annotation.text] : [annotation.text]
+            );
+            break;
+          default:
+            break;
+        }
       }
-    }
-  });
+    })
+  );
 
   await prisma.$transaction(
     [...annotationinfos.entries()].map((v) =>

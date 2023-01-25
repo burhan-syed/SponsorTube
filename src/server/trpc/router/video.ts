@@ -140,6 +140,13 @@ export const videoRouter = router({
     .mutation(async ({ input, ctx }) => {
       await updateVideoSponsorsFromDB({ videoId: input.videoId });
     }),
+  getSponsors: publicProcedure
+    .input(z.object({ videoId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      return await ctx.prisma.sponsors.findMany({
+        where: { videoId: input.videoId },
+      });
+    }),
   testMutate: publicProcedure
     .input(z.object({ videoID: z.string() }))
     .mutation(async ({ input, ctx }) => {
