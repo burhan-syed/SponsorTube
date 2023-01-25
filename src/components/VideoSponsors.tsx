@@ -60,33 +60,35 @@ const VideoSponsors = ({ videoId }: { videoId: string }) => {
             sponsor information
           </h2>
           <table className="w-full table-fixed text-xs">
-            {Object.values(AnnotationTags).map((type) => (
-              <tr
-                className="border-th border-t border-b border-th-additiveBackground/10 font-bold first:border-t-0 last:border-b-0 [&_th]:w-16 [&_th]:pr-2"
-                key={type}
-              >
-                <th className="select-none  py-2 text-start font-semibold">
-                  <span className="capitalize">{type[0]}</span>
-                  <span className="lowercase">{type.slice(1)}s</span>
-                </th>
-                <td className="flex flex-row flex-wrap items-center justify-start gap-2 py-2 pl-2 text-xxs capitalize">
-                  {sponsors.data
-                    .filter((sp) =>
-                      selectedSegment
-                        ? sp.transcriptDetailsId === selectedSegment
-                        : true
-                    )
-                    .map((sp) => (
-                      <TextPill
-                        key={sp.id}
-                        sp={sp}
-                        type={type}
-                        toggleSetSelectedSegment={toggleSetSelectedSegment}
-                      />
-                    ))}
-                </td>
-              </tr>
-            ))}
+            <tbody>
+              {Object.values(AnnotationTags).map((type) => (
+                <tr
+                  className="border-th border-t border-b border-th-additiveBackground/10 font-bold first:border-t-0 last:border-b-0 [&_th]:w-16 [&_th]:pr-2"
+                  key={type}
+                >
+                  <th className="select-none  py-2 text-start font-semibold">
+                    <span className="capitalize">{type[0]}</span>
+                    <span className="lowercase">{type.slice(1)}s</span>
+                  </th>
+                  <td className="flex flex-row flex-wrap items-center justify-start gap-2 py-2 pl-2 text-xxs capitalize">
+                    {sponsors.data
+                      .filter((sp) =>
+                        selectedSegment
+                          ? sp.transcriptDetailsId === selectedSegment
+                          : true
+                      )
+                      .map((sp) => (
+                        <TextPill
+                          key={sp.id}
+                          sp={sp}
+                          type={type}
+                          toggleSetSelectedSegment={toggleSetSelectedSegment}
+                        />
+                      ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </>
       ) : (
