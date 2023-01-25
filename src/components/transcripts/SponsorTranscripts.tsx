@@ -32,50 +32,44 @@ const SponsorTranscripts = ({
         <>
           <SegmentsGroupLoader />
         </>
-      ) : savedSegments.data ? (
+      ) : savedSegments.data && savedSegments?.data?.length > 0 ? (
         <>
-          {savedSegments.data.length > 0 ? (
-            <>
-              {savedSegments.data.map((segment) => (
-                <SegmentTranscript
-                  key={segment.UUID}
-                  videoID={videoID}
-                  segment={segment as unknown as Segment}
-                  captionsURL={engCaptions?.[0]?.base_url ?? ""}
-                  seekTo={seekTo}
-                />
-              ))}
-            </>
-          ) : (
-            <>
-              {segments.isLoading ? (
-                <SegmentsGroupLoader />
-              ) : segments.data ? (
-                <>
-                  {segments.data.length > 0 ? (
-                    <>
-                      {segments.data.map((segment) => (
-                        <SegmentTranscript
-                          key={segment.UUID}
-                          videoID={videoID}
-                          segment={segment}
-                          captionsURL={engCaptions?.[0]?.base_url ?? ""}
-                          seekTo={seekTo}
-                        />
-                      ))}
-                    </>
-                  ) : (
-                    "no sponsors"
-                  )}
-                </>
-              ) : (
-                "sponsors error"
-              )}
-            </>
-          )}
+          {savedSegments.data.map((segment) => (
+            <SegmentTranscript
+              key={segment.UUID}
+              videoID={videoID}
+              segment={segment as unknown as Segment}
+              captionsURL={engCaptions?.[0]?.base_url ?? ""}
+              seekTo={seekTo}
+            />
+          ))}
+          {/* account for unsaved segments */}
+          {segments.data
+            ?.filter((s) => !savedSegments.data.find((p) => p.UUID === s.UUID))
+            .map((segment) => (
+              <SegmentTranscript
+                key={segment.UUID}
+                videoID={videoID}
+                segment={segment}
+                captionsURL={engCaptions?.[0]?.base_url ?? ""}
+                seekTo={seekTo}
+              />
+            ))}
+        </>
+      ) : segments.data && segments.data.length > 0 ? (
+        <>
+          {segments.data.map((segment) => (
+            <SegmentTranscript
+              key={segment.UUID}
+              videoID={videoID}
+              segment={segment}
+              captionsURL={engCaptions?.[0]?.base_url ?? ""}
+              seekTo={seekTo}
+            />
+          ))}
         </>
       ) : (
-        "saved segments error"
+        "no sponsors"
       )}
     </>
   );
