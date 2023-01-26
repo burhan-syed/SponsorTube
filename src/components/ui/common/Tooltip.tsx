@@ -1,7 +1,7 @@
 import React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
-const TooltipContainer = ({
+const ToolTip = ({
   children,
   text,
   tooltipOptions = { side: "bottom", sideOffset: 10 },
@@ -32,4 +32,4 @@ const TooltipContainer = ({
   );
 };
 
-export default TooltipContainer;
+export default ToolTip;

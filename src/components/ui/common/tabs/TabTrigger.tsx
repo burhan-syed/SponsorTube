@@ -26,7 +26,7 @@ const TabTrigger = ({ value, icon, label, disabled }: TabTriggerProps) => {
     >
       {icon && <>{icon}</>}
       {label ? label : value}
-      <TouchResponse isPressed={isPressed} className="" borderClassName=" " />
+      <TouchResponse isPressed={isPressed} className="" variant="ring" />
     </TabsPrimitives.Trigger>
   );
 };

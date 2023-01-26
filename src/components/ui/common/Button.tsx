@@ -136,8 +136,6 @@ export const Button = ({
       <Link {...props} ref={containerRef} className={classes}>
         {children}
         <TouchResponse
-          className={""}
-          borderClassName={""}
           isPressed={isPressed}
         />
       </Link>
@@ -163,6 +161,7 @@ export const Button = ({
       {children}
 
       <TouchResponse
+        variant="ring"
         className={"rounded-full"}
         isPressed={!disabled && isPressed}
       />
