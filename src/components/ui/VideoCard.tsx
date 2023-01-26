@@ -31,7 +31,7 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
 
   const videoThumbnail =
     (video as VideoWithThumbnail)?.video_thumbnail ?? video.thumbnails?.[0];
-
+  const authorThumbnail = video.author.thumbnails?.[0]?.url;
   const ChannelThumbnail = (
     <div
       className={clsx(
@@ -41,9 +41,9 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
           : variant === "compact" && "h-6 w-6"
       )}
     >
-      {video.author.thumbnails?.[0]?.url && (
+      {authorThumbnail && (
         <Image
-          src={video.author.thumbnails?.[0]?.url}
+          src={authorThumbnail}
           alt=""
           width={video.author.thumbnails?.[0]?.width}
           height={video.author.thumbnails?.[0]?.height}
@@ -92,17 +92,20 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
           </a>
         </Link>
         <div className="flex gap-2">
-          <Link href={`/channel/${video.author.id}`}>
-            <a
-              className={clsx(
-                variant === "regular"
-                  ? "block px-2 sm:hidden sm:px-0"
-                  : variant === "compact" && "hidden sm:block"
-              )}
-            >
-              {ChannelThumbnail}
-            </a>
-          </Link>
+          {authorThumbnail && (
+            <Link href={`/channel/${video.author.id}`}>
+              <a
+                className={clsx(
+                  variant === "regular"
+                    ? "block px-2 sm:hidden sm:px-0"
+                    : variant === "compact" && "hidden sm:block"
+                )}
+              >
+                {ChannelThumbnail}
+              </a>
+            </Link>
+          )}
+
           <div className="flex-col">
             <div
               className={clsx(

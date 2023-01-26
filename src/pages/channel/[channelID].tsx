@@ -8,6 +8,8 @@ import { trpc } from "../../utils/trpc";
 import type { NextPage } from "next";
 import { GetServerSideProps } from "next";
 import { getChannel, ytSearchQuery } from "../../apis/youtube";
+import GridVideoView from "@/components/ui/GridVideoView";
+import GridVideoLoader from "@/components/ui/loaders/GridVideoLoader";
 
 const ChannelPage: NextPage = () => {
   const router = useRouter();
@@ -24,7 +26,7 @@ const ChannelPage: NextPage = () => {
       staleTime: Infinity,
     }
   );
-  console.log("channel?", channel.data)
+  console.log("channel?", channel.data);
   return (
     <>
       <Head>
@@ -37,9 +39,14 @@ const ChannelPage: NextPage = () => {
         {channel.data?.channelHeader && (
           <ChannelHeader channel={channel.data?.channelHeader} />
         )}
-        {channel.data?.channelVideos.map((video) => (
-          <VideoCard key={video.id} video={video} />
-        ))}
+        {channel.isLoading ? (
+          <GridVideoLoader />
+        ) : (
+          channel.data?.channelVideos &&
+          channel.data.channelVideos.length > 0 && (
+            <GridVideoView videos={channel.data.channelVideos} />
+          )
+        )}
       </div>
     </>
   );
