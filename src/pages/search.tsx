@@ -4,8 +4,9 @@ import { trpc } from "../utils/trpc";
 import VideoCard from "../components/ui/VideoCard";
 import Header from "../components/ui/Header";
 import ChannelCard from "../components/ui/ChannelCard";
+import ListVideoLoader from "@/components/ui/loaders/ListVideoLoader";
 
-import type {VideoWithThumbnail} from "../types"
+import type { VideoWithThumbnail } from "../types";
 
 const SearchPage = () => {
   const router = useRouter();
@@ -25,17 +26,14 @@ const SearchPage = () => {
     <div>
       <Header searchInitialValue={searchQuery} />
       {searchResults.isLoading ? (
-        "Loading.."
+        <ListVideoLoader />
       ) : searchResults?.data ? (
         <div className="flex flex-col gap-2">
           {searchResults?.data?.channels?.map((channel) => (
             <ChannelCard key={channel.id} channel={channel} />
           ))}
           {searchResults.data.videos?.map((video, i) => (
-            <VideoCard
-              key={video.id}
-              video={video as VideoWithThumbnail}
-            />
+            <VideoCard key={video.id} video={video as VideoWithThumbnail} />
           ))}
         </div>
       ) : (

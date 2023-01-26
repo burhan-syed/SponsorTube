@@ -8,6 +8,8 @@ import SponsorTranscripts from "../components/transcripts/SponsorTranscripts";
 import type { NextPage } from "next";
 import { useState } from "react";
 import VideoPageLoader from "@/components/ui/loaders/VideoPageLoader";
+import GridVideoView from "@/components/ui/GridVideoView";
+import GridVideoLoader from "@/components/ui/loaders/GridVideoLoader";
 
 const Home: NextPage = ({}) => {
   const router = useRouter();
@@ -29,7 +31,6 @@ const Home: NextPage = ({}) => {
   const seekTo = (start: number, end: number) => {
     setVideoSeek((p) => [(p?.[0] ?? 0) + 1, start, end]);
   };
-  console.log("videoInfos?");
   return (
     <>
       <Head>
@@ -93,6 +94,14 @@ const Home: NextPage = ({}) => {
             />
           </div>
         </div>
+        {videoInfo.isLoading ? (
+          <GridVideoLoader />
+        ) : (
+          videoInfo.data?.watch_next &&
+          (videoInfo.data.watch_next?.length ?? 0) > 0 && (
+            <GridVideoView videos={videoInfo.data.watch_next} />
+          )
+        )}
       </div>
     </>
   );
