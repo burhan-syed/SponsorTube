@@ -2,7 +2,6 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import ChannelHeader from "../../components/ui/ChannelHeader";
 import Header from "../../components/ui/Header";
-import VideoCard from "../../components/ui/VideoCard";
 import { trpc } from "../../utils/trpc";
 
 import type { NextPage } from "next";
@@ -10,6 +9,7 @@ import { GetServerSideProps } from "next";
 import { getChannel, ytSearchQuery } from "../../apis/youtube";
 import GridVideoView from "@/components/ui/GridVideoView";
 import GridVideoLoader from "@/components/ui/loaders/GridVideoLoader";
+import { Button } from "@/components/ui/common/Button";
 
 const ChannelPage: NextPage = () => {
   const router = useRouter();
@@ -17,16 +17,16 @@ const ChannelPage: NextPage = () => {
     (Array.isArray(router.query.channelID)
       ? router.query.channelID?.[0]
       : router.query.channelID) ?? "";
-  const channel = trpc.channel.details.useQuery(
+  const channel = trpc.channel.details.useInfiniteQuery(
     { channelID: channelID },
     {
       enabled: !!channelID,
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      getNextPageParam: (lastPage) =>
+        lastPage.hasNext ? lastPage.nextCursor : undefined,
     }
   );
-  console.log("channel?", channel.data);
+  const flatVideos = channel.data?.pages?.map((p) => p.channelVideos).flat();
+  // console.log("channel?", channel.data?.continuation?.contents?.contents?.[0]);
   return (
     <>
       <Head>
@@ -36,16 +36,26 @@ const ChannelPage: NextPage = () => {
       </Head>
       <Header />
       <div>
-        {channel.data?.channelHeader && (
-          <ChannelHeader channel={channel.data?.channelHeader} />
+        {channel.data?.pages?.[0]?.channelHeader && (
+          <ChannelHeader channel={channel.data?.pages?.[0]?.channelHeader} />
         )}
         {channel.isLoading ? (
           <GridVideoLoader />
         ) : (
-          channel.data?.channelVideos &&
-          channel.data.channelVideos.length > 0 && (
-            <GridVideoView videos={channel.data.channelVideos} />
-          )
+          flatVideos &&
+          flatVideos.length > 0 && <GridVideoView videos={flatVideos} />
+        )}
+        {channel.hasNextPage && (
+          <div className="w-full text-center p-4 items-center justify-center">
+            <Button
+              loading={channel.isFetchingNextPage}
+              disabled={channel.isFetchingNextPage || channel.isLoading}
+              className=""
+              onClick={() => channel.fetchNextPage()}
+            >
+              more
+            </Button>
+          </div>
         )}
       </div>
     </>
