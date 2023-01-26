@@ -5,6 +5,7 @@ import { getVideoInfo } from "../../../apis/youtube";
 import { getSegmentsByID } from "@/apis/sponsorblock";
 import { TRPCError } from "@trpc/server";
 import { updateVideoSponsorsFromDB } from "@/server/functions/db/sponsors";
+import CompactVideo from "youtubei.js/dist/src/parser/classes/CompactVideo";
 
 export const videoRouter = router({
   segments: publicProcedure
@@ -46,6 +47,7 @@ export const videoRouter = router({
           },
         },
         captions: { ...videoInfo.captions },
+        watch_next: videoInfo.watch_next_feed?.filterType(CompactVideo),
       };
     }),
   saveDetails: protectedProcedure
