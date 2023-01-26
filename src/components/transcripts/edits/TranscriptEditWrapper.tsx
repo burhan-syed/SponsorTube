@@ -99,7 +99,7 @@ const TranscriptEditWrapper = ({
             />
           )}
 
-        {transcript?.startTime && transcript.endTime && (
+        {(typeof transcript?.startTime === "number" && typeof transcript?.endTime === "number") && (
           <div className="flex items-center gap-0.5 sm:gap-2">
             <Button
               round
