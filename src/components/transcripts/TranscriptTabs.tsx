@@ -59,11 +59,7 @@ const TranscriptTabs = ({
   ]);
 
   if (savedTranscriptAnnotations.isInitialLoading || !tabValue) {
-    return (
-      <div className="h-10 w-full animate-pulse bg-th-additiveBackground bg-opacity-5">
-        loading...
-      </div>
-    );
+    return <div className="skeleton-box h-10 w-full">loading...</div>;
   }
 
   return (

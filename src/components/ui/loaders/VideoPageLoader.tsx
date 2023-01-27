@@ -6,13 +6,13 @@ const VideoPageLoader = () => {
       <div
         id={"video_embed_placeholder"}
         className={
-          "aspect-video w-full animate-pulse rounded-lg bg-th-additiveBackground bg-opacity-5"
+          "aspect-video w-full skeleton-box rounded-lg"
         }
       ></div>
       <div
         id={"video_info_placeholder"}
         className={
-          "h-20 w-full animate-pulse rounded-lg bg-th-additiveBackground bg-opacity-5 "
+          "h-20 w-full skeleton-box rounded-lg "
         }
       ></div>
     </div>

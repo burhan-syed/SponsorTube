@@ -53,7 +53,7 @@ const VideoSponsors = ({ videoId }: { videoId: string }) => {
   return (
     <div className="flex items-center justify-center rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-2">
       {sponsors.isLoading ? (
-        <div className="h-10 w-full animate-pulse bg-th-additiveBackground/5 "></div>
+        <div className="h-10 w-full skeleton-box "></div>
       ) : sponsors.data && sponsors.data.length > 0 ? (
         <>
           <h2 className="hidden py-2 pb-4 text-sm font-bold">

@@ -45,7 +45,7 @@ const GeneratedTranscripts = ({
     <>
       {sponsorSegmentTranscripts.isLoading ||
       savedTranscriptAnnotations.isLoading ? (
-        <div className="h-32 w-full animate-pulse rounded-lg bg-th-additiveBackground bg-opacity-5"></div>
+        <div className="h-32 w-full skeleton-box rounded-lg"></div>
       ) : (savedTranscriptAnnotations?.data?.length ?? 0) > 0 ? (
         <>
           {savedTranscriptAnnotations.data?.map(
