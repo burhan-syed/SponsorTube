@@ -8,6 +8,7 @@ import clsx from "clsx";
 import useSponsorBlock from "../../hooks/useSponsorBlock";
 import type CompactVideo from "youtubei.js/dist/src/parser/classes/CompactVideo";
 import type { VideoWithThumbnail } from "../../types";
+import SegmentsPreview from "./SegmentsPreview";
 type VideoCardProps = {
   video: VideoWithThumbnail | CompactVideo;
   variant?: "regular" | "compact";
@@ -15,19 +16,6 @@ type VideoCardProps = {
 
 const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
   const { containerRef, isPressed } = useIsPressed();
-  const { ref: inViewRef, inView } = useInView();
-  const { segments, savedSegments } = useSponsorBlock({
-    videoID: inView ? video.id : "",
-  });
-  const setRefs = useCallback(
-    (node: HTMLDivElement) => {
-      // Ref's from useRef needs to have the node assigned to `current`
-      containerRef.current = node;
-      // Callback refs, like the one from `useInView`, is a function that takes the node as an argument
-      inViewRef(node);
-    },
-    [inViewRef]
-  );
 
   const videoThumbnail =
     (video as VideoWithThumbnail)?.video_thumbnail ?? video.thumbnails?.[0];
@@ -53,6 +41,20 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
     </div>
   );
 
+  const SponsorInfo = (
+    <Link href={`/video?v=${video.id}`}>
+      <a className="">
+        <SegmentsPreview
+          videoId={video.id}
+          className={clsx(
+            variant === "compact" ? "" : variant === "regular" && "  sm:my-2  ",
+            "text-semibold inline-flex cursor-pointer flex-wrap items-center space-x-1 text-xs sm:space-x-2 "
+          )}
+        />
+      </a>
+    </Link>
+  );
+
   return (
     <div
       className={clsx(
@@ -61,7 +63,7 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
       )}
     >
       <div
-        ref={setRefs}
+        ref={containerRef}
         // onClick={() => router.push(`/video?v=${video.id}`)}
         className={clsx(
           "flex items-start gap-2 rounded-lg  text-xs text-th-textSecondary ",
@@ -91,7 +93,8 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
             )}
           </a>
         </Link>
-        <div className="flex gap-2">
+
+        <div className="flex w-full gap-2 pr-2">
           {authorThumbnail && (
             <Link href={`/channel/${video.author.id}`}>
               <a
@@ -106,11 +109,11 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
             </Link>
           )}
 
-          <div className="flex-col">
+          <div className="w-full flex-col">
             <div
               className={clsx(
                 "flex flex-col",
-                variant === "regular" && "sm:gap-1"
+                variant === "regular" && "order-2 sm:gap-1"
               )}
             >
               <h3
@@ -126,6 +129,10 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
                   <a>{video.title?.text}</a>
                 </Link>
               </h3>
+              {/* {variant === "compact" && (
+                <div className="sm:-mx-1 sm:w-full">{SponsorInfo}</div>
+              )} */}
+
               <span className="flex flex-wrap gap-1">
                 <span
                   className={clsx(
@@ -142,6 +149,12 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
                   {video.published?.text}
                 </span>
               </span>
+
+              {variant === "compact" && video.author.id !== "N/A" && (
+                <Link href={`/channel/${video.author.id}`}>
+                  <a className="">{video.author.name}</a>
+                </Link>
+              )}
             </div>
             {video.author.id && video.author.id !== "N/A" && (
               <Link href={`/channel/${video.author.id}`}>
@@ -149,7 +162,7 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
                   className={clsx(
                     "items-center gap-2",
                     variant === "regular"
-                      ? "hidden sm:flex sm:py-2"
+                      ? "order-3 hidden sm:flex sm:py-2"
                       : variant === "compact" && "hidden"
                   )}
                 >
@@ -158,53 +171,16 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
                 </a>
               </Link>
             )}
+
             {(video as VideoWithThumbnail)?.snippets?.[0]?.text?.text && (
               <p className="hidden text-xs sm:block">
                 {(video as VideoWithThumbnail)?.snippets?.[0]?.text?.text}
               </p>
             )}
-
-            <div
-            // className={clsx(
-            //   variant === "regular"
-            //     ? ""
-            //     : variant === "compact" && "hidden sm:block"
-            // )}
-            >
-              <div className="w-full rounded-full bg-th-additiveBackground bg-opacity-5 text-sm">
-                {segments.isLoading
-                  ? "checking for segments.."
-                  : segments.data
-                  ? segments.data.length
-                  : "something went wrong"}
-                {"|"}
-                {savedSegments.isLoading
-                  ? "checking for saved segments.."
-                  : savedSegments.data
-                  ? savedSegments.data.length
-                  : "something went wrong w/saved segments"}
-              </div>
-            </div>
+            {<>{SponsorInfo}</>}
           </div>
         </div>
       </div>
-      {/* {variant === "compact" && (
-        <div className="px-2 sm:hidden">
-          <div className="w-full rounded-full bg-th-additiveBackground bg-opacity-5 text-sm">
-            {segments.isLoading
-              ? "checking for segments.."
-              : segments.data
-              ? segments.data.length
-              : "something went wrong"}
-            {"|"}
-            {savedSegments.isLoading
-              ? "checking for saved segments.."
-              : savedSegments.data
-              ? savedSegments.data.length
-              : "something went wrong w/saved segments"}
-          </div>
-        </div>
-      )} */}
 
       <TouchResponse className="rounded-xl" isPressed={isPressed} />
     </div>
