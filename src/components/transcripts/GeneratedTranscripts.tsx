@@ -5,6 +5,7 @@ import useVideoCaptions from "@/hooks/useVideoCaptions";
 import useSegmentTranscript from "@/hooks/useSegmentTranscript";
 import { trpc } from "@/utils/trpc";
 import Switch from "../ui/common/Switch";
+import TranscriptLoader from "../ui/loaders/transcripts/TranscriptLoader";
 
 const GeneratedTranscripts = ({
   segment,
@@ -45,7 +46,7 @@ const GeneratedTranscripts = ({
     <>
       {sponsorSegmentTranscripts.isLoading ||
       savedTranscriptAnnotations.isLoading ? (
-        <div className="h-32 w-full skeleton-box rounded-lg"></div>
+        <TranscriptLoader/>
       ) : (savedTranscriptAnnotations?.data?.length ?? 0) > 0 ? (
         <>
           {savedTranscriptAnnotations.data?.map(

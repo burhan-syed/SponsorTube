@@ -99,26 +99,27 @@ const TranscriptEditWrapper = ({
             />
           )}
 
-        {(typeof transcript?.startTime === "number" && typeof transcript?.endTime === "number") && (
-          <div className="flex items-center gap-0.5 sm:gap-2">
-            <Button
-              round
-              onClick={() =>
-                seekTo(
-                  transcript.startTime as number,
-                  transcript.endTime as number
-                )
-              }
-            >
-              <BsPlay className="h-4 w-4 flex-none" />
-            </Button>
-            <span className="flex items-center gap-0.5  text-xs text-th-textSecondary sm:gap-1">
-              {secondsToHMS(transcript.startTime)}
-              <span>-</span>
-              {secondsToHMS(transcript.endTime)}
-            </span>
-          </div>
-        )}
+        {typeof transcript?.startTime === "number" &&
+          typeof transcript?.endTime === "number" && (
+            <div className="flex items-center gap-0.5 sm:gap-2">
+              <Button
+                round
+                onClick={() =>
+                  seekTo(
+                    transcript.startTime as number,
+                    transcript.endTime as number
+                  )
+                }
+              >
+                <BsPlay className="h-4 w-4 flex-none" />
+              </Button>
+              <span className="flex items-center gap-0.5  text-xs text-th-textSecondary sm:gap-1">
+                {secondsToHMS(transcript.startTime)}
+                <span>-</span>
+                {secondsToHMS(transcript.endTime)}
+              </span>
+            </div>
+          )}
 
         <div className="mx-auto"></div>
         {annotateToggled && (

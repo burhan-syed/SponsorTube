@@ -2,6 +2,7 @@ import { trpc } from "@/utils/trpc";
 import { useSession } from "next-auth/react";
 import TranscriptEditWrapper from "./edits/TranscriptEditWrapper";
 import type { Segment } from "sponsorblock-api";
+import TranscriptLoader from "../ui/loaders/transcripts/TranscriptLoader";
 
 // import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 // import  {type appRouter } from "@/server/trpc/router";
@@ -36,7 +37,7 @@ const SavedTranscripts = ({
   return (
     <>
       {savedTranscriptAnnotations.isLoading ? (
-        <div className="h-32 w-full skeleton-box rounded-lg"></div>
+        <TranscriptLoader />
       ) : savedTranscriptAnnotations.data ? (
         <>
           {savedTranscriptAnnotations.data.length > 0 ? (

@@ -7,6 +7,7 @@ import GeneratedTranscripts from "./GeneratedTranscripts";
 import { trpc } from "@/utils/trpc";
 import { useSession } from "next-auth/react";
 import TabsList from "../ui/common/tabs/TabsList";
+import TranscriptLoader from "../ui/loaders/transcripts/TranscriptLoader";
 const TranscriptTabs = ({
   videoID,
   segment,
@@ -58,10 +59,6 @@ const TranscriptTabs = ({
     tabValue,
   ]);
 
-  if (savedTranscriptAnnotations.isInitialLoading || !tabValue) {
-    return <div className="skeleton-box h-10 w-full">loading...</div>;
-  }
-
   return (
     <>
       <TabsPrimitives.Root
@@ -75,40 +72,55 @@ const TranscriptTabs = ({
           <div className="relative sm:h-[25rem] sm:w-8">
             <div className="sm:pointer-events-none sm:absolute sm:top-0 sm:h-8 sm:w-[25rem] sm:origin-top-left sm:rotate-90">
               <div className="pointer-events-auto  sm:h-full sm:w-full sm:-translate-y-full ">
-                <TabsList disabled={isNavDisabled} tabsList={tabsList} />
+                <TabsList
+                  disabled={
+                    isNavDisabled ||
+                    savedTranscriptAnnotations.isInitialLoading ||
+                    !tabValue
+                  }
+                  tabsList={tabsList}
+                />
               </div>
             </div>
           </div>
         </div>
         <div className="border-t border-t-th-textSecondary sm:order-1 sm:border-t-0 sm:border-r sm:border-r-th-textSecondary">
-          {tabsList.map(({ value }) => (
-            <TabsPrimitives.Content
-              key={value}
-              value={value}
-              className=" hidden flex-col data-[state=active]:flex data-[state=active]:min-h-[30rem]"
-            >
-              {value === "generated" ? (
-                <GeneratedTranscripts
-                  segment={segment}
-                  videoID={videoID}
-                  captionsURL={captionsURL}
-                  setTabValue={setTabValue}
-                  setIsNavDisabled={setIsNavDisabled}
-                  isNavDisabled={isNavDisabled}
-                  seekTo={seekTo}
-                />
-              ) : (
-                <SavedTranscripts
-                  segment={segment}
-                  videoID={videoID}
-                  setTabValue={setTabValue}
-                  setIsNavDisabled={setIsNavDisabled}
-                  seekTo={seekTo}
-                  userPosts={value === "user"}
-                />
-              )}
-            </TabsPrimitives.Content>
-          ))}
+          {savedTranscriptAnnotations.isInitialLoading || !tabValue ? (
+            <div className="flex min-h-[30rem] flex-col">
+              <TranscriptLoader />
+            </div>
+          ) : (
+            <>
+              {tabsList.map(({ value }) => (
+                <TabsPrimitives.Content
+                  key={value}
+                  value={value}
+                  className=" hidden flex-col data-[state=active]:flex data-[state=active]:min-h-[30rem]"
+                >
+                  {value === "generated" ? (
+                    <GeneratedTranscripts
+                      segment={segment}
+                      videoID={videoID}
+                      captionsURL={captionsURL}
+                      setTabValue={setTabValue}
+                      setIsNavDisabled={setIsNavDisabled}
+                      isNavDisabled={isNavDisabled}
+                      seekTo={seekTo}
+                    />
+                  ) : (
+                    <SavedTranscripts
+                      segment={segment}
+                      videoID={videoID}
+                      setTabValue={setTabValue}
+                      setIsNavDisabled={setIsNavDisabled}
+                      seekTo={seekTo}
+                      userPosts={value === "user"}
+                    />
+                  )}
+                </TabsPrimitives.Content>
+              ))}
+            </>
+          )}
         </div>
       </TabsPrimitives.Root>
     </>
