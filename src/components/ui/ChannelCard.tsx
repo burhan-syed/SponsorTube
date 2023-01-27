@@ -13,8 +13,8 @@ const ChannelCard = ({ channel }: ChannelCardProps) => {
   return (
     <Link href={`/channel/${channel.id}`}>
       <a className="flex items-center text-xs text-th-textSecondary hover:cursor-pointer">
-        <div className="flex aspect-video w-80 flex-none items-center justify-center overflow-hidden rounded-2xl">
-          <div className="h-32 w-32 overflow-hidden rounded-full">
+        <div className="flex aspect-video w-1/2 flex-none items-center justify-center overflow-hidden rounded-2xl sm:w-80">
+          <div className="h-24 w-24 overflow-hidden rounded-full sm:h-32 sm:w-32">
             {thumbnail?.url && (
               <Image
                 src={`https:${thumbnail?.url}`}
@@ -29,12 +29,14 @@ const ChannelCard = ({ channel }: ChannelCardProps) => {
 
         <div className="flex-col">
           <div className="">
-            <h3 className="text-base text-th-textPrimary">
+            <h3 className="text-base text-th-textPrimary ">
               {channel.author.name}
             </h3>
             <span>
               {channel.subscribers.text}
-              <span>{channel.videos?.text}</span>
+              <span className="before:content-['_·_']">
+                {channel.videos?.text}
+              </span>
             </span>
           </div>
 
