@@ -82,7 +82,7 @@ body {
 }
 
 .react-autosuggest__input {
-  @apply m-0 ml-3 h-full w-full border-none bg-transparent p-1 outline-none;
+  @apply m-0 ml-1 sm:ml-3 h-full w-full border-none bg-transparent sm:p-1 outline-none;
 }
 .react-autosuggest__input--focused {
   @apply border-none outline-none;

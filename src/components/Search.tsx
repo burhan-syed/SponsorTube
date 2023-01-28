@@ -21,7 +21,7 @@ const renderSuggestions = (
   // const parts = AutosuggestHighlightParse(suggestion, matches);
   return (
     <Link href={`/search?q=${encodeURIComponent(suggestion)}`}>
-      <a className="flex items-center space-x-4 p-2 px-0 bg-th-raisedBackground sm:bg-transparent border-b sm:border-none">
+      <a className="flex items-center space-x-4 border-b bg-th-raisedBackground p-2 px-0 sm:border-none sm:bg-transparent">
         <div>
           <TfiSearch className="ml-4 h-4 w-4 flex-none" />
         </div>
@@ -40,7 +40,15 @@ const renderSuggestions = (
   );
 };
 
-const Search = ({ initialValue = "" }: { initialValue?: string }) => {
+const Search = ({
+  initialValue = "",
+  autoFocus = false,
+  setAutoFocus,
+}: {
+  initialValue?: string;
+  autoFocus?: boolean;
+  setAutoFocus?(b: boolean): void;
+}) => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -53,11 +61,41 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
   useEffect(() => {
     setSearchTerm(initialValue);
   }, [initialValue]);
+  useEffect(() => {
+    autoFocus && inputRef?.current?.focus();
+  }, [autoFocus]);
+  useEffect(() => {
+    const html = document.querySelector("html");
+    if (html) {
+      html.style.overflow =
+        (results.data?.results?.length ?? 0 > 0) && autoFocus
+          ? "hidden"
+          : "auto";
+    }
+
+    return () => {
+      if (html) {
+        html.style.overflow = "auto";
+      }
+    };
+  }, [results.data, autoFocus]);
+  useEffect(() => {
+    const checkClick = (e: any) => {
+      if (e.target?.id === "react-autowhatever-1" && setAutoFocus) {
+        setAutoFocus(false);
+      }
+    };
+    autoFocus &&
+      window.innerWidth <= 640 &&
+      window.addEventListener("click", checkClick);
+    return () => {
+      window.removeEventListener("click", checkClick);
+    };
+  }, [autoFocus]);
 
   const onFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (searchTerm) {
-      console.log("search?", searchTerm);
       router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
     }
   };
@@ -74,6 +112,9 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
       setSearchTerm(newValue);
       method === "type" && setAutoCompleteSearchTerm(newValue);
     },
+    autoFocus: autoFocus,
+    onFocus: () => setFocused(true),
+    onBlur: () => setFocused(false),
   };
 
   return (
@@ -84,18 +125,18 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
         className="inline-flex h-full w-full text-th-searchText"
       >
         <div
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          // onFocus={() => setFocused(true)}
+          // onBlur={() => setFocused(false)}
           className={clsx(
-            "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border shadow-[inset_0_1px_2px_#eeeeee]",
+            "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none bg-th-additiveBackground/5 sm:border sm:bg-transparent sm:shadow-[inset_0_1px_2px_#eeeeee]",
             focused
-              ? "border-th-searchBorderFocus "
-              : "ml-8 border-r-0 border-th-searchBorder "
+              ? "sm:border-th-searchBorderFocus "
+              : "sm:ml-8 sm:border-r-0 sm:border-th-searchBorder "
           )}
         >
           {focused && (
-            <div>
-              <TfiSearch className="ml-4 h-4 w-4 flex-none" />
+            <div className="hidden sm:block">
+              <TfiSearch className="h-4 w-4 flex-none sm:ml-4" />
             </div>
           )}
           <Autosuggest
@@ -126,7 +167,7 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
               }}
               className="absolute rounded-full p-4"
             >
-              <TfiClose className="h-4 w-4 flex-none" />
+              <TfiClose className="h-3 w-3 flex-none sm:h-4 sm:w-4" />
             </Button>
           )}
         </div>
@@ -135,10 +176,10 @@ const Search = ({ initialValue = "" }: { initialValue?: string }) => {
           type="submit"
           aria-label="search"
           className={clsx(
-            "h-full rounded-r-full border border-th-searchBorder bg-th-searchButton  px-4 hover:bg-th-searchButtonHover hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] focus:border-th-searchBorderFocus focus:outline-none"
+            "h-full rounded-r-full bg-th-additiveBackground/5 px-2 hover:bg-th-searchButtonHover sm:border  sm:border-th-searchBorder sm:bg-th-searchButton sm:px-4 sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus sm:focus:outline-none"
           )}
         >
-          <TfiSearch className="mx-2 h-5 w-5" />
+          <TfiSearch className="mx-2 h-4 w-4 sm:h-5 sm:w-5" />
         </button>
       </form>
     </>
