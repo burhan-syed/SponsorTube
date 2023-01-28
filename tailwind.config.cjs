@@ -95,6 +95,7 @@ module.exports = {
         "th-shadow": "var(--shadow)",
         "th-touchResponse": "var(--touchResponse)",
         "th-searchBackground": "var(--searchBackground)",
+        "th-searchBackgroundHover": "var(--searchHoverBackground)",
       },
       keyframes: {
         fadeIn: {

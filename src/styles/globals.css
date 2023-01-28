@@ -49,6 +49,7 @@ body {
   --shadow: rgba(0, 0, 0, 0.25);
   --touchResponse: rgba(0, 0, 0, 0.05);
   --searchBackground: hsl(0, 0%, 100%);
+  --searchHoverBackground: rgb(238, 238, 238);
   --searchText: hsl(0, 0%, 6.7%);
 }
 
@@ -78,4 +79,37 @@ body {
   100% {
     transform: translateX(100%);
   }
+}
+
+.react-autosuggest__input {
+  @apply m-0 ml-3 h-full w-full border-none bg-transparent p-1 outline-none;
+}
+.react-autosuggest__input--focused {
+  @apply border-none outline-none;
+}
+/* suggestions container */
+.react-autosuggest__container {
+  @apply w-full;
+}
+
+.react-autosuggest__input {
+  @apply h-full w-full flex-none px-2 text-sm  outline-none;
+}
+
+/* .react-autosuggest__input--focused {
+  @apply shadow-lg;
+} */
+
+/* .react-autosuggest__input--open {
+  @apply;
+} */
+
+.react-autosuggest__suggestions-container--open {
+  @apply fixed left-0 top-12 z-[99] flex h-screen w-screen flex-col items-center bg-black/50 shadow-md sm:absolute sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:bg-th-raisedBackground sm:py-2;
+}
+.react-autosuggest__suggestions-list {
+  @apply w-full list-none overflow-auto;
+}
+.react-autosuggest__suggestion--highlighted {
+  @apply bg-th-searchBackgroundHover;
 }

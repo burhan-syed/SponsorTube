@@ -21,24 +21,25 @@ const SearchPage = () => {
       staleTime: Infinity,
     }
   );
-  console.log("Search:", searchResults.data);
   return (
     <div>
       <Header searchInitialValue={searchQuery} />
-      {searchResults.isLoading ? (
-        <ListVideoLoader />
-      ) : searchResults?.data ? (
-        <div className="flex flex-col gap-2">
-          {searchResults?.data?.channels?.map((channel) => (
-            <ChannelCard key={channel.id} channel={channel} />
-          ))}
-          {searchResults.data.videos?.map((video, i) => (
-            <VideoCard key={video.id} video={video as VideoWithThumbnail} />
-          ))}
-        </div>
-      ) : (
-        "something went wrong"
-      )}
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-2">
+        {searchResults.isLoading ? (
+          <ListVideoLoader />
+        ) : searchResults?.data ? (
+          <>
+            {searchResults?.data?.channels?.map((channel) => (
+              <ChannelCard key={channel.id} channel={channel} />
+            ))}
+            {searchResults.data.videos?.map((video, i) => (
+              <VideoCard key={video.id} video={video as VideoWithThumbnail} />
+            ))}
+          </>
+        ) : (
+          "something went wrong"
+        )}
+      </div>
     </div>
   );
 };

@@ -26,7 +26,7 @@ const ChannelPage: NextPage = () => {
     }
   );
   const flatVideos = channel.data?.pages?.map((p) => p.channelVideos).flat();
-  // console.log("channel?", channel.data?.continuation?.contents?.contents?.[0]);
+
   return (
     <>
       <Head>
