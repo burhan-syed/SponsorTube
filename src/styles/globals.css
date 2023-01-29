@@ -82,7 +82,7 @@ body {
 }
 
 .react-autosuggest__input {
-  @apply m-0 ml-1 sm:ml-3 h-full w-full border-none bg-transparent sm:p-1 outline-none;
+  @apply m-0 ml-1 h-full w-full border-none bg-transparent outline-none sm:ml-3 sm:p-1;
 }
 .react-autosuggest__input--focused {
   @apply border-none outline-none;
@@ -105,7 +105,7 @@ body {
 } */
 
 .react-autosuggest__suggestions-container--open {
-  @apply fixed left-0 top-12 z-[99] flex h-screen w-screen flex-col items-center bg-black/50 shadow-md sm:absolute sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:bg-th-raisedBackground sm:py-2;
+  @apply fixed left-0 top-12 z-[9999] flex w-full flex-col items-center bg-th-raisedBackground shadow-md sm:absolute sm:h-auto sm:rounded-2xl sm:border sm:py-2;
 }
 .react-autosuggest__suggestions-list {
   @apply w-full list-none overflow-auto;

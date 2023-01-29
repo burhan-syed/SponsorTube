@@ -22,7 +22,7 @@ const Header = ({
     <>
       <header
         className={clsx(
-          "fixed top-0 z-50 flex h-12 w-screen items-center justify-between bg-th-baseBackground sm:h-14 gap-2",
+          "fixed top-0 z-50 flex h-12 w-screen items-center justify-between gap-2 bg-th-baseBackground sm:h-14",
           showSearch ? "px-2" : "px-4 "
         )}
       >
@@ -41,7 +41,9 @@ const Header = ({
             <a>Home</a>
           </Link>
         )}
-        {!showSearch && <div className="mx-auto sm:hidden"></div>}
+        {!showSearch && !searchInitialValue && (
+          <div className="mx-auto sm:hidden"></div>
+        )}
         <div
           className={clsx(
             "h-8 w-full sm:h-10 sm:max-w-6xl sm:px-2 md:w-2/3 md:px-0 ",
@@ -55,14 +57,28 @@ const Header = ({
           />
         </div>
         {!showSearch && (
-          <Button
-            round={true}
-            variant={"transparent"}
-            className="flex-none sm:hidden"
-            onClick={() => setShowSearch(true)}
-          >
-            <TfiSearch className=" h-4 w-4 flex-none" />
-          </Button>
+          <>
+            {searchInitialValue ? (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowSearch(true);
+                }}
+                className="flex h-8 flex-grow items-center justify-start rounded-lg bg-th-additiveBackground/5 px-2 sm:hidden"
+              >
+                {searchInitialText}
+              </button>
+            ) : (
+              <Button
+                round={true}
+                variant={"transparent"}
+                className="flex-none sm:hidden"
+                onClick={() => setShowSearch(true)}
+              >
+                <TfiSearch className=" h-4 w-4 flex-none" />
+              </Button>
+            )}
+          </>
         )}
         {!showSearch && <Auth />}
       </header>

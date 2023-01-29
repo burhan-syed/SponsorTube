@@ -6,39 +6,7 @@ import { TfiSearch, TfiClose } from "react-icons/tfi";
 import { Button } from "./ui/common/Button";
 import useAutoCompleteSearch from "@/hooks/useAutoCompleteSearch";
 import Link from "next/link";
-
-const renderSuggestions = (
-  suggestion: string,
-  { query }: { query: string }
-) => {
-  // const matches = AutosuggestHighlightMatch(suggestion, query);
-  const parts = suggestion.split(query).map((part, i) => {
-    if (part === "" && i === 0) {
-      return { text: query, highlight: false };
-    }
-    return { text: part, highlight: true };
-  });
-  // const parts = AutosuggestHighlightParse(suggestion, matches);
-  return (
-    <Link href={`/search?q=${encodeURIComponent(suggestion)}`}>
-      <a className="flex items-center space-x-4 border-b bg-th-raisedBackground p-2 px-0 sm:border-none sm:bg-transparent">
-        <div>
-          <TfiSearch className="ml-4 h-4 w-4 flex-none" />
-        </div>
-        <span>
-          {parts.map((part, i) => (
-            <span
-              className={clsx(part.highlight && "font-bold")}
-              key={`${i}_${part.text}`}
-            >
-              {part.text}
-            </span>
-          ))}
-        </span>
-      </a>
-    </Link>
-  );
-};
+import { BsBoxArrowInUpLeft } from "react-icons/bs";
 
 const Search = ({
   initialValue = "",
@@ -79,19 +47,6 @@ const Search = ({
       }
     };
   }, [results.data, autoFocus]);
-  useEffect(() => {
-    const checkClick = (e: any) => {
-      if (e.target?.id === "react-autowhatever-1" && setAutoFocus) {
-        setAutoFocus(false);
-      }
-    };
-    autoFocus &&
-      window.innerWidth <= 640 &&
-      window.addEventListener("click", checkClick);
-    return () => {
-      window.removeEventListener("click", checkClick);
-    };
-  }, [autoFocus]);
 
   const onFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
@@ -115,6 +70,50 @@ const Search = ({
     autoFocus: autoFocus,
     onFocus: () => setFocused(true),
     onBlur: () => setFocused(false),
+  };
+
+  const renderSuggestions = (
+    suggestion: string,
+    { query }: { query: string }
+  ) => {
+    // const matches = AutosuggestHighlightMatch(suggestion, query);
+    const parts = suggestion.split(query).map((part, i) => {
+      if (part === "" && i === 0) {
+        return { text: query, highlight: false };
+      }
+      return { text: part, highlight: true };
+    });
+    // const parts = AutosuggestHighlightParse(suggestion, matches);
+    return (
+      <Link href={`/search?q=${encodeURIComponent(suggestion)}`}>
+        <a className="z-10 flex items-center gap-4 border-b p-1 sm:p-2 px-0 sm:border-none">
+          <div>
+            <TfiSearch className="ml-4 h-4 w-4 flex-none" />
+          </div>
+          <span>
+            {parts.map((part, i) => (
+              <span
+                className={clsx(part.highlight && "font-bold")}
+                key={`${i}_${part.text}`}
+              >
+                {part.text}
+              </span>
+            ))}
+          </span>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setSearchTerm(suggestion);
+              setAutoCompleteSearchTerm(suggestion);
+            }}
+            className="ml-auto mr-2 aspect-square bg-th-additiveBackground/5 rounded-lg p-2 sm:hidden"
+          >
+            <BsBoxArrowInUpLeft/>
+          </button>
+        </a>
+      </Link>
+    );
   };
 
   return (
@@ -149,6 +148,7 @@ const Search = ({
             }}
             onSuggestionSelected={(event, { suggestion }) => {
               event.preventDefault();
+              setAutoFocus && setAutoFocus(false);
               suggestion &&
                 router.push(`/search?q=${encodeURIComponent(suggestion)}`);
             }}
@@ -182,6 +182,18 @@ const Search = ({
           <TfiSearch className="mx-2 h-4 w-4 sm:h-5 sm:w-5" />
         </button>
       </form>
+      {results.data?.results &&
+        (results.data?.results?.length ?? 0 > 0) &&
+        (focused || autoFocus) && (
+          //prevent click through and close search when clicked
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              setAutoFocus && setAutoFocus(false);
+            }}
+            className="fixed top-12 left-0 z-50 h-full w-full bg-black/50 sm:hidden"
+          ></div>
+        )}
     </>
   );
 };
