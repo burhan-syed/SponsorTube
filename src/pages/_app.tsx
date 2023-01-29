@@ -34,7 +34,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
       <Head>
         <meta
           name="viewport"
-          content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover" //user-scalable="no"
+          content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover, user-scalable=0" //user-scalable="no"
         />
       </Head>
       <main>
