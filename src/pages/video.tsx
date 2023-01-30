@@ -66,7 +66,7 @@ const Home: NextPage = ({}) => {
               )}
               {horizontal === false && (
                 <VideoEmbed
-                  className="sticky top-12 z-20 w-full overflow-hidden outline-none sm:relative sm:rounded-lg"
+                  className="sticky top-12 sm:top-0 z-20 w-full overflow-hidden outline-none sm:relative sm:rounded-lg"
                   videoID={videoInfo.data.basic_info.id}
                   width={videoInfo.data.basic_info.embed?.width}
                   height={videoInfo.data.basic_info.embed?.height}
