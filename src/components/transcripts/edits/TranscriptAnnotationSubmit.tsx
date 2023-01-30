@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/common/Button";
+import useGlobalStore from "@/store/useGlobalStore";
 import { trpc } from "@/utils/trpc";
 import type { TranscriptAnnotations } from "@prisma/client";
 import React from "react";
@@ -35,6 +36,7 @@ const TranscriptAnnotationSubmit = ({
   setEditable(b: boolean): void;
   setTabValue?(v: string): void;
 }) => {
+  const dialogueTrigger = useGlobalStore((store) => store.setDialogueTrigger);
   const utils = trpc.useContext();
   const updateSponsors = trpc.video.updateSponsors.useMutation({
     onSuccess() {
@@ -58,6 +60,13 @@ const TranscriptAnnotationSubmit = ({
       await transcriptInvalidate;
       setEditable(false);
       setTabValue && setTabValue("user");
+    },
+    onError(error, variables, context) {
+      dialogueTrigger({
+        title: "Failed to save annotations",
+        description: error.message,
+        close: "ok",
+      });
     },
   });
 
