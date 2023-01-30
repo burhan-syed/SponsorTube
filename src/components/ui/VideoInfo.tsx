@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { MdOutlineThumbUpAlt } from "react-icons/md";
 import VideoDescription from "./VideoDescription";
-import VideoSponsors from "../VideoSponsors";
+import VideoSponsors from "./VideoSponsors";
 
 type VideoInfoProps = {
   videoId: string;

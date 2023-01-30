@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import Search from "../Search";
-import Auth from "../Auth";
+import Search from "./Search";
+import Auth from "./Auth";
 import clsx from "clsx";
-import { Button } from "./common/Button";
+import { Button } from "./ui/common/Button";
 import { TfiSearch, TfiArrowLeft } from "react-icons/tfi";
 
 const Header = ({

@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import ChannelHeader from "../../components/ui/ChannelHeader";
-import Header from "../../components/ui/Header";
+import Header from "../../components/Header";
 import { trpc } from "../../utils/trpc";
 
 import type { NextPage } from "next";

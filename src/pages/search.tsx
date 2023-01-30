@@ -2,7 +2,7 @@ import React from "react";
 import { useRouter } from "next/router";
 import { trpc } from "../utils/trpc";
 import VideoCard from "../components/ui/VideoCard";
-import Header from "../components/ui/Header";
+import Header from "../components/Header";
 import ChannelCard from "../components/ui/ChannelCard";
 import ListVideoLoader from "@/components/ui/loaders/ListVideoLoader";
 

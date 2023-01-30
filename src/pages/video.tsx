@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { trpc } from "../utils/trpc";
-import Header from "../components/ui/Header";
+import Header from "../components/Header";
 import VideoInfo from "../components/ui/VideoInfo";
 import VideoEmbed from "../components/ui/VideoEmbed";
 import SponsorTranscripts from "../components/transcripts/SponsorTranscripts";

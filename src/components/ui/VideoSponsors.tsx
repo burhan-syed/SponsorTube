@@ -1,8 +1,8 @@
 import { trpc } from "@/utils/trpc";
 import { AnnotationTags, Sponsors } from "@prisma/client";
 import React, { useState } from "react";
-import { TAGS } from "./transcripts/edits/TranscriptTags";
-import { Button } from "./ui/common/Button";
+import { TAGS } from "../transcripts/edits/TranscriptTags";
+import { Button } from "./common/Button";
 
 const TextPill = ({
   sp,
