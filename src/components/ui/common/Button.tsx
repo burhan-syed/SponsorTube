@@ -5,7 +5,7 @@ import clsx from "clsx";
 import TouchResponse from "./TouchResponse";
 import useIsPressed from "@/hooks/useIsPressed";
 import { useSession } from "next-auth/react";
-import useGlobalStore from "@/hooks/useGlobalStore";
+import useGlobalStore from "@/store/useGlobalStore";
 import { CgSpinnerTwoAlt } from "react-icons/cg";
 
 type ButtonBaseProps = VariantProps<typeof buttonClasses> & {

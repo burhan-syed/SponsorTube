@@ -1,8 +1,8 @@
-import useGlobalStore from "@/hooks/useGlobalStore";
+import useGlobalStore from "@/store/useGlobalStore";
 import AlertDialogueWrapper from "./AlertDialogueWrapper";
 import LoginAlertDialogueContent from "./LoginAlertDialogueContent";
 
-const SessionRequiredDialogueWrapper = ({
+const AlertDialogueProvider = ({
   children,
 }: {
   children: React.ReactNode;
@@ -26,4 +26,4 @@ const SessionRequiredDialogueWrapper = ({
   );
 };
 
-export default SessionRequiredDialogueWrapper;
+export default AlertDialogueProvider;
