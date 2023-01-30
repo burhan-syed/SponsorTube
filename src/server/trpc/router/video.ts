@@ -106,6 +106,9 @@ export const videoRouter = router({
             ? new Date(Date.parse(videoInfo.primary_info?.published.text))
             : undefined,
           duration: videoInfo.basic_info.duration,
+          thumbnail: videoInfo.basic_info.thumbnail?.[0]?.url?.split("?")?.[0],
+          thumbnailHeight: videoInfo.basic_info.thumbnail?.[0]?.height,
+          thumbnailWidth: videoInfo.basic_info.thumbnail?.[0]?.width,
           Channel: {
             connectOrCreate: {
               where: { id: videoInfo.basic_info.channel?.id },

@@ -123,6 +123,8 @@ model Channels {
   id   String  @id
   name String?
 
+  thumbnail String?
+
   Videos       Videos[]
   ChannelStats ChannelStats[] //may be overtime data
 }
@@ -149,6 +151,9 @@ model Videos {
   title     String?
   published DateTime?
   duration  Float?
+  thumbnail String?
+  thumbnailHeight Int?
+  thumbnailWidth Int?
 
   SponsorSegments SponsorTimes[]
   Sponsors        Sponsors[]
