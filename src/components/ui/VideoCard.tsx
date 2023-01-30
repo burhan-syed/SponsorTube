@@ -87,7 +87,7 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
                 alt=""
                 width={videoThumbnail?.width}
                 height={videoThumbnail?.height}
-                layout="fill"
+                layout="responsive"
                 unoptimized={true}
               />
             )}
