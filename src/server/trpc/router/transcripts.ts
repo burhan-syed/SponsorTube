@@ -228,6 +228,14 @@ export const transcriptRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       console.log(">>>annotation mutation", JSON.stringify(input));
+
+      if (!input.annotations.find(a => a.tag === "BRAND")){
+        throw new TRPCError({
+          code: "BAD_REQUEST", 
+          message: "A brand must be identified"
+        })
+      }
+
       const videoRouterCaller = videoRouter.createCaller({
         ...ctx,
       });
