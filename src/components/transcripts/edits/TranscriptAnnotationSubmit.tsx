@@ -62,6 +62,12 @@ const TranscriptAnnotationSubmit = ({
       setTabValue && setTabValue("user");
     },
     onError(error, variables, context) {
+      transcript?.annotations?.[0]?.transcriptDetailsId &&
+        utils.transcript.getMyVote.invalidate({
+          transcriptDetailsId:
+            transcript?.annotations?.[0]?.transcriptDetailsId,
+        });
+
       dialogueTrigger({
         title: "Failed to save annotations",
         description: error.message,

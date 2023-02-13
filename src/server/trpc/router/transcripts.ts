@@ -267,6 +267,74 @@ export const transcriptRouter = router({
       }
       const textHash = md5(cleaned);
 
+      //check for pre-existing duplicate annotations
+      const duplicates = await ctx.prisma.$transaction(
+        input.annotations.map((a) =>
+          ctx.prisma.transcriptAnnotations.findMany({
+            where: {
+              ...a,
+              TranscriptDetails: {
+                Transcript: {
+                  segmentUUID: input.segment.UUID,
+                  textHash: textHash,
+                },
+              },
+            },
+            include: {
+              TranscriptDetails: {
+                select: {
+                  transcriptId: true,
+                },
+              },
+            },
+          })
+        )
+      );
+      const matchingTranscriptDetailsIds = new Map<
+        string,
+        { annotationIndex: number; count: number; transcriptId: string }
+      >();
+      duplicates.forEach((d, i) => {
+        d.forEach((t, j) => {
+          const prev = matchingTranscriptDetailsIds.get(t.transcriptDetailsId);
+          matchingTranscriptDetailsIds.set(t.transcriptDetailsId, {
+            annotationIndex: i,
+            transcriptId: t.TranscriptDetails.transcriptId,
+            count: prev
+              ? prev.annotationIndex !== i
+                ? (prev.count += 1)
+                : prev.count
+              : 1,
+          });
+        });
+      });
+      await Promise.all(
+        [...matchingTranscriptDetailsIds.entries()].map(async (o) => {
+          const v = o[1];
+          const k = o[0];
+          if (v.count === input.annotations.length) {
+            const transcriptRouterCaller = transcriptRouter.createCaller({
+              ...ctx,
+            });
+            const pVote = await transcriptRouterCaller.getMyVote({
+              transcriptDetailsId: k,
+            });
+            if (pVote.direction !== 1) {
+              await transcriptRouterCaller.voteTranscriptDetails({
+                transcriptDetailsId: k,
+                direction: 1,
+                previous: pVote.direction,
+                transcriptId: v.transcriptId,
+              });
+            }
+
+            throw new TRPCError({
+              message: `These annotations were previously submitted. An upvote was placed on the previous annotations.`,
+              code: "PRECONDITION_FAILED",
+            });
+          }
+        })
+      );
 
       const videoRouterCaller = videoRouter.createCaller({
         ...ctx,
