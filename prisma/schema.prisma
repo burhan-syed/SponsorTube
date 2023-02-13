@@ -238,9 +238,9 @@ model TranscriptAnnotations {
   end                 Int
   text                String
   tag                 AnnotationTags
-  transcriptDetailsId String?
+  transcriptDetailsId String
 
-  TranscriptDetails TranscriptDetails? @relation(fields: [transcriptDetailsId], references: [id], onDelete: Cascade)
+  TranscriptDetails TranscriptDetails @relation(fields: [transcriptDetailsId], references: [id], onDelete: Cascade)
 
   @@index([transcriptDetailsId])
 }

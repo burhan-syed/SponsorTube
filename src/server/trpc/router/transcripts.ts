@@ -5,6 +5,10 @@ import { AnnotationTags, SponsorCategories } from "@prisma/client";
 
 import { md5 } from "@/server/functions/hash";
 import { videoRouter } from "./video";
+import {
+  checkAnnotationBadWords,
+  filterTranscriptBadWords,
+} from "@/server/functions/badwords";
 
 export const transcriptRouter = router({
   get: publicProcedure
@@ -71,7 +75,7 @@ export const transcriptRouter = router({
                         segmentUUID: input.segmentUUID,
                       },
                     },
-                    userId: "_openaicurie",
+                    userId: ctx.session?.user?.id, //"_openaicurie",
                   },
                 },
               },
@@ -192,11 +196,18 @@ export const transcriptRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const textHash = md5(input.text);
+      const cleaned = filterTranscriptBadWords(input.text);
+      if (!cleaned) {
+        throw new TRPCError({
+          message: "Invalid transcript. Check for profanity.",
+          code: "BAD_REQUEST",
+        });
+      }
+      const textHash = md5(cleaned);
       const create = await prisma?.transcripts.create({
         data: {
           segmentUUID: input.segmentUUID,
-          text: input.text,
+          text: cleaned,
           textHash: textHash,
           userId: ctx.session.user.id,
           startTime: input.startTime,
@@ -210,9 +221,9 @@ export const transcriptRouter = router({
         segment: z.object({
           UUID: z.string(),
         }),
+        transcript: z.string(),
         transcriptId: z.string().nullish(),
         transcriptDetailsId: z.string().nullish(),
-        transcript: z.string().nullish(),
         startTime: z.number().nullish(),
         endTime: z.number().nullish(),
         annotations: z.array(
@@ -229,12 +240,33 @@ export const transcriptRouter = router({
     .mutation(async ({ input, ctx }) => {
       console.log(">>>annotation mutation", JSON.stringify(input));
 
-      if (!input.annotations.find(a => a.tag === "BRAND")){
+      if (
+        !input.annotations ||
+        !input.annotations.find((a) => a.tag === "BRAND")
+      ) {
         throw new TRPCError({
-          code: "BAD_REQUEST", 
-          message: "A brand must be identified"
-        })
+          code: "BAD_REQUEST",
+          message: "A brand must be identified",
+        });
       }
+      input.annotations.forEach((annotation) => {
+        if (checkAnnotationBadWords(annotation.text)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid annotations. Check for Profanity.",
+          });
+        }
+      });
+
+      const cleaned = filterTranscriptBadWords(input.transcript);
+      if (!cleaned) {
+        throw new TRPCError({
+          message: "Invalid transcript. Check for profanity.",
+          code: "BAD_REQUEST",
+        });
+      }
+      const textHash = md5(cleaned);
+
 
       const videoRouterCaller = videoRouter.createCaller({
         ...ctx,
@@ -351,7 +383,6 @@ export const transcriptRouter = router({
       };
 
       if (input.transcript && input.segment.UUID) {
-        const textHash = md5(input.transcript);
         const transcriptDetailsIdPromise = async () =>
           input?.transcriptDetailsId ??
           (
@@ -486,7 +517,7 @@ export const transcriptRouter = router({
         });
       }
     }),
-  getMyVote: publicProcedure
+  getMyVote: protectedProcedure
     .input(z.object({ transcriptDetailsId: z.string() }))
     .query(async ({ input, ctx }) => {
       if (!ctx.session?.user?.id) return { direction: 0 };
@@ -531,7 +562,7 @@ export const transcriptRouter = router({
             : 0
           : 0;
 
-        await ctx.prisma.userTranscriptDetailsVotes.upsert({
+      await ctx.prisma.userTranscriptDetailsVotes.upsert({
         where: {
           userId_transcriptDetailsId: {
             userId: ctx.session.user.id,

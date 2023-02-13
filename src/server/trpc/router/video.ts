@@ -71,7 +71,7 @@ export const videoRouter = router({
         !videoInfo.basic_info.channel?.name
       ) {
         throw new TRPCError({
-          message: "Videos without channel information unsupported",
+          message: "Videos must contain channel information",
           code: "PRECONDITION_FAILED",
         });
       }
