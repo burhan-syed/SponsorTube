@@ -9,6 +9,12 @@ import {
   checkAnnotationBadWords,
   filterTranscriptBadWords,
 } from "@/server/functions/badwords";
+import {
+  GetUserVoteSchema,
+  SaveAnnotationsSchema,
+  VoteTranscriptDetailsSchema,
+  saveAnnotationsAndTranscript,
+} from "@/server/db/transcripts";
 
 export const transcriptRouter = router({
   get: publicProcedure
@@ -216,350 +222,10 @@ export const transcriptRouter = router({
       });
     }),
   saveAnnotations: protectedProcedure
-    .input(
-      z.object({
-        segment: z.object({
-          UUID: z.string(),
-        }),
-        transcript: z.string(),
-        transcriptId: z.string().nullish(),
-        transcriptDetailsId: z.string().nullish(),
-        startTime: z.number().nullish(),
-        endTime: z.number().nullish(),
-        annotations: z.array(
-          z.object({
-            start: z.number(),
-            end: z.number(),
-            text: z.string(),
-            tag: z.nativeEnum(AnnotationTags),
-          })
-        ),
-        videoId: z.string(),
-      })
-    )
+    .input(SaveAnnotationsSchema)
     .mutation(async ({ input, ctx }) => {
       console.log(">>>annotation mutation", JSON.stringify(input));
-
-      if (
-        !input.annotations ||
-        !input.annotations.find((a) => a.tag === "BRAND")
-      ) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "A brand must be identified",
-        });
-      }
-      input.annotations.forEach((annotation) => {
-        if (checkAnnotationBadWords(annotation.text)) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Invalid annotations. Check for Profanity.",
-          });
-        }
-      });
-
-      const cleaned = filterTranscriptBadWords(input.transcript);
-      if (!cleaned) {
-        throw new TRPCError({
-          message: "Invalid transcript. Check for profanity.",
-          code: "BAD_REQUEST",
-        });
-      }
-      const textHash = md5(cleaned);
-
-      //check for pre-existing duplicate annotations
-      const duplicates = await ctx.prisma.$transaction(
-        input.annotations.map((a) =>
-          ctx.prisma.transcriptAnnotations.findMany({
-            where: {
-              ...a,
-              TranscriptDetails: {
-                Transcript: {
-                  segmentUUID: input.segment.UUID,
-                  textHash: textHash,
-                },
-              },
-            },
-            include: {
-              TranscriptDetails: {
-                select: {
-                  transcriptId: true,
-                },
-              },
-            },
-          })
-        )
-      );
-      const matchingTranscriptDetailsIds = new Map<
-        string,
-        { annotationIndex: number; count: number; transcriptId: string }
-      >();
-      duplicates.forEach((d, i) => {
-        d.forEach((t, j) => {
-          const prev = matchingTranscriptDetailsIds.get(t.transcriptDetailsId);
-          matchingTranscriptDetailsIds.set(t.transcriptDetailsId, {
-            annotationIndex: i,
-            transcriptId: t.TranscriptDetails.transcriptId,
-            count: prev
-              ? prev.annotationIndex !== i
-                ? (prev.count += 1)
-                : prev.count
-              : 1,
-          });
-        });
-      });
-      await Promise.all(
-        [...matchingTranscriptDetailsIds.entries()].map(async (o) => {
-          const v = o[1];
-          const k = o[0];
-          if (v.count === input.annotations.length) {
-            const transcriptRouterCaller = transcriptRouter.createCaller({
-              ...ctx,
-            });
-            const pVote = await transcriptRouterCaller.getMyVote({
-              transcriptDetailsId: k,
-            });
-            if (pVote.direction !== 1) {
-              await transcriptRouterCaller.voteTranscriptDetails({
-                transcriptDetailsId: k,
-                direction: 1,
-                previous: pVote.direction,
-                transcriptId: v.transcriptId,
-              });
-            }
-
-            throw new TRPCError({
-              message: `These annotations were previously submitted. An upvote was placed on the previous annotations.`,
-              code: "PRECONDITION_FAILED",
-            });
-          }
-        })
-      );
-
-      const videoRouterCaller = videoRouter.createCaller({
-        ...ctx,
-      });
-      const saveVideo = videoRouterCaller.saveDetails({
-        segmentIDs: [input.segment.UUID],
-        videoId: input.videoId,
-      });
-
-      const upsertTranscriptAndUserTranscriptAnnotations = async ({
-        transcriptDetailsId,
-        transcriptId,
-      }: {
-        transcriptDetailsId: string;
-        transcriptId: string;
-      }) => {
-        const update = await ctx.prisma.$transaction([
-          ctx.prisma.transcriptAnnotations.deleteMany({
-            where: {
-              TranscriptDetails: {
-                userId: ctx.session.user.id,
-                transcriptId: transcriptId,
-              },
-            },
-          }),
-
-          ctx.prisma.transcriptDetails.upsert({
-            where: {
-              transcriptId_userId: {
-                transcriptId: transcriptId,
-                userId: ctx.session.user.id,
-              },
-              // id: input.transcriptDetailsId, //redundant
-            },
-            create: {
-              transcriptId: transcriptId,
-              userId: ctx.session.user.id,
-              score: 1,
-              Annotations: {
-                createMany: { data: input.annotations },
-              },
-              Votes: {
-                create: {
-                  userId: ctx.session.user.id,
-                  direction: 1,
-                },
-              },
-            },
-            update: {
-              score: 1,
-              Annotations: {
-                createMany: { data: input.annotations },
-              },
-              Votes: {
-                update: {
-                  where: {
-                    userId_transcriptDetailsId: {
-                      transcriptDetailsId: transcriptDetailsId,
-                      userId: ctx.session.user.id,
-                    },
-                  },
-                  data: {
-                    direction: 1,
-                  },
-                },
-              },
-            },
-          }),
-
-          ctx.prisma.transcripts.update({
-            where: {
-              id: transcriptId,
-            },
-            data: {
-              score: {
-                increment:
-                  (await ctx.prisma.userTranscriptDetailsVotes.count({
-                    where: {
-                      TranscriptDetails: {
-                        userId: ctx.session.user.id,
-                        transcriptId: transcriptId,
-                      },
-                      direction: -1,
-                      // userId: { not: ctx.session.user.id },
-                    },
-                  })) -
-                  (await ctx.prisma.userTranscriptDetailsVotes.count({
-                    where: {
-                      TranscriptDetails: {
-                        userId: ctx.session.user.id,
-                        transcriptId: transcriptId,
-                      },
-                      direction: 1,
-                      // userId: { not: ctx.session.user.id },
-                    },
-                  })) +
-                  1, //auto up-vote by submitted user,
-              },
-            },
-          }),
-
-          ctx.prisma.userTranscriptDetailsVotes.deleteMany({
-            where: {
-              // TranscriptDetails: {
-              //   userId: ctx.session.user.id,
-              //   transcriptId: input.transcriptId,
-              // },
-              transcriptDetailsId: transcriptDetailsId,
-              userId: { not: ctx.session.user.id },
-            },
-          }),
-        ]);
-        return update[1];
-      };
-
-      if (input.transcript && input.segment.UUID) {
-        const transcriptDetailsIdPromise = async () =>
-          input?.transcriptDetailsId ??
-          (
-            await ctx.prisma.transcriptDetails.findFirst({
-              where: {
-                Transcript: { segmentUUID: input.segment.UUID, textHash },
-                userId: ctx.session.user.id,
-              },
-              select: {
-                id: true,
-              },
-            })
-          )?.id;
-        const transcriptIdPromise = async () =>
-          input.transcriptId ??
-          (
-            await ctx.prisma.transcripts.findUnique({
-              where: {
-                segmentUUID_textHash: {
-                  segmentUUID: input.segment.UUID,
-                  textHash,
-                },
-              },
-              select: {
-                id: true,
-              },
-            })
-          )?.id;
-        const [transcriptDetailsId, transcriptId] = await Promise.all([
-          transcriptDetailsIdPromise(),
-          transcriptIdPromise(),
-        ]);
-
-        if (transcriptDetailsId && transcriptId) {
-          const r = await upsertTranscriptAndUserTranscriptAnnotations({
-            transcriptDetailsId,
-            transcriptId,
-          });
-          await saveVideo;
-          return r;
-        }
-        //new transcript or user transcript annotations
-        const r = await ctx.prisma.transcripts.upsert({
-          where: {
-            segmentUUID_textHash: {
-              segmentUUID: input.segment.UUID,
-              textHash,
-            },
-          },
-          create: {
-            segmentUUID: input.segment.UUID,
-            text: input.transcript,
-            textHash: textHash,
-            userId: ctx.session.user.id,
-            startTime: input.startTime,
-            endTime: input.endTime,
-            score: 1,
-            TranscriptDetails: {
-              create: {
-                userId: ctx.session.user.id,
-                score: 1,
-                Annotations: {
-                  createMany: { data: input.annotations },
-                },
-                Votes: {
-                  create: {
-                    direction: 1,
-                    userId: ctx.session.user.id,
-                  },
-                },
-              },
-            },
-          },
-          update: {
-            score: { increment: 1 },
-            TranscriptDetails: {
-              create: {
-                userId: ctx.session.user.id,
-                score: 1,
-                Annotations: {
-                  createMany: { data: input.annotations },
-                },
-                Votes: {
-                  create: {
-                    direction: 1,
-                    userId: ctx.session.user.id,
-                  },
-                },
-              },
-            },
-          },
-        });
-        await saveVideo;
-        return r;
-      }
-      //existing user transcript annotations
-      if (input.transcriptId && input.transcriptDetailsId) {
-        const r = await upsertTranscriptAndUserTranscriptAnnotations({
-          transcriptId: input.transcriptId,
-          transcriptDetailsId: input.transcriptDetailsId,
-        });
-        await saveVideo;
-        return r;
-      }
-
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Missing required data",
-      });
+      return await saveAnnotationsAndTranscript({ input, ctx });
     }),
   delete: protectedProcedure
     .input(
@@ -586,7 +252,7 @@ export const transcriptRouter = router({
       }
     }),
   getMyVote: protectedProcedure
-    .input(z.object({ transcriptDetailsId: z.string() }))
+    .input(GetUserVoteSchema)
     .query(async ({ input, ctx }) => {
       if (!ctx.session?.user?.id) return { direction: 0 };
       const vote = await ctx.prisma.userTranscriptDetailsVotes.findUnique({
@@ -600,14 +266,7 @@ export const transcriptRouter = router({
       return { direction: vote?.direction ?? 0 };
     }),
   voteTranscriptDetails: protectedProcedure
-    .input(
-      z.object({
-        transcriptDetailsId: z.string(),
-        previous: z.number(),
-        direction: z.number(),
-        transcriptId: z.string(),
-      })
-    )
+    .input(VoteTranscriptDetailsSchema)
     .mutation(async ({ input, ctx }) => {
       const scoreUpdate = () =>
         input.direction === 1
