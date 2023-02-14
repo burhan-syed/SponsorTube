@@ -1,5 +1,4 @@
-import { string } from "zod";
-import { prisma } from "../../db/client";
+import { prisma } from "./client";
 
 import type {
   AnnotationTags,

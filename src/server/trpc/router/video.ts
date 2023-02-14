@@ -4,7 +4,7 @@ import { getXMLCaptions } from "../../functions/captions";
 import { getVideoInfo } from "../../../apis/youtube";
 import { getSegmentsByID } from "@/apis/sponsorblock";
 import { TRPCError } from "@trpc/server";
-import { updateVideoSponsorsFromDB } from "@/server/functions/db/sponsors";
+import { updateVideoSponsorsFromDB } from "@/server/db/sponsors";
 import CompactVideo from "youtubei.js/dist/src/parser/classes/CompactVideo";
 
 export const videoRouter = router({
