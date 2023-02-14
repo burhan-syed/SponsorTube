@@ -3,11 +3,11 @@ import { z } from "zod";
 import { env } from "../../../env/server.mjs";
 import { OpenAIApi, Configuration } from "openai";
 
-import { transcriptRouter } from "./transcripts";
 import { AnnotationTags } from "@prisma/client";
 import { textFindIndices } from "@/utils";
 import { md5 } from "@/server/functions/hash";
 import { TRPCError } from "@trpc/server";
+import { saveAnnotationsAndTranscript } from "@/server/db/transcripts";
 const configuration = new Configuration({
   apiKey: env.OPENAI_API_KEY,
 });
@@ -125,13 +125,12 @@ export const openAIRouter = router({
       }[];
       console.log("matched?", matchedAnnotations);
       if (matchedAnnotations.length > 0) {
-        const transcriptRouterCaller = transcriptRouter.createCaller({
-          ...ctx,
-          session: { user: { id: "_openaicurie" }, expires: "" },
-        });
-        await transcriptRouterCaller.saveAnnotations({
-          ...input,
-          annotations: matchedAnnotations,
+        await saveAnnotationsAndTranscript({
+          input: { ...input, annotations: matchedAnnotations },
+          ctx: {
+            ...ctx,
+            session: { user: { id: "_openaicurie" }, expires: "" },
+          },
         });
       }
 
