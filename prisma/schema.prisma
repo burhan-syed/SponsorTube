@@ -71,11 +71,11 @@ model User {
 model Bots {
   id               String     @id
   model            String
-  temperature      Decimal?   @db.Decimal(3, 2)
+  temperature      Float?
   maxTokens        Int?
-  topP             Decimal?   @db.Decimal(3, 2)
-  frequencyPenalty Decimal?   @db.Decimal(3, 2)
-  presencePenalty  Decimal?   @db.Decimal(3, 2)
+  topP             Float?
+  frequencyPenalty Float?
+  presencePenalty  Float?
   User             User       @relation(fields: [id], references: [id])
   BotQueue         BotQueue[]
 
