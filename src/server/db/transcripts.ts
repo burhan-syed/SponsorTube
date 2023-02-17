@@ -162,7 +162,7 @@ export const saveAnnotationsAndTranscript = async ({
   const textHash = md5(cleaned);
 
   const duplicates = await findDuplicateAnnotations({
-    prisma: ctx.prisma,
+    ctx: ctx,
     annotations: input.annotations,
     textHash,
     segmentUUID: input.segment.UUID,
@@ -404,19 +404,24 @@ export const saveAnnotationsAndTranscript = async ({
 };
 
 async function findDuplicateAnnotations({
-  prisma,
+  ctx,
   annotations,
   textHash,
   segmentUUID,
 }: {
-  prisma: PrismaClient;
+  ctx: Context;
   annotations: AnnotationsType;
   textHash: string;
   segmentUUID: string;
 }) {
-  return await prisma.$transaction(
+  const isBot = ctx.session?.user?.id
+    ? !!(await ctx.prisma.bots.findUnique({
+        where: { id: ctx.session?.user?.id },
+      }))
+    : false;
+  const duplicates = await ctx.prisma.$transaction(
     annotations.map((a) =>
-      prisma.transcriptAnnotations.findMany({
+      ctx.prisma.transcriptAnnotations.findMany({
         where: {
           ...a,
           TranscriptDetails: {
@@ -424,6 +429,7 @@ async function findDuplicateAnnotations({
               segmentUUID: segmentUUID,
               textHash: textHash,
             },
+            userId: isBot ? ctx.session?.user?.id : undefined,
           },
         },
         include: {
@@ -436,6 +442,7 @@ async function findDuplicateAnnotations({
       })
     )
   );
+  return duplicates;
 }
 
 async function findCompleteMatchingTranscriptDetailsAndVote({

@@ -1,10 +1,8 @@
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { AnnotationTags, SponsorCategories } from "@prisma/client";
 
 import { md5 } from "@/server/functions/hash";
-import { videoRouter } from "./video";
 import {
   checkAnnotationBadWords,
   filterTranscriptBadWords,
@@ -15,6 +13,7 @@ import {
   VoteTranscriptDetailsSchema,
   saveAnnotationsAndTranscript,
 } from "@/server/db/transcripts";
+import { getBotIds } from "@/server/db/bots";
 
 export const transcriptRouter = router({
   get: publicProcedure
@@ -33,7 +32,8 @@ export const transcriptRouter = router({
     )
     .query(async ({ input, ctx }) => {
       if (input.mode === "generated") {
-        const aiGenAnnotations = await prisma?.transcripts.findMany({
+        const botIds = await getBotIds({ prisma: ctx.prisma });
+        const aiGenAnnotations = await ctx.prisma?.transcripts.findMany({
           where: {
             AND: [
               { segmentUUID: input.segmentUUID },
@@ -41,10 +41,10 @@ export const transcriptRouter = router({
                 OR: [
                   {
                     TranscriptDetails: {
-                      some: { userId: "_openaicurie" },
+                      some: { userId: { in: botIds } },
                     },
                   },
-                  { userId: "_openaicurie" },
+                  { userId: { in: botIds } },
                 ],
               },
             ],
@@ -63,7 +63,7 @@ export const transcriptRouter = router({
             score: true,
             TranscriptDetails: {
               where: {
-                userId: "_openaicurie",
+                userId: { in: botIds },
               },
               orderBy:
                 input.sortBy === "score"
@@ -81,7 +81,7 @@ export const transcriptRouter = router({
                         segmentUUID: input.segmentUUID,
                       },
                     },
-                    userId: ctx.session?.user?.id, //"_openaicurie",
+                    userId: ctx.session?.user?.id,
                   },
                 },
               },
@@ -96,7 +96,7 @@ export const transcriptRouter = router({
             message: "Session required",
           });
         }
-        const userSubmissions = await prisma?.transcripts.findMany({
+        const userSubmissions = await ctx.prisma?.transcripts.findMany({
           where: {
             AND: [
               { segmentUUID: input.segmentUUID },
@@ -153,12 +153,13 @@ export const transcriptRouter = router({
         });
         return userSubmissions;
       }
-      const transcripts = await prisma?.transcripts.findMany({
+      const botIds = await getBotIds({ prisma: ctx.prisma });
+      const transcripts = await ctx.prisma?.transcripts.findMany({
         where: {
           AND: [
             { segmentUUID: input.segmentUUID },
             {
-              TranscriptDetails: { some: { NOT: { userId: "_openaicurie" } } },
+              TranscriptDetails: { some: { NOT: { userId: { in: botIds } } } },
             },
           ],
         },
@@ -172,7 +173,7 @@ export const transcriptRouter = router({
           endTime: true,
           score: true,
           TranscriptDetails: {
-            where: { NOT: { userId: "_openaicurie" } },
+            where: { NOT: { userId: { in: botIds } } },
             orderBy: [{ score: "desc" }, { created: "asc" }],
             select: {
               id: true,
@@ -210,7 +211,7 @@ export const transcriptRouter = router({
         });
       }
       const textHash = md5(cleaned);
-      const create = await prisma?.transcripts.create({
+      const create = await ctx.prisma?.transcripts.create({
         data: {
           segmentUUID: input.segmentUUID,
           text: cleaned,

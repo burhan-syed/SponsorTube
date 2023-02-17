@@ -36,9 +36,22 @@ export const openAIRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const textHash = md5(input.transcript);
+
+      const bots = await prisma?.bots.findMany();
+
+      if (!bots?.[0]) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "No Bots Found",
+        });
+      }
+      const bot = bots[0];
+
+      console.log("OPEN AI FETCH WITH ", bot.id)
+
       const previousAnnotations = await prisma?.transcriptDetails.findMany({
         where: {
-          userId: "_openaicurie",
+          userId: bot.id,
           Transcript: { textHash: textHash, segmentUUID: input.segment.UUID },
         },
       });
@@ -53,13 +66,14 @@ export const openAIRouter = router({
       const openai = new OpenAIApi(configuration);
       const prompt = `Create a table to identify sponsor information if there is any in the following text:\n\"${input.transcript}"\n\nSponsor|Product|Offer|\n\n`;
       const response = await openai.createCompletion({
-        model: "text-curie-001",
+        model: bot.model, //"text-curie-001",
         prompt: prompt,
-        temperature: 0,
-        max_tokens: 100,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
+        temperature: bot?.temperature ?? 0, //0,
+        max_tokens: bot?.maxTokens ?? 100,
+        top_p: bot?.topP ?? 1,
+        frequency_penalty: bot?.frequencyPenalty ?? 0,
+        presence_penalty: bot?.presencePenalty ?? 0,
+        //user
       });
       console.log("response?", JSON.stringify(response.data));
       const parsed = (response.data.choices?.[0]?.text?.split("\n") ?? [])
@@ -129,7 +143,7 @@ export const openAIRouter = router({
           input: { ...input, annotations: matchedAnnotations },
           ctx: {
             ...ctx,
-            session: { user: { id: "_openaicurie" }, expires: "" },
+            session: { user: { id: bot.id }, expires: "" },
           },
         });
       }
