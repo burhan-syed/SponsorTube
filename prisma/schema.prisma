@@ -65,6 +65,21 @@ model User {
   TranscriptDetails          TranscriptDetails[]
   // UserTranscriptVotes        UserTranscriptVotes[]
   UserTranscriptDetailsVotes UserTranscriptDetailsVotes[]
+  Bot                        Bots?
+}
+
+model Bots {
+  id               String     @id
+  model            String
+  temperature      Decimal?   @db.Decimal(3, 2)
+  maxTokens        Int?
+  topP             Decimal?   @db.Decimal(3, 2)
+  frequencyPenalty Decimal?   @db.Decimal(3, 2)
+  presencePenalty  Decimal?   @db.Decimal(3, 2)
+  User             User       @relation(fields: [id], references: [id])
+  BotQueue         BotQueue[]
+
+  @@index([id])
 }
 
 model VerificationToken {
@@ -148,12 +163,12 @@ model Videos {
   id        String @id
   channelId String
 
-  title     String?
-  published DateTime?
-  duration  Float?
-  thumbnail String?
+  title           String?
+  published       DateTime?
+  duration        Float?
+  thumbnail       String?
   thumbnailHeight Int?
-  thumbnailWidth Int?
+  thumbnailWidth  Int?
 
   SponsorSegments SponsorTimes[]
   Sponsors        Sponsors[]
@@ -176,6 +191,7 @@ model Transcripts {
   SponsorSegment    SponsorTimes        @relation(fields: [segmentUUID], references: [UUID])
   TranscriptDetails TranscriptDetails[]
   // UserTranscriptVotes UserTranscriptVotes[]
+  BotQueue          BotQueue[]
 
   @@unique([segmentUUID, textHash])
   @@index([userId])
@@ -194,6 +210,29 @@ model Transcripts {
 //   @@index([transcriptId])
 //   @@index([userId])
 // }
+
+enum QueueStatus {
+  pending
+  completed
+  error
+}
+
+model BotQueue {
+  id           String      @id @default(cuid())
+  transcriptId String
+  botId        String
+  status       QueueStatus @default(pending)
+
+  timeInitialized DateTime  @default(now())
+  lastUpdated     DateTime?
+
+  Transcript Transcripts @relation(fields: [transcriptId], references: [id])
+  Bot        Bots        @relation(fields: [botId], references: [id])
+
+  @@unique([transcriptId, botId])
+  @@index([transcriptId])
+  @@index([botId])
+}
 
 model TranscriptDetails {
   id           String   @id @default(cuid())
