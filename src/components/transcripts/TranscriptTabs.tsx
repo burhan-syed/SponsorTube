@@ -31,6 +31,16 @@ const TranscriptTabs = ({
       enabled: !!segment.UUID,
     }
   );
+  //keep this query active for invalidation when on other tabs
+  const generatedTranscriptAnnotations = trpc.transcript.get.useQuery(
+    {
+      segmentUUID: segment.UUID,
+      mode: "generated",
+    },
+    {
+      enabled: !!segment.UUID,
+    }
+  );
   const [isNavDisabled, setIsNavDisabled] = useState(false);
   const [tabValue, setTabValue] = useState<string>("");
   type tabValues = "saved" | "user" | "generated";
