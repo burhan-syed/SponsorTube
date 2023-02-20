@@ -40,6 +40,12 @@ const TranscriptAutoGen = ({
     },
     async onError(error, variables, context) {
       console.log("error?", error, variables, context);
+      if (error.data?.code === "CONFLICT") {
+        await utils.transcript.get.invalidate({
+          segmentUUID: segment.UUID,
+        });
+        setTabValue && setTabValue("generated");
+      }
     },
   });
 
