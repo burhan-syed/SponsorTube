@@ -203,7 +203,13 @@ export const getSegmentAnnotationsOpenAICall = async ({
 
     await ctx.prisma.botQueue.update({
       where: { id: botQueue.id },
-      data: { status: "completed", lastUpdated: new Date() },
+      data: {
+        status: "completed",
+        lastUpdated: new Date(),
+        responseId: response.data.id,
+        promptTokens: response.data.usage?.prompt_tokens,
+        totalTokens: response.data.usage?.completion_tokens,
+      },
     });
   } catch (err) {
     await ctx.prisma.botQueue.update({

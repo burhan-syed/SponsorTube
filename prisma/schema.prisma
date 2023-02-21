@@ -226,6 +226,10 @@ model BotQueue {
   timeInitialized DateTime  @default(now())
   lastUpdated     DateTime?
 
+  responseId   String?
+  promptTokens Int?
+  totalTokens  Int?
+
   Transcript Transcripts @relation(fields: [transcriptId], references: [id])
   Bot        Bots        @relation(fields: [botId], references: [id])
 
