@@ -5,14 +5,19 @@ import { getSegmentsByID } from "@/apis/sponsorblock";
 import { getVideoInfo } from "@/apis/youtube";
 import { TRPCError } from "@trpc/server";
 
+import CompactVideo from "youtubei.js/dist/src/parser/classes/CompactVideo";
+
 export const SaveVideoDetailsSchema = z.object({
   segmentIDs: z.array(z.string()),
   videoId: z.string(),
 });
 
-type SaveVideoDetailsType = z.infer<typeof SaveVideoDetailsSchema>;
+export const GetVideoInfoSchema = z.object({ videoID: z.string() });
 
-export const SaveVideoDetails = async ({
+type SaveVideoDetailsType = z.infer<typeof SaveVideoDetailsSchema>;
+type GetVideoInfoType = z.infer<typeof GetVideoInfoSchema>;
+
+export const saveVideoDetails = async ({
   input,
   ctx,
 }: {
@@ -104,4 +109,32 @@ export const SaveVideoDetails = async ({
       },
     },
   });
+};
+
+export const getVideoInfoFormatted = async ({
+  input,
+}: {
+  input: GetVideoInfoType;
+}) => {
+  const videoInfo = await getVideoInfo({ videoID: input.videoID });
+  return {
+    basic_info: {
+      ...videoInfo.basic_info,
+      description: videoInfo.secondary_info?.description,
+      upload_date: videoInfo.primary_info?.published.text,
+      channel: {
+        ...videoInfo.basic_info.channel,
+        subscriber_count:
+          videoInfo.secondary_info?.owner?.subscriber_count.text,
+        thumbnail:
+          videoInfo.secondary_info?.owner?.author.thumbnails.pop()?.url,
+        is_verified:
+          videoInfo.secondary_info?.owner?.author.is_verified ?? false,
+        is_verified_artist:
+          videoInfo.secondary_info?.owner?.author.is_verified_artist ?? false,
+      },
+    },
+    captions: { ...videoInfo.captions },
+    watch_next: videoInfo.watch_next_feed?.filterType(CompactVideo),
+  };
 };

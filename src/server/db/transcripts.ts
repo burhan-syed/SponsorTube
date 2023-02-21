@@ -8,7 +8,7 @@ import {
 import { md5 } from "../functions/hash";
 import type { PrismaClient } from "@prisma/client";
 import type { Context } from "../trpc/context";
-import { SaveVideoDetails } from "./videos";
+import { saveVideoDetails } from "./videos";
 const AnnotationsSchema = z.array(
   z.object({
     start: z.number(),
@@ -176,7 +176,7 @@ export const saveAnnotationsAndTranscript = async ({
 
   //
 
-  const saveVideo = SaveVideoDetails({
+  const saveVideo = saveVideoDetails({
     input: { segmentIDs: [input.segment.UUID], videoId: input.videoId },
     ctx,
   });
@@ -442,6 +442,8 @@ async function findDuplicateAnnotations({
       })
     )
   );
+  console.log("SUBMITTED?", annotations);
+  console.log("DUPLICATES?", duplicates);
   return duplicates;
 }
 
@@ -482,6 +484,7 @@ async function findCompleteMatchingTranscriptDetailsAndVote({
       const v = o[1];
       const k = o[0];
       if (v.count === annotations.length) {
+        console.log("DUPLICATE MATCH", v);
         const pVote = await getUserVote({
           input: { transcriptDetailsId: k },
           ctx,
