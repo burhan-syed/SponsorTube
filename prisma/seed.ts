@@ -16,7 +16,7 @@ async function main() {
   ];
 
   const botsUpsert = await prisma.$transaction(
-    Bots.map((bot) =>
+    Bots.map((bot) => [
       prisma.bots.upsert({
         where: {
           id: bot.id,
@@ -41,8 +41,13 @@ async function main() {
           frequencyPenalty: bot.frequency_penalty,
           presencePenalty: bot.presence_penalty,
         },
-      })
-    )
+      }),
+      prisma.user.upsert({
+        where: { id: bot.id },
+        update: { name: bot.name },
+        create: { id: bot.id, name: bot.name },
+      }),
+    ]).flat()
   );
   console.log("Seed?", botsUpsert);
 }
