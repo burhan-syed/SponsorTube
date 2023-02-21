@@ -8,6 +8,7 @@ import { trpc } from "@/utils/trpc";
 import { useSession } from "next-auth/react";
 import TabsList from "../ui/common/tabs/TabsList";
 import TranscriptLoader from "../ui/loaders/transcripts/TranscriptLoader";
+import TranscriptQueryKeepAlive from "./TranscriptQueryKeepAlive";
 const TranscriptTabs = ({
   videoID,
   segment,
@@ -26,16 +27,6 @@ const TranscriptTabs = ({
     {
       segmentUUID: segment.UUID,
       mode: "score",
-    },
-    {
-      enabled: !!segment.UUID,
-    }
-  );
-  //keep this query active for invalidation when on other tabs
-  const generatedTranscriptAnnotations = trpc.transcript.get.useQuery(
-    {
-      segmentUUID: segment.UUID,
-      mode: "generated",
     },
     {
       enabled: !!segment.UUID,
@@ -133,6 +124,7 @@ const TranscriptTabs = ({
           )}
         </div>
       </TabsPrimitives.Root>
+      <TranscriptQueryKeepAlive segmentUUID={segment.UUID} />
     </>
   );
 };
