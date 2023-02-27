@@ -25,6 +25,8 @@ const Home: NextPage = ({}) => {
     }
   );
 
+  const testMutate = trpc.video.testMutate.useMutation();
+
   const [videoSeek, setVideoSeek] = useState<[number, number, number]>([
     0, 0, 0,
   ]);
@@ -54,6 +56,17 @@ const Home: NextPage = ({}) => {
       </Head>
       <Header />
       <div className="relative sm:p-4">
+        {videoInfo.data?.basic_info.id && (
+          <button
+            onClick={() =>
+              testMutate.mutate({
+                videoID: videoInfo.data.basic_info.id as string,
+              })
+            }
+          >
+            testMutate
+          </button>
+        )}
         <div className="flex flex-col gap-2 lg:flex-row">
           {videoInfo.isLoading ? (
             <>
@@ -66,7 +79,7 @@ const Home: NextPage = ({}) => {
               )}
               {horizontal === false && (
                 <VideoEmbed
-                  className="sticky top-12 sm:top-0 z-20 w-full overflow-hidden outline-none sm:relative sm:rounded-lg"
+                  className="sticky top-12 z-20 w-full overflow-hidden outline-none sm:relative sm:top-0 sm:rounded-lg"
                   videoID={videoInfo.data.basic_info.id}
                   width={videoInfo.data.basic_info.embed?.width}
                   height={videoInfo.data.basic_info.embed?.height}
@@ -128,7 +141,7 @@ const Home: NextPage = ({}) => {
           </div>
         </div>
 
-        <div className="px-4 sm:px-0 py-4">
+        <div className="px-4 py-4 sm:px-0">
           {videoInfo.isLoading ? (
             <GridVideoLoader />
           ) : (

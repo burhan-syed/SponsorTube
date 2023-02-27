@@ -7,6 +7,7 @@ import {
   getVideoInfoFormatted,
   GetVideoInfoSchema,
 } from "@/server/db/videos";
+import { processVideo } from "@/server/functions/process";
 
 export const videoRouter = router({
   segments: publicProcedure
@@ -49,5 +50,10 @@ export const videoRouter = router({
     .input(z.object({ videoID: z.string() }))
     .mutation(async ({ input, ctx }) => {
       console.log("test:", input.videoID);
+      await processVideo({
+        videoId: input.videoID,
+        ctx,
+        options: { callServer: true },
+      });
     }),
 });

@@ -442,8 +442,8 @@ async function findDuplicateAnnotations({
       })
     )
   );
-  console.log("SUBMITTED?", annotations);
-  console.log("DUPLICATES?", duplicates);
+  //console.log("SUBMITTED?", annotations);
+  //console.log("DUPLICATES?", duplicates);
   return duplicates;
 }
 

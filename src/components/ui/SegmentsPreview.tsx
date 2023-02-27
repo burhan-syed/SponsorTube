@@ -24,13 +24,13 @@ const SegmentsPreview = ({
   if (segments.isLoading || savedSegments.isLoading || sponsors.isLoading) {
     return (
       <div ref={ref}>
-        <>
+        {/* <>
           {JSON.stringify({
             se: segments.isLoading,
             sa: savedSegments.isLoading,
             spo: sponsors.isLoading,
           })}
-        </>
+        </> */}
         <CgSpinnerTwoAlt className="mt-1 h-3 w-3 flex-none animate-spin sm:my-1" />
       </div>
     );

@@ -13,99 +13,119 @@ export const updateVideoSponsorsFromDB = async ({
 }: {
   videoId: string;
 }) => {
-  const segments = await prisma.sponsorTimes.findMany({
-    where: {
-      videoID: videoId,
-      Transcripts: {
-        some: { TranscriptDetails: { some: { score: { gte: 1 } } } },
+  await tryUpdateVideoSponsors(0);
+
+  //deadlock workaround
+  async function tryUpdateVideoSponsors(retryCount = 0) {
+    if (retryCount > 5) {
+      throw new Error(`SPONSOR UPDATE FAILED ${videoId}`);
+    }
+    try {
+      console.log("try sponsors upsert", retryCount);
+      await updateVideoSponsors();
+    } catch (err) {
+      console.log("SPONSOR UPDATE ERR?", err);
+      if (retryCount < 5) {
+        await tryUpdateVideoSponsors(++retryCount);
+      }
+    }
+  }
+
+  async function updateVideoSponsors() {
+    const segments = await prisma.sponsorTimes.findMany({
+      where: {
+        videoID: videoId,
+        Transcripts: {
+          some: { TranscriptDetails: { some: { score: { gte: 1 } } } },
+        },
       },
-    },
-    include: {
-      Transcripts: {
-        orderBy: { score: "desc" },
-        take: 5,
-        include: {
-          TranscriptDetails: {
-            orderBy: { score: "desc" },
-            take: 5,
-            include: { Annotations: true },
+      include: {
+        Transcripts: {
+          orderBy: { score: "desc" },
+          take: 5,
+          include: {
+            TranscriptDetails: {
+              orderBy: { score: "desc" },
+              take: 5,
+              include: { Annotations: true },
+            },
           },
         },
       },
-    },
-  });
+    });
 
-  const flatPerSegmentSorted = segments.map((s) =>
-    [...s.Transcripts.map((t) => t.TranscriptDetails)]
-      .flat()
-      .flat()
-      .sort((a, b) => b.score - a.score)
-  );
+    const flatPerSegmentSorted = segments.map((s) =>
+      [...s.Transcripts.map((t) => t.TranscriptDetails)]
+        .flat()
+        .flat()
+        .sort((a, b) => b.score - a.score)
+    );
 
-  const annotationinfos = new Map<
-    string,
-    {
-      brand: string;
-      product?: string;
-      offer?: string;
-      transcriptDetailsId: string;
-    }
-  >();
-
-  const products = new Map<string, string[]>();
-  const offers = new Map<string, string[]>();
-  flatPerSegmentSorted.map((td) =>
-    td?.[0]?.Annotations.forEach((annotation) => {
-      const transcriptId = td?.[0]?.id;
-      if (transcriptId) {
-        switch (annotation.tag) {
-          case "BRAND":
-            annotationinfos.set(annotation.text.toUpperCase(), {
-              brand: annotation.text,
-              transcriptDetailsId: transcriptId,
-            });
-            break;
-          case "PRODUCT":
-            const p = products.get(transcriptId);
-            products.set(
-              transcriptId,
-              p ? [...p, annotation.text] : [annotation.text]
-            );
-            break;
-          case "OFFER":
-            const o = offers.get(transcriptId);
-            offers.set(
-              transcriptId,
-              o ? [...o, annotation.text] : [annotation.text]
-            );
-            break;
-          default:
-            break;
-        }
+    const annotationinfos = new Map<
+      string,
+      {
+        brand: string;
+        product?: string;
+        offer?: string;
+        transcriptDetailsId: string;
       }
-    })
-  );
+    >();
 
-  await prisma.$transaction(
-    [...annotationinfos.entries()].map((v) =>
-      prisma.sponsors.upsert({
-        where: { videoId_brand: { videoId: videoId, brand: v[1].brand } },
-        create: {
-          videoId: videoId,
-          transcriptDetailsId: v[1].transcriptDetailsId,
-          brand: v[1].brand,
-          product: products.get(v[1].transcriptDetailsId)?.[0],
-          offer: offers.get(v[1].transcriptDetailsId)?.[0],
-        },
-        update: {
-          transcriptDetailsId: v[1].transcriptDetailsId,
-          brand: v[1].brand,
-          product: products.get(v[1].transcriptDetailsId)?.[0],
-          offer: offers.get(v[1].transcriptDetailsId)?.[0],
-        },
+    const products = new Map<string, string[]>();
+    const offers = new Map<string, string[]>();
+    flatPerSegmentSorted.map((td) =>
+      td?.[0]?.Annotations.forEach((annotation) => {
+        const transcriptId = td?.[0]?.id;
+        if (transcriptId) {
+          switch (annotation.tag) {
+            case "BRAND":
+              annotationinfos.set(annotation.text.toUpperCase(), {
+                brand: annotation.text,
+                transcriptDetailsId: transcriptId,
+              });
+              break;
+            case "PRODUCT":
+              const p = products.get(transcriptId);
+              products.set(
+                transcriptId,
+                p ? [...p, annotation.text] : [annotation.text]
+              );
+              break;
+            case "OFFER":
+              const o = offers.get(transcriptId);
+              offers.set(
+                transcriptId,
+                o ? [...o, annotation.text] : [annotation.text]
+              );
+              break;
+            default:
+              break;
+          }
+        }
       })
-    )
-  );
+    );
+
+    await prisma.$transaction(
+      [...annotationinfos.entries()].map((v) =>
+        prisma.sponsors.upsert({
+          where: { videoId_brand: { videoId: videoId, brand: v[1].brand } },
+          create: {
+            videoId: videoId,
+            transcriptDetailsId: v[1].transcriptDetailsId,
+            brand: v[1].brand,
+            product: products.get(v[1].transcriptDetailsId)?.[0],
+            offer: offers.get(v[1].transcriptDetailsId)?.[0],
+          },
+          update: {
+            transcriptDetailsId: v[1].transcriptDetailsId,
+            brand: v[1].brand,
+            product: products.get(v[1].transcriptDetailsId)?.[0],
+            offer: offers.get(v[1].transcriptDetailsId)?.[0],
+          },
+        })
+      )
+    );
+  }
 };
 
 function aggregrateTopScores(
