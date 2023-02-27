@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider     = "mysql"
+  provider     = "postgresql" //"mysql"
   // Further reading: 
   // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
   // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
@@ -131,6 +131,7 @@ model SponsorTimes {
   Video       Videos?       @relation(fields: [videoID], references: [id])
   Transcripts Transcripts[]
 
+  @@index([UUID])
   @@index([videoID])
 }
 
@@ -174,6 +175,7 @@ model Videos {
   Sponsors        Sponsors[]
   Channel         Channels       @relation(fields: [channelId], references: [id])
 
+  @@index([id])
   @@index([channelId])
 }
 
@@ -256,7 +258,7 @@ model TranscriptDetails {
 }
 
 model UserTranscriptDetailsVotes {
-  id                  Int    @id @default(autoincrement())
+  id                  BigInt @id @default(autoincrement())
   userId              String
   transcriptDetailsId String
   direction           Int    @default(0)
@@ -294,7 +296,7 @@ model Sponsors {
   transcriptDetailsId String
   brand               String
   product             String?
-  type                Int?
+  type                BigInt?
   offer               String?
   locked              Boolean @default(false)
 
@@ -311,7 +313,7 @@ model Sponsors {
 }
 
 model UserSponsorVotes {
-  id         Int    @id @default(autoincrement())
+  id         BigInt @id @default(autoincrement())
   userId     String
   sponsorsId String
   direction  Int    @default(0)
@@ -324,7 +326,7 @@ model UserSponsorVotes {
 }
 
 model SponsorTypes {
-  id      Int     @id @default(autoincrement())
+  id      BigInt  @id @default(autoincrement())
   type    String  @unique
   active  Boolean @default(true)
   userId  String?
