@@ -25,7 +25,9 @@ export const GetSegmentAnnotationsSchema = z.object({
   endTime: z.number().nullish(),
 });
 
-type GetSegmentAnnotationsType = z.infer<typeof GetSegmentAnnotationsSchema>;
+export type GetSegmentAnnotationsType = z.infer<
+  typeof GetSegmentAnnotationsSchema
+>;
 
 export const getBotIds = async ({ prisma }: { prisma: PrismaClient }) => {
   const bots = await prisma?.bots.findMany();
@@ -128,7 +130,8 @@ export const getSegmentAnnotationsOpenAICall = async ({
       presence_penalty: bot?.presencePenalty ?? 0,
       //user
     });
-    console.log("response?", JSON.stringify(response.data));
+    const rawResponseData = JSON.stringify(response.data);
+    //console.log("response?", JSON.stringify(response.data));
     const parsed = (response.data.choices?.[0]?.text?.split("\n") ?? [])
       .filter((p) => p)
       .map((p) => {
@@ -148,7 +151,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
         });
         return data;
       });
-    console.log("parsed?", parsed);
+    //console.log("parsed?", parsed);
     // const parsedAnnotations = []
     const matchedAnnotations = parsed
       .map((p) => {
@@ -190,7 +193,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
       text: string;
       tag: AnnotationTags;
     }[];
-    console.log("matched?", matchedAnnotations);
+    //console.log("matched?", matchedAnnotations);
     if (matchedAnnotations.length > 0) {
       await saveAnnotationsAndTranscript({
         input: { ...input, annotations: matchedAnnotations },
@@ -208,7 +211,8 @@ export const getSegmentAnnotationsOpenAICall = async ({
         lastUpdated: new Date(),
         responseId: response.data.id,
         promptTokens: response.data.usage?.prompt_tokens,
-        totalTokens: response.data.usage?.completion_tokens,
+        totalTokens: response.data.usage?.total_tokens,
+        rawResponseData: rawResponseData,
       },
     });
   } catch (err) {

@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider     = "postgresql" //"mysql"
+  provider     = "postgresql"
   // Further reading: 
   // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
   // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
@@ -231,6 +231,7 @@ model BotQueue {
   responseId   String?
   promptTokens Int?
   totalTokens  Int?
+  rawResponseData Json?
 
   Transcript Transcripts @relation(fields: [transcriptId], references: [id])
   Bot        Bots        @relation(fields: [botId], references: [id])
