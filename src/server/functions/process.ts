@@ -14,6 +14,7 @@ import Video from "youtubei.js/dist/src/parser/classes/Video";
 import type { Context } from "../trpc/context";
 import type { GetSegmentAnnotationsType } from "../db/bots";
 
+const SECRET = process?.env?.MY_SECRET_KEY ?? "";
 const SERVER_URL = process.env.NEXTAUTH_URL;
 
 export const processVideo = async ({
@@ -93,7 +94,7 @@ export const callServerSegmentAnnotationsOpenAICall = async (
   const JSONdata = JSON.stringify(input);
   const options = {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", authorization: SECRET },
     body: JSONdata,
   };
   const res = await fetch(`${SERVER_URL}/api/process/segment`, options);
@@ -146,11 +147,19 @@ export const processChannel = async ({
   let allVods: Video[] = [];
   let processMore = true;
   let page = 0;
-  while (videosTab.has_continuation && processMore && page < maxPages) {
-    const { videos, hasNext, continuation } = await getVideosContinuation({
+  while (
+    (page === 0 || videosTab.has_continuation) &&
+    processMore &&
+    page < maxPages
+  ) {
+    const { videos, hasNext, continuation } = (await getVideosContinuation({
       videosTab,
       //cursor: 1,
-    });
+    })) as {
+      videos: Video[];
+      hasNext: boolean;
+      continuation: ChannelListContinuation;
+    };
     processMore = hasNext;
     if (from && videos?.length > 0 && videos?.[videos?.length - 1]?.id) {
       const lastVideo = await getVideoInfo({
@@ -190,7 +199,7 @@ const callServerProcessVideo = async (input: { videoId: string }) => {
   const JSONdata = JSON.stringify(input);
   const options = {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", authorization: SECRET },
     body: JSONdata,
   };
   const res = await fetch(`${SERVER_URL}/api/process/video`, options);

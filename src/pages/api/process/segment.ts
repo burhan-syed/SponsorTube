@@ -6,7 +6,17 @@ import {
   getSegmentAnnotationsOpenAICall,
 } from "@/server/db/bots";
 import { updateVideoSponsorsFromDB } from "@/server/db/sponsors";
+
+const secret = process.env.MY_SECRET_KEY;
+
+
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  console.log("REQ?", req.headers)
+
+  if(req.headers.authorization !== secret){
+    res.status(401).send("unauthorized");
+    return;
+  }
   try {
     console.log("processing", req.body);
     const input = GetSegmentAnnotationsSchema.parse(req.body);

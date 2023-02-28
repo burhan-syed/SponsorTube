@@ -14,9 +14,8 @@ export const getVideosContinuation = async ({
   cursor?: number | null;
 }) => {
   let hasNext = false;
-  const nextCursor = (cursor ?? 1) + 1; 
+  const nextCursor = (cursor ?? 1) + 1;
   let isContinuation = false;
-  let continuation: ChannelListContinuation;
   let videos: Video[] = [];
   if ((videosTab as Channel)?.current_tab) {
     const richItems = (
@@ -34,7 +33,7 @@ export const getVideosContinuation = async ({
   hasNext = videosTab.has_continuation;
   if (hasNext) {
     //(cursor ?? 0) > 0 || isContinuation
-    continuation = await videosTab.getContinuation();
+    let continuation = await videosTab.getContinuation();
     if (!isContinuation) {
       for (let i = 1; i < (cursor ?? 0); i++) {
         if ((cursor ?? -1) > i) {
@@ -58,5 +57,5 @@ export const getVideosContinuation = async ({
     return { videos, hasNext, continuation, nextCursor };
   }
 
-  return { videos, hasNext, nextCursor };
+  return { videos, hasNext, nextCursor, continuation: null };
 };
