@@ -143,6 +143,9 @@ model Channels {
 
   Videos       Videos[]
   ChannelStats ChannelStats[] //may be overtime data
+  ChannelQueue ChannelQueue?
+
+  @@index([id])
 }
 
 model ChannelStats {
@@ -228,9 +231,9 @@ model BotQueue {
   timeInitialized DateTime  @default(now())
   lastUpdated     DateTime?
 
-  responseId   String?
-  promptTokens Int?
-  totalTokens  Int?
+  responseId      String?
+  promptTokens    Int?
+  totalTokens     Int?
   rawResponseData Json?
 
   Transcript Transcripts @relation(fields: [transcriptId], references: [id])
@@ -239,6 +242,17 @@ model BotQueue {
   @@unique([transcriptId, botId])
   @@index([transcriptId])
   @@index([botId])
+}
+
+model ChannelQueue {
+  id              String      @id
+  status          QueueStatus
+  timeInitialized DateTime    @default(now())
+  lastUpdated     DateTime?
+
+  Channel Channels @relation(fields: [id], references: [id])
+
+  @@index([id])
 }
 
 model TranscriptDetails {
