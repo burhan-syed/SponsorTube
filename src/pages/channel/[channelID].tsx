@@ -17,6 +17,7 @@ const ChannelPage: NextPage = () => {
     (Array.isArray(router.query.channelID)
       ? router.query.channelID?.[0]
       : router.query.channelID) ?? "";
+  const processChannel = trpc.channel.processChannel.useMutation();
   const channel = trpc.channel.details.useInfiniteQuery(
     { channelID: channelID },
     {
@@ -39,6 +40,13 @@ const ChannelPage: NextPage = () => {
         {channel.data?.pages?.[0]?.channelHeader && (
           <ChannelHeader channel={channel.data?.pages?.[0]?.channelHeader} />
         )}
+        <button
+          className={processChannel.isLoading ? "opacity-50" : ""}
+          disabled={processChannel.isLoading}
+          onClick={() => processChannel.mutate({ channelID })}
+        >
+          process channel
+        </button>
         {channel.isLoading ? (
           <GridVideoLoader />
         ) : (
@@ -46,7 +54,7 @@ const ChannelPage: NextPage = () => {
           flatVideos.length > 0 && <GridVideoView videos={flatVideos} />
         )}
         {channel.hasNextPage && (
-          <div className="w-full text-center p-4 items-center justify-center">
+          <div className="w-full items-center justify-center p-4 text-center">
             <Button
               loading={channel.isFetchingNextPage}
               disabled={channel.isFetchingNextPage || channel.isLoading}
