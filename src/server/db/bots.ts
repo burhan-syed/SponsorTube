@@ -3,11 +3,11 @@ import { z } from "zod";
 import { env } from "../../env/server.mjs";
 import { OpenAIApi, Configuration } from "openai";
 import { textFindIndices } from "@/utils";
-
-import type { PrismaClient, AnnotationTags } from "@prisma/client";
-import type { Context } from "../trpc/context";
 import { md5 } from "../functions/hash";
 import { saveAnnotationsAndTranscript } from "./transcripts";
+import type { PrismaClient, AnnotationTags } from "@prisma/client";
+import type { Context } from "../trpc/context";
+import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo.js";
 
 const configuration = new Configuration({
   apiKey: env.OPENAI_API_KEY,
@@ -43,9 +43,11 @@ export const getBotIds = async ({ prisma }: { prisma: PrismaClient }) => {
 export const getSegmentAnnotationsOpenAICall = async ({
   input,
   ctx,
+  inputVideoInfo,
 }: {
   input: GetSegmentAnnotationsType;
   ctx: Context;
+  inputVideoInfo?: VideoInfo;
 }) => {
   const textHash = md5(input.transcript);
 
@@ -201,6 +203,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
           ...ctx,
           session: { user: { id: bot.id }, expires: "" },
         },
+        inputVideoInfo
       });
     }
 

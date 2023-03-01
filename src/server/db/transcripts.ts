@@ -5,10 +5,11 @@ import {
   checkAnnotationBadWords,
   filterTranscriptBadWords,
 } from "../functions/badwords";
+import { saveVideoDetails } from "./videos";
 import { md5 } from "../functions/hash";
 import type { PrismaClient } from "@prisma/client";
 import type { Context } from "../trpc/context";
-import { saveVideoDetails } from "./videos";
+import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo";
 const AnnotationsSchema = z.array(
   z.object({
     start: z.number(),
@@ -129,9 +130,11 @@ export const updateUserTranscriptDetailsVote = async ({
 export const saveAnnotationsAndTranscript = async ({
   input,
   ctx,
+  inputVideoInfo,
 }: {
   input: SaveAnnotationsInputType;
   ctx: Context;
+  inputVideoInfo?: VideoInfo;
 }) => {
   if (!ctx.session || !ctx.session?.user?.id) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -179,6 +182,7 @@ export const saveAnnotationsAndTranscript = async ({
   const saveVideo = saveVideoDetails({
     input: { segmentIDs: [input.segment.UUID], videoId: input.videoId },
     ctx,
+    inputVideoInfo,
   });
 
   const upsertTranscriptAndUserTranscriptAnnotations = async ({

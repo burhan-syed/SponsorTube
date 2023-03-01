@@ -1,5 +1,4 @@
 import { getVideoSegments } from "@/apis/sponsorblock";
-import { getVideoInfoFormatted } from "../db/videos";
 import { getXMLCaptions } from "./captions";
 import { getTranscriptsInTime } from "./transcripts";
 import { getSegmentAnnotationsOpenAICall } from "../db/bots";
@@ -28,22 +27,52 @@ export const processVideo = async ({
     callServer: boolean;
   };
 }) => {
-  const videoInfo = await getVideoInfoFormatted({
-    input: { videoID: videoId },
-  });
+  const [segments, videoInfo] = await Promise.all([
+    getVideoSegments({
+      userID: ctx.session?.user?.id ?? "sponsortubebot",
+      videoID: videoId,
+    }),
+    getVideoInfo({ videoID: videoId }),
+  ]);
+
+  if (!segments || !(segments.length > 0) || !videoInfo?.captions) {
+    if (videoInfo.basic_info.id && videoInfo.basic_info.channel?.id) {
+      try {
+        await ctx.prisma.videos.create({
+          data: {
+            id: videoInfo.basic_info.id,
+            title: videoInfo.basic_info.title,
+            published: videoInfo.primary_info?.published.text
+              ? new Date(Date.parse(videoInfo.primary_info?.published.text))
+              : undefined,
+            duration: videoInfo.basic_info.duration,
+            thumbnail:
+              videoInfo.basic_info.thumbnail?.[0]?.url?.split("?")?.[0],
+            thumbnailHeight: videoInfo.basic_info.thumbnail?.[0]?.height,
+            thumbnailWidth: videoInfo.basic_info.thumbnail?.[0]?.width,
+            Channel: {
+              connectOrCreate: {
+                where: { id: videoInfo.basic_info.channel?.id },
+                create: {
+                  id: videoInfo.basic_info.channel?.id,
+                  name: videoInfo.basic_info.channel?.name,
+                },
+              },
+            },
+          },
+        });
+      } catch (err) {}
+    }
+    return;
+  }
+
   const englishCaptionTracks = videoInfo?.captions.caption_tracks?.filter(
     (t) => t.language_code === "en" || t.language_code === "en-US"
   );
   if (!englishCaptionTracks?.[0]?.base_url) {
     throw new Error("no english captions found");
   }
-  const [captions, segments] = await Promise.all([
-    getXMLCaptions(englishCaptionTracks[0].base_url),
-    getVideoSegments({
-      userID: ctx.session?.user?.id ?? "sponsortubebot",
-      videoID: videoId,
-    }),
-  ]);
+  const captions = await getXMLCaptions(englishCaptionTracks[0].base_url);
 
   const segmentTranscripts = segments.map((s) => ({
     segment: { ...s },
@@ -77,6 +106,7 @@ export const processVideo = async ({
                 videoId: videoId,
               },
               ctx: ctx,
+              inputVideoInfo: videoInfo,
             })
         ),
       ]);
@@ -90,7 +120,6 @@ export const processVideo = async ({
 export const callServerSegmentAnnotationsOpenAICall = async (
   input: GetSegmentAnnotationsType
 ) => {
-  console.log("posting ", input?.videoId, input.startTime);
   const JSONdata = JSON.stringify(input);
   const options = {
     method: "POST",
@@ -147,6 +176,7 @@ export const processChannel = async ({
   let allVods: Video[] = [];
   let processMore = true;
   let page = 0;
+  const start = performance.now();
   while (
     (page === 0 || videosTab.has_continuation) &&
     processMore &&
@@ -186,16 +216,21 @@ export const processChannel = async ({
     }
     page += 1;
   }
-  allVods.forEach((v) => {
-    console.log(v.published.text, v.title.text);
-    callServerProcessVideo({ videoId: v.id });
+  const endFetch = performance.now();
+  await Promise.all(
+    allVods.map(async (v) => {
+      console.log("call", v.published.text, v.title.text);
+      await callServerProcessVideo({ videoId: v.id });
+    })
+  );
+  const endServerCall = performance.now();
+  console.log("VODS?", allVods.length, {
+    timeToFetch: endFetch - start,
+    timeToSend: endServerCall - endFetch,
   });
-
-  console.log("VODS?", allVods.length, allVods[0]);
 };
 
 const callServerProcessVideo = async (input: { videoId: string }) => {
-  console.log("posting ", input?.videoId);
   const JSONdata = JSON.stringify(input);
   const options = {
     method: "POST",

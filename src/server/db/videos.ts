@@ -6,6 +6,7 @@ import { getVideoInfo } from "@/apis/youtube";
 import { TRPCError } from "@trpc/server";
 
 import CompactVideo from "youtubei.js/dist/src/parser/classes/CompactVideo";
+import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo";
 
 export const SaveVideoDetailsSchema = z.object({
   segmentIDs: z.array(z.string()),
@@ -20,9 +21,11 @@ type GetVideoInfoType = z.infer<typeof GetVideoInfoSchema>;
 export const saveVideoDetails = async ({
   input,
   ctx,
+  inputVideoInfo,
 }: {
   input: SaveVideoDetailsType;
   ctx: Context;
+  inputVideoInfo?: VideoInfo;
 }) => {
   if (!ctx.session?.user?.id) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -33,7 +36,7 @@ export const saveVideoDetails = async ({
       userID: ctx.session.user.id,
       UUIDs: input.segmentIDs,
     }),
-    getVideoInfo({ videoID: input.videoId }),
+    inputVideoInfo ? inputVideoInfo : getVideoInfo({ videoID: input.videoId }),
   ]);
 
   await videoUpsertWithRetry(0);
