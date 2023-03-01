@@ -114,6 +114,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
     data: {
       botId: bot.id,
       transcriptId: transcript.id,
+      videoId: input.videoId,
       status: "pending",
       lastUpdated: new Date(),
     },
@@ -203,7 +204,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
           ...ctx,
           session: { user: { id: bot.id }, expires: "" },
         },
-        inputVideoInfo
+        inputVideoInfo,
       });
     }
 

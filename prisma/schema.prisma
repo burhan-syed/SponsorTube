@@ -177,6 +177,7 @@ model Videos {
   SponsorSegments SponsorTimes[]
   Sponsors        Sponsors[]
   Channel         Channels       @relation(fields: [channelId], references: [id])
+  BotQueue        BotQueue[]
 
   @@index([id])
   @@index([channelId])
@@ -224,6 +225,7 @@ enum QueueStatus {
 
 model BotQueue {
   id           String      @id @default(cuid())
+  videoId      String?
   transcriptId String
   botId        String
   status       QueueStatus @default(pending)
@@ -237,11 +239,13 @@ model BotQueue {
   rawResponseData Json?
 
   Transcript Transcripts @relation(fields: [transcriptId], references: [id])
+  Video      Videos?     @relation(fields: [videoId], references: [id])
   Bot        Bots        @relation(fields: [botId], references: [id])
 
   @@unique([transcriptId, botId])
   @@index([transcriptId])
   @@index([botId])
+  @@index([videoId])
 }
 
 model ChannelQueue {
