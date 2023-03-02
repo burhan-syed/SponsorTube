@@ -9,7 +9,7 @@ type ChannelHeaderProps = {
 const ChannelHeader = ({ channel }: ChannelHeaderProps) => {
   return (
     <div>
-      {channel.banner[0]?.url && (
+      {channel?.banner?.[0]?.url && (
         <Image
           src={channel.banner[0]?.url}
           height={channel.banner[0].height}
@@ -33,7 +33,7 @@ const ChannelHeader = ({ channel }: ChannelHeaderProps) => {
 
         <div className="flex flex-col">
           <h1>{channel.author.name}</h1>
-          <span>{channel.subscribers.text}</span>
+          <span>{channel?.subscribers?.text}</span>
         </div>
       </div>
     </div>

@@ -56,11 +56,11 @@ const Home: NextPage = ({}) => {
       </Head>
       <Header />
       <div className="relative sm:p-4">
-        {videoInfo.data?.basic_info.id && (
+        {videoInfo?.data?.basic_info?.id && (
           <button
             onClick={() =>
               testMutate.mutate({
-                videoID: videoInfo.data.basic_info.id as string,
+                videoID: videoInfo?.data?.basic_info?.id as string,
               })
             }
           >

@@ -1,8 +1,7 @@
 import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { ytAutoComplete, ytSearchQuery } from "../../../apis/youtube";
-import Channel from "youtubei.js/dist/src/parser/classes/Channel";
-import Video from "youtubei.js/dist/src/parser/classes/Video";
+import { YTNodes } from "youtubei.js/agnostic";
 
 export const searchRouter = router({
   hello: publicProcedure
@@ -17,14 +16,16 @@ export const searchRouter = router({
     .query(async ({ input }) => {
       const queryResults = await ytSearchQuery({ query: input.searchQuery });
       const queryResultVideos = queryResults?.videos
-        ?.filterType(Video)
+        ?.filterType(YTNodes.Video)
         .map((v) => ({
           ...v,
           //'thumbnails' property is not appearing on client...? Workaround:
           video_thumbnail: v.thumbnails?.[0],
         }));
 
-      const queryResultChannels = queryResults?.channels?.filterType(Channel);
+      const queryResultChannels = queryResults?.channels?.filterType(
+        YTNodes.Channel
+      );
       return {
         videos: queryResultVideos,
         channels: queryResultChannels,

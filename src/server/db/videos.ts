@@ -4,15 +4,13 @@ import type { Context } from "../trpc/context";
 import { getSegmentsByID } from "@/apis/sponsorblock";
 import { getVideoInfo } from "@/apis/youtube";
 import { TRPCError } from "@trpc/server";
-
-import CompactVideo from "youtubei.js/dist/src/parser/classes/CompactVideo";
+import { YTNodes } from "youtubei.js/agnostic";
 import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo";
 
 export const SaveVideoDetailsSchema = z.object({
   segmentIDs: z.array(z.string()),
   videoId: z.string(),
 });
-
 export const GetVideoInfoSchema = z.object({ videoID: z.string() });
 
 type SaveVideoDetailsType = z.infer<typeof SaveVideoDetailsSchema>;
@@ -39,6 +37,10 @@ export const saveVideoDetails = async ({
     inputVideoInfo ? inputVideoInfo : getVideoInfo({ videoID: input.videoId }),
   ]);
 
+  if (!videoInfo) {
+    return;
+  }
+
   await videoUpsertWithRetry(0);
 
   //deadlock workaround
@@ -60,8 +62,8 @@ export const saveVideoDetails = async ({
 
   async function videoUpsert() {
     if (
-      !videoInfo.basic_info.channel?.id ||
-      !videoInfo.basic_info.channel?.name
+      !videoInfo?.basic_info.channel?.id ||
+      !videoInfo?.basic_info.channel?.name
     ) {
       throw new TRPCError({
         message: "Videos must contain channel information",
@@ -141,6 +143,9 @@ export const getVideoInfoFormatted = async ({
   input: GetVideoInfoType;
 }) => {
   const videoInfo = await getVideoInfo({ videoID: input.videoID });
+  if (!videoInfo) {
+    return;
+  }
   return {
     basic_info: {
       ...videoInfo.basic_info,
@@ -159,6 +164,6 @@ export const getVideoInfoFormatted = async ({
       },
     },
     captions: { ...videoInfo.captions },
-    watch_next: videoInfo.watch_next_feed?.filterType(CompactVideo),
+    watch_next: videoInfo.watch_next_feed?.filterType(YTNodes.CompactVideo),
   };
 };

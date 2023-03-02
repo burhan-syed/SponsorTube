@@ -1,14 +1,10 @@
 import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
-import { getChannel, getVideoInfo } from "../../../apis/youtube";
-
-import RichItem from "youtubei.js/dist/src/parser/classes/RichItem";
-import Video from "youtubei.js/dist/src/parser/classes/Video";
-import type RichGrid from "youtubei.js/dist/src/parser/classes/RichGrid";
-import type C4TabbedHeader from "youtubei.js/dist/src/parser/classes/C4TabbedHeader";
-import type { YTNode } from "youtubei.js/dist/src/parser/helpers";
+import { getChannel } from "../../../apis/youtube";
 import { getVideosContinuation } from "@/server/functions/channel";
 import { processChannel } from "@/server/functions/process";
+import type C4TabbedHeader from "youtubei.js/dist/src/parser/classes/C4TabbedHeader";
+import { TRPCError } from "@trpc/server";
 
 export const channelRouter = router({
   hello: publicProcedure
@@ -23,22 +19,28 @@ export const channelRouter = router({
     .query(async ({ input }) => {
       //let hasNext = false;
       const channel = await getChannel({ channelID: input.channelID });
+      if (!channel) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Could not load channel id ${input.channelID}`,
+        });
+      }
       const videosTab = await channel.getVideos();
 
       const { videos, hasNext, nextCursor } = await getVideosContinuation({
         videosTab,
         cursor: input.cursor,
       });
-      const fv = videos?.[0];
-      const lv = videos?.[videos?.length - 1];
-      console.log({
-        fvpub: fv?.published.text,
-        fvtitle: fv?.title.text,
-        lvpub: lv?.published.text,
-        lvtitle: lv?.title.text,
-        cursor: input.cursor,
-        nextCursor,
-      });
+      // const fv = videos?.[0];
+      // const lv = videos?.[videos?.length - 1];
+      // console.log({
+      //   fvpub: fv?.published.text,
+      //   fvtitle: fv?.title.text,
+      //   lvpub: lv?.published.text,
+      //   lvtitle: lv?.title.text,
+      //   cursor: input.cursor,
+      //   nextCursor,
+      // });
 
       return {
         channelHeader: channel.header as C4TabbedHeader,

@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 
-import Channel from "youtubei.js/dist/src/parser/classes/Channel";
+import type Channel from "youtubei.js/dist/src/parser/classes/Channel";
 import Link from "next/link";
 
 type ChannelCardProps = {

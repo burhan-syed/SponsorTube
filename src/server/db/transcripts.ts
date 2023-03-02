@@ -7,9 +7,9 @@ import {
 } from "../functions/badwords";
 import { saveVideoDetails } from "./videos";
 import { md5 } from "../functions/hash";
-import type { PrismaClient } from "@prisma/client";
 import type { Context } from "../trpc/context";
 import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo";
+
 const AnnotationsSchema = z.array(
   z.object({
     start: z.number(),

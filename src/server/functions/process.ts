@@ -5,11 +5,10 @@ import { getSegmentAnnotationsOpenAICall } from "../db/bots";
 import { updateVideoSponsorsFromDB } from "../db/sponsors";
 import { getChannel, getVideoInfo } from "@/apis/youtube";
 import { getVideosContinuation } from "./channel";
-
 import Channel, {
   ChannelListContinuation,
 } from "youtubei.js/dist/src/parser/youtube/Channel";
-import Video from "youtubei.js/dist/src/parser/classes/Video";
+import type Video from "youtubei.js/dist/src/parser/classes/Video";
 import type { Context } from "../trpc/context";
 import type { GetSegmentAnnotationsType } from "../db/bots";
 
@@ -34,6 +33,10 @@ export const processVideo = async ({
     }),
     getVideoInfo({ videoID: videoId }),
   ]);
+
+  if (!videoInfo) {
+    return;
+  }
 
   if (!segments || !(segments.length > 0) || !videoInfo?.captions) {
     if (videoInfo.basic_info.id && videoInfo.basic_info.channel?.id) {
@@ -147,6 +150,9 @@ export const processChannel = async ({
   }
 
   const channel = await getChannel({ channelID: channelId });
+  if (!channel) {
+    return;
+  }
   // await ctx.prisma.channelQueue.upsert({
   //   where: { id: channelId },
   //   create: {
@@ -195,16 +201,20 @@ export const processChannel = async ({
       const lastVideo = await getVideoInfo({
         videoID: videos?.[videos?.length - 1]?.id as string,
       });
-      const lastDate = Date.parse(lastVideo.primary_info?.published.text ?? "");
-      console.log({
-        lastDate,
-        lastDateString: lastVideo.primary_info?.published.text,
-        from,
-        fromString: new Date(from),
-        page,
-      });
-      if (lastVideo.primary_info?.published.text && from > lastDate) {
-        processMore = false;
+      if (lastVideo) {
+        const lastDate = Date.parse(
+          lastVideo.primary_info?.published.text ?? ""
+        );
+        console.log({
+          lastDate,
+          lastDateString: lastVideo.primary_info?.published.text,
+          from,
+          fromString: new Date(from),
+          page,
+        });
+        if (lastVideo.primary_info?.published.text && from > lastDate) {
+          processMore = false;
+        }
       }
     }
     if (continuation) {

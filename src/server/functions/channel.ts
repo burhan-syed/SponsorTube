@@ -1,10 +1,9 @@
+import { YTNodes } from "youtubei.js/agnostic";
 import Channel, {
   ChannelListContinuation,
 } from "youtubei.js/dist/src/parser/youtube/Channel";
-import RichItem from "youtubei.js/dist/src/parser/classes/RichItem";
-import Video from "youtubei.js/dist/src/parser/classes/Video";
+import type Video from "youtubei.js/dist/src/parser/classes/Video";
 import type RichGrid from "youtubei.js/dist/src/parser/classes/RichGrid";
-import type { YTNode } from "youtubei.js/dist/src/parser/helpers";
 
 export const getVideosContinuation = async ({
   videosTab,
@@ -20,16 +19,15 @@ export const getVideosContinuation = async ({
   if ((videosTab as Channel)?.current_tab) {
     const richItems = (
       (videosTab as Channel).current_tab?.content as RichGrid
-    ).contents.filterType(RichItem);
+    ).contents.filterType(YTNodes.RichItem);
     videos = richItems
-      .filter((richItem) => richItem.content?.is(Video))
+      .filter((richItem) => richItem.content?.is(YTNodes.Video))
       .map((richItem) => richItem.content) as Video[];
   } else if ((videosTab as ChannelListContinuation)?.contents) {
     isContinuation = true;
   }
 
   console.log({ isContinuation });
-
   hasNext = videosTab.has_continuation;
   if (hasNext) {
     //(cursor ?? 0) > 0 || isContinuation
@@ -44,8 +42,8 @@ export const getVideosContinuation = async ({
 
     hasNext = continuation.has_continuation;
     const continuationVods = continuation.contents?.contents
-      ?.filterType(RichItem)
-      .filter((richItem) => richItem.content?.is(Video))
+      ?.filterType(YTNodes.RichItem)
+      .filter((richItem) => richItem.content?.is(YTNodes.Video))
       .map((richItem) => richItem.content) as Video[];
 
     if (!cursor || isContinuation) {

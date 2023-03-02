@@ -1,11 +1,9 @@
-import React, { useCallback } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useInView } from "react-intersection-observer";
 import useIsPressed from "@/hooks/useIsPressed";
 import TouchResponse from "./common/TouchResponse";
 import clsx from "clsx";
-import useSponsorBlock from "../../hooks/useSponsorBlock";
 import type CompactVideo from "youtubei.js/dist/src/parser/classes/CompactVideo";
 import type { VideoWithThumbnail } from "../../types";
 import SegmentsPreview from "./SegmentsPreview";

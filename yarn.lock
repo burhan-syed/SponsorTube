@@ -233,11 +233,6 @@
   resolved "https://registry.yarnpkg.com/@prisma/engines/-/engines-4.11.0.tgz#c99749bfe20f58e8f4d2b5e04fee0785eba440e1"
   integrity sha512-0AEBi2HXGV02cf6ASsBPhfsVIbVSDC9nbQed4iiY5eHttW9ZtMxHThuKZE1pnESbr8HRdgmFSa/Kn4OSNYuibg==
 
-"@protobuf-ts/runtime@^2.7.0":
-  version "2.8.1"
-  resolved "https://registry.yarnpkg.com/@protobuf-ts/runtime/-/runtime-2.8.1.tgz#e88f89650ab29c3eba0afebe32b9f3552f35fc85"
-  integrity sha512-D9M5hSumYCovIfNllt7N6ODh4q+LrjiMWtNETvooaf+a2XheZJ7kgjFlsFghti0CFWwtA//of4JXQfw9hU+cCw==
-
 "@radix-ui/number@1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/number/-/number-1.0.0.tgz#4c536161d0de750b3f5d55860fc3de46264f897b"
@@ -2170,10 +2165,10 @@ isexe@^2.0.0:
   resolved "https://registry.yarnpkg.com/isexe/-/isexe-2.0.0.tgz#e8fbf374dc556ff8947a10dcb0572d633f2cfa10"
   integrity sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==
 
-jintr@^0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/jintr/-/jintr-0.3.1.tgz#0ab49390a187d77dc5f2c19580c644d70a94528a"
-  integrity sha512-AUcq8fKL4BE9jDx8TizZmJ9UOvk1CHKFW0nQcWaOaqk9tkLS9S10fNmusTWGEYTncn7U43nXrCbhYko/ylqrSg==
+jintr@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/jintr/-/jintr-0.4.1.tgz#df61dd341e08ea619cf80a955be3085059eddeb7"
+  integrity sha512-R42VuIoTjsGbZuEmtT7WqyErd9JQuuV17Cg05wQwRWkQbmQNm2zO519Af1Ib7P7SBATqSMbhyu2/VcTnb3TcOg==
   dependencies:
     acorn "^8.8.0"
 
@@ -3241,10 +3236,10 @@ unbox-primitive@^1.0.2:
     has-symbols "^1.0.3"
     which-boxed-primitive "^1.0.2"
 
-undici@^5.7.0:
-  version "5.11.0"
-  resolved "https://registry.yarnpkg.com/undici/-/undici-5.11.0.tgz#1db25f285821828fc09d3804b9e2e934ae86fc13"
-  integrity sha512-oWjWJHzFet0Ow4YZBkyiJwiK5vWqEYoH7BINzJAJOLedZ++JpAlCbUktW2GQ2DS2FpKmxD/JMtWUUWl1BtghGw==
+undici@^5.19.1:
+  version "5.20.0"
+  resolved "https://registry.yarnpkg.com/undici/-/undici-5.20.0.tgz#6327462f5ce1d3646bcdac99da7317f455bcc263"
+  integrity sha512-J3j60dYzuo6Eevbawwp1sdg16k5Tf768bxYK4TUJRH7cBM4kFCbf3mOnM/0E3vQYXvpxITbbWmBafaDbxLDz3g==
   dependencies:
     busboy "^1.6.0"
 
@@ -3396,15 +3391,14 @@ youtube-player@5.5.2:
     load-script "^1.0.0"
     sister "^3.0.0"
 
-youtubei.js@^2.9.0:
-  version "2.9.0"
-  resolved "https://registry.yarnpkg.com/youtubei.js/-/youtubei.js-2.9.0.tgz#17426dfb0555169cddede509d50d3db62c102270"
-  integrity sha512-paxfeQGwxGw0oPeKdC96jNalS0OnYQ5xdJY27k3J+vamzVcwX6Ky+idALW6Ej9aUC7FISbchBsEVg0Wa7wgGyA==
+youtubei.js@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/youtubei.js/-/youtubei.js-3.1.1.tgz#459cedbf49f9e037233513e0b49d8e27aeb88074"
+  integrity sha512-MapNwEbZD0xG8ZEvjYeqOhrgsSiof+5Ra4nPtLQwFvFD3q+wmKZW2sCepVo+PwRyhurj2BShIdNznqmguuqpTQ==
   dependencies:
-    "@protobuf-ts/runtime" "^2.7.0"
-    jintr "^0.3.1"
+    jintr "^0.4.1"
     linkedom "^0.14.12"
-    undici "^5.7.0"
+    undici "^5.19.1"
 
 zod@^3.18.0:
   version "3.19.1"
