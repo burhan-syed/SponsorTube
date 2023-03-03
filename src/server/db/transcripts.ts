@@ -6,6 +6,7 @@ import {
   filterTranscriptBadWords,
 } from "../functions/badwords";
 import { saveVideoDetails } from "./videos";
+import { isUserABot } from "./bots";
 import { md5 } from "../functions/hash";
 import type { Context } from "../trpc/context";
 import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo";
@@ -136,6 +137,15 @@ export const saveAnnotationsAndTranscript = async ({
   ctx: Context;
   inputVideoInfo?: VideoInfo;
 }) => {
+  console.log("SAVING ANNOTATIONS AND TRANSCRIPT", {
+    videoId: input.videoId,
+    transcriptDetailsId: input.transcriptDetailsId,
+    transcriptId: input.transcriptId,
+    transcript: input.transcript.length,
+    annotationsNum: input.annotations.length,
+    videoInfoIncluded: !!inputVideoInfo,
+  });
+
   if (!ctx.session || !ctx.session?.user?.id) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
@@ -155,6 +165,12 @@ export const saveAnnotationsAndTranscript = async ({
     }
   });
 
+  const saveVideo = saveVideoDetails({
+    input: { segmentIDs: [input.segment.UUID], videoId: input.videoId },
+    ctx,
+    inputVideoInfo,
+  });
+
   const cleaned = filterTranscriptBadWords(input.transcript);
   if (!cleaned) {
     throw new TRPCError({
@@ -171,19 +187,24 @@ export const saveAnnotationsAndTranscript = async ({
     segmentUUID: input.segment.UUID,
   });
 
-  await findCompleteMatchingTranscriptDetailsAndVote({
-    duplicates,
-    annotations: input.annotations,
-    ctx,
-  });
-
-  //
-
-  const saveVideo = saveVideoDetails({
-    input: { segmentIDs: [input.segment.UUID], videoId: input.videoId },
-    ctx,
-    inputVideoInfo,
-  });
+  try {
+    await findCompleteMatchingTranscriptDetailsAndVote({
+      duplicates,
+      annotations: input.annotations,
+      ctx,
+    });
+  } catch (error) {
+    //continue to save video if duplicate found and bot request
+    if (
+      error instanceof TRPCError &&
+      error.code === "PRECONDITION_FAILED" &&
+      (await isUserABot({ ctx }))
+    ) {
+      await saveVideo;
+    } else {
+      throw error;
+    }
+  }
 
   const upsertTranscriptAndUserTranscriptAnnotations = async ({
     transcriptDetailsId,
@@ -293,6 +314,7 @@ export const saveAnnotationsAndTranscript = async ({
     return update[1];
   };
 
+  //provided segment and transcript text
   if (input.transcript && input.segment.UUID) {
     const transcriptDetailsIdPromise = async ({ userId }: { userId: string }) =>
       input?.transcriptDetailsId ??
@@ -322,12 +344,19 @@ export const saveAnnotationsAndTranscript = async ({
           },
         })
       )?.id;
+
+    //find the existing transcriptdetailsId & transcriptId
     const [transcriptDetailsId, transcriptId] = await Promise.all([
       transcriptDetailsIdPromise({ userId: ctx.session.user.id }),
       transcriptIdPromise(),
     ]);
 
+    //existing transcript details
     if (transcriptDetailsId && transcriptId) {
+      console.log("FOUND EXISTING TRANSCRIPT DETAILS", {
+        UUID: input.segment.UUID,
+        transcriptDetailsId,
+      });
       const r = await upsertTranscriptAndUserTranscriptAnnotations({
         transcriptDetailsId,
         transcriptId,
@@ -337,6 +366,7 @@ export const saveAnnotationsAndTranscript = async ({
       return r;
     }
     //new transcript or user transcript annotations
+    console.log("NEW TRANSCRIPT DETAILS", { UUID: input.segment.UUID });
     const r = await ctx.prisma.transcripts.upsert({
       where: {
         segmentUUID_textHash: {
@@ -392,6 +422,10 @@ export const saveAnnotationsAndTranscript = async ({
   }
   //existing user transcript annotations
   if (input.transcriptId && input.transcriptDetailsId) {
+    console.log("USING EXISTING TRANSCRIPT DETAILS", {
+      UUID: input.segment.UUID,
+      transcriptDetailsID: input.transcriptDetailsId,
+    });
     const r = await upsertTranscriptAndUserTranscriptAnnotations({
       transcriptId: input.transcriptId,
       transcriptDetailsId: input.transcriptDetailsId,
@@ -418,11 +452,8 @@ async function findDuplicateAnnotations({
   textHash: string;
   segmentUUID: string;
 }) {
-  const isBot = ctx.session?.user?.id
-    ? !!(await ctx.prisma.bots.findUnique({
-        where: { id: ctx.session?.user?.id },
-      }))
-    : false;
+  const isBot = await isUserABot({ ctx });
+
   const duplicates = await ctx.prisma.$transaction(
     annotations.map((a) =>
       ctx.prisma.transcriptAnnotations.findMany({

@@ -1,5 +1,5 @@
 import { z } from "zod";
-
+import { Prisma } from "@prisma/client";
 import type { Context } from "../trpc/context";
 import { getSegmentsByID } from "@/apis/sponsorblock";
 import { getVideoInfo } from "@/apis/youtube";
@@ -38,29 +38,18 @@ export const saveVideoDetails = async ({
   ]);
 
   if (!videoInfo) {
-    return;
+    throw new Error(`Could not find video information for ${input.videoId}`);
   }
 
-  await videoUpsertWithRetry(0);
-
-  //deadlock workaround
-  async function videoUpsertWithRetry(retryCount = 0) {
-    if (retryCount > 2) {
-      throw new Error(`VIDEO UPSERT FAILED ${input.videoId}`);
-      return;
-    }
-    try {
-      console.log("try video upsert", retryCount);
-      await videoUpsert();
-    } catch (err) {
-      console.log("video upsert err", retryCount, err);
-      if (retryCount < 5) {
-        await videoUpsertWithRetry(++retryCount);
-      }
-    }
-  }
+  await videoUpsert();
 
   async function videoUpsert() {
+    console.log(
+      "try video upsert",
+      input.videoId,
+      segmentInfos.map((s) => s.UUID)
+    );
+
     if (
       !videoInfo?.basic_info.channel?.id ||
       !videoInfo?.basic_info.channel?.name
@@ -71,69 +60,74 @@ export const saveVideoDetails = async ({
       });
     }
 
-    await ctx.prisma.videos.upsert({
-      where: { id: input.videoId },
-      update: {
-        SponsorSegments: {
-          connectOrCreate: segmentInfos.map((segment) => ({
-            where: { UUID: segment.UUID },
-            create: {
-              // ...segment,
-              UUID: segment.UUID,
-              category: segment.category,
-              startTime: segment.startTime,
-              endTime: segment.endTime,
-              votes: segment.votes,
-              locked: !!segment.locked,
-              userID: segment.userID,
-              timeSubmitted: new Date(segment.timeSubmitted),
-              views: segment.views,
-              hidden: !!segment.hidden,
-              shadowHidden: !!segment.shadowHidden,
-            },
-          })),
-        },
-      },
-      create: {
-        id: input.videoId,
-        title: videoInfo.basic_info.title,
-        published: videoInfo.primary_info?.published.text
-          ? new Date(Date.parse(videoInfo.primary_info?.published.text))
-          : undefined,
-        duration: videoInfo.basic_info.duration,
-        thumbnail: videoInfo.basic_info.thumbnail?.[0]?.url?.split("?")?.[0],
-        thumbnailHeight: videoInfo.basic_info.thumbnail?.[0]?.height,
-        thumbnailWidth: videoInfo.basic_info.thumbnail?.[0]?.width,
-        Channel: {
-          connectOrCreate: {
-            where: { id: videoInfo.basic_info.channel?.id },
-            create: {
-              id: videoInfo.basic_info.channel?.id,
-              name: videoInfo.basic_info.channel?.name,
-            },
+    const segmentsCreateData = segmentInfos.map((segment) => ({
+      UUID: segment.UUID,
+      category: segment.category,
+      startTime: segment.startTime,
+      endTime: segment.endTime,
+      votes: segment.votes,
+      locked: !!segment.locked,
+      userID: segment.userID,
+      timeSubmitted: new Date(segment.timeSubmitted),
+      views: segment.views,
+      hidden: !!segment.hidden,
+      shadowHidden: !!segment.shadowHidden,
+    }));
+
+    try {
+      await ctx.prisma.videos.upsert({
+        where: { id: input.videoId },
+        update: {
+          SponsorSegments: {
+            connectOrCreate: segmentsCreateData.map((s) => ({
+              where: { UUID: s.UUID },
+              create: { ...s },
+            })),
           },
         },
-        SponsorSegments: {
-          connectOrCreate: segmentInfos.map((segment) => ({
-            where: { UUID: segment.UUID },
-            create: {
-              // ...segment,
-              UUID: segment.UUID,
-              category: segment.category,
-              startTime: segment.startTime,
-              endTime: segment.endTime,
-              votes: segment.votes,
-              locked: !!segment.locked,
-              userID: segment.userID,
-              timeSubmitted: new Date(segment.timeSubmitted),
-              views: segment.views,
-              hidden: !!segment.hidden,
-              shadowHidden: !!segment.shadowHidden,
+        create: {
+          id: input.videoId,
+          title: videoInfo.basic_info.title,
+          published: videoInfo.primary_info?.published.text
+            ? new Date(Date.parse(videoInfo.primary_info?.published.text))
+            : undefined,
+          duration: videoInfo.basic_info.duration,
+          thumbnail: videoInfo.basic_info.thumbnail?.[0]?.url?.split("?")?.[0],
+          thumbnailHeight: videoInfo.basic_info.thumbnail?.[0]?.height,
+          thumbnailWidth: videoInfo.basic_info.thumbnail?.[0]?.width,
+          Channel: {
+            connectOrCreate: {
+              where: { id: videoInfo.basic_info.channel.id },
+              create: {
+                id: videoInfo.basic_info.channel.id,
+                name: videoInfo.basic_info.channel?.name,
+              },
             },
-          })),
+          },
+          SponsorSegments: {
+            connectOrCreate: segmentsCreateData.map((s) => ({
+              where: { UUID: s.UUID },
+              create: { ...s },
+            })),
+          },
         },
-      },
-    });
+      });
+    } catch (err) {
+      //in the event of a deadlock the video information is already being written, just save the segments instead.
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2034"
+      ) {
+        await ctx.prisma.sponsorTimes.createMany({
+          data: segmentsCreateData.map((data) => ({
+            ...data,
+            videoID: input.videoId,
+          })),
+        });
+      } else {
+        throw err;
+      }
+    }
   }
 };
 
