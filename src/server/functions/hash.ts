@@ -1,4 +1,6 @@
-import crypto from 'crypto';
+import crypto from "crypto";
 
-export const md5 = (data:string) => crypto.createHash('md5').update(data).digest("hex")
+const cleanString = (data: string) => data.replace(/[\r\n]/gm, "");
 
+export const md5 = (data: string) =>
+  crypto.createHash("md5").update(cleanString(data)).digest("hex");
