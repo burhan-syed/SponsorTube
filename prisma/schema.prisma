@@ -201,6 +201,8 @@ model Transcripts {
 
   @@unique([segmentUUID, textHash])
   @@index([userId])
+  @@index([segmentUUID])
+  @@index([textHash])
 }
 
 //redundant with usertrancriptdetailsvotes - deprecating

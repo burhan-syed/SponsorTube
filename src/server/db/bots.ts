@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { env } from "../../env/server.mjs";
-import { OpenAIApi, Configuration } from "openai";
+import { OpenAIApi, Configuration, CreateCompletionResponse } from "openai";
 import { textFindIndices } from "@/utils";
 import { md5 } from "../functions/hash";
 import { saveAnnotationsAndTranscript } from "./transcripts";
@@ -28,6 +28,14 @@ export const GetSegmentAnnotationsSchema = z.object({
 export type GetSegmentAnnotationsType = z.infer<
   typeof GetSegmentAnnotationsSchema
 >;
+
+export const isUserABot = async ({ ctx }: { ctx: Context }) => {
+  return ctx.session?.user?.id
+    ? !!(await ctx.prisma.bots.findUnique({
+        where: { id: ctx.session?.user?.id },
+      }))
+    : false;
+};
 
 export const getBotIds = async ({ prisma }: { prisma: PrismaClient }) => {
   const bots = await prisma?.bots.findMany();
@@ -63,34 +71,6 @@ export const getSegmentAnnotationsOpenAICall = async ({
   }
   const bot = bots[0];
 
-  const queue = await ctx.prisma.botQueue.findFirst({
-    where: {
-      Transcript: { textHash: textHash, segmentUUID: input.segment.UUID },
-      botId: bot.id,
-    },
-  });
-
-  if (queue?.status) {
-    throw new TRPCError({
-      code: "CONFLICT",
-      message: `Bot annotations previously requested at ${queue.timeInitialized}`,
-      cause: queue,
-    });
-  }
-  // const previousAnnotations = await prisma?.transcriptDetails.findMany({
-  //   where: {
-  //     userId: bot.id,
-  //     Transcript: { textHash: textHash, segmentUUID: input.segment.UUID },
-  //   },
-  // });
-
-  // if (previousAnnotations && previousAnnotations.length > 0) {
-  //   throw new TRPCError({
-  //     message: "Segment already analyzed",
-  //     code: "BAD_REQUEST",
-  //   });
-  // }
-
   const transcript = await ctx.prisma.transcripts.upsert({
     where: {
       segmentUUID_textHash: {
@@ -110,32 +90,84 @@ export const getSegmentAnnotationsOpenAICall = async ({
     update: {},
   });
 
-  const botQueue = await ctx.prisma.botQueue.create({
-    data: {
+  const queue = await ctx.prisma.botQueue.findUnique({
+    where: {
+      // Transcript: { textHash: textHash, segmentUUID: input.segment.UUID },
+      // botId: bot.id,
+      transcriptId_botId: {
+        transcriptId: transcript.id,
+        botId: bot.id,
+      },
+    },
+  });
+
+  if (queue?.status === "completed" || queue?.status === "pending") {
+    throw new TRPCError({
+      code: "CONFLICT",
+      message: `Bot annotations previously requested at ${queue.timeInitialized}: ${queue.id} Status: ${queue.status}`,
+      cause: queue,
+    });
+  }
+  // const previousAnnotations = await prisma?.transcriptDetails.findMany({
+  //   where: {
+  //     userId: bot.id,
+  //     Transcript: { textHash: textHash, segmentUUID: input.segment.UUID },
+  //   },
+  // });
+
+  // if (previousAnnotations && previousAnnotations.length > 0) {
+  //   throw new TRPCError({
+  //     message: "Segment already analyzed",
+  //     code: "BAD_REQUEST",
+  //   });
+  // }
+
+  const botQueue = await ctx.prisma.botQueue.upsert({
+    where: {
+      transcriptId_botId: { transcriptId: transcript.id, botId: bot.id },
+    },
+    create: {
       botId: bot.id,
       transcriptId: transcript.id,
       videoId: input.videoId,
       status: "pending",
       lastUpdated: new Date(),
+      timeInitialized: new Date(),
+    },
+    update: {
+      status: "pending",
+      timeInitialized: new Date(),
     },
   });
 
   try {
-    const openai = new OpenAIApi(configuration);
-    const prompt = `Create a table to identify sponsor information if there is any in the following text:\n\"${input.transcript}"\n\nSponsor|Product|Offer|\n\n`;
-    const response = await openai.createCompletion({
-      model: bot.model, //"text-curie-001",
-      prompt: prompt,
-      temperature: bot?.temperature ?? 0, //0,
-      max_tokens: bot?.maxTokens ?? 100,
-      top_p: bot?.topP ?? 1,
-      frequency_penalty: bot?.frequencyPenalty ?? 0,
-      presence_penalty: bot?.presencePenalty ?? 0,
-      //user
-    });
-    const rawResponseData = JSON.stringify(response.data);
+    const makeOpenAICall = async () => {
+      const openai = new OpenAIApi(configuration);
+      const prompt = `Create a table to identify sponsor information if there is any in the following text:\n\"${input.transcript}"\n\nSponsor|Product|Offer|\n\n`;
+      const response = await openai.createCompletion({
+        model: bot.model, //"text-curie-001",
+        prompt: prompt,
+        temperature: bot?.temperature ?? 0, //0,
+        max_tokens: bot?.maxTokens ?? 100,
+        top_p: bot?.topP ?? 1,
+        frequency_penalty: bot?.frequencyPenalty ?? 0,
+        presence_penalty: bot?.presencePenalty ?? 0,
+        //user
+      });
+      return response.data;
+    };
+
+    const responseData = (
+      botQueue.rawResponseData
+        ? typeof botQueue.rawResponseData === "string"
+          ? JSON.parse(botQueue.rawResponseData)
+          : botQueue.rawResponseData
+        : await makeOpenAICall()
+    ) as CreateCompletionResponse;
+
+    const rawResponseData = JSON.stringify(responseData);
     //console.log("response?", JSON.stringify(response.data));
-    const parsed = (response.data.choices?.[0]?.text?.split("\n") ?? [])
+    const parsed = (responseData.choices?.[0]?.text?.split("\n") ?? [])
       .filter((p) => p)
       .map((p) => {
         const data = new Map<AnnotationTags, string>();
@@ -197,28 +229,51 @@ export const getSegmentAnnotationsOpenAICall = async ({
       tag: AnnotationTags;
     }[];
     //console.log("matched?", matchedAnnotations);
-    if (matchedAnnotations.length > 0) {
-      await saveAnnotationsAndTranscript({
-        input: { ...input, annotations: matchedAnnotations },
-        ctx: {
-          ...ctx,
-          session: { user: { id: bot.id }, expires: "" },
+    try {
+      if (matchedAnnotations.length > 0) {
+        await saveAnnotationsAndTranscript({
+          input: {
+            ...input,
+            annotations: matchedAnnotations,
+            transcriptId: transcript.id,
+          },
+          ctx: {
+            ...ctx,
+            session: { user: { id: bot.id }, expires: "" },
+          },
+          inputVideoInfo,
+        });
+      }
+      await ctx.prisma.botQueue.update({
+        where: { id: botQueue.id },
+        data: {
+          status: "completed",
+          lastUpdated: new Date(),
+          responseId: responseData.id,
+          promptTokens: responseData.usage?.prompt_tokens,
+          totalTokens: responseData.usage?.total_tokens,
+          rawResponseData: rawResponseData,
         },
-        inputVideoInfo,
+      });
+    } catch (err) {
+      console.error(
+        "failed to save video & annotations",
+        input.videoId,
+        input.segment.UUID,
+        err
+      );
+      await ctx.prisma.botQueue.update({
+        where: { id: botQueue.id },
+        data: {
+          status: "error",
+          lastUpdated: new Date(),
+          responseId: responseData.id,
+          promptTokens: responseData.usage?.prompt_tokens,
+          totalTokens: responseData.usage?.total_tokens,
+          rawResponseData: rawResponseData,
+        },
       });
     }
-
-    await ctx.prisma.botQueue.update({
-      where: { id: botQueue.id },
-      data: {
-        status: "completed",
-        lastUpdated: new Date(),
-        responseId: response.data.id,
-        promptTokens: response.data.usage?.prompt_tokens,
-        totalTokens: response.data.usage?.total_tokens,
-        rawResponseData: rawResponseData,
-      },
-    });
   } catch (err) {
     await ctx.prisma.botQueue.update({
       where: { id: botQueue.id },
