@@ -1,15 +1,16 @@
 import { trpc } from "@/utils/trpc";
-import { AnnotationTags, Sponsors } from "@prisma/client";
+import { AnnotationTags } from "@prisma/client";
 import React, { useState } from "react";
 import { TAGS } from "../transcripts/edits/TranscriptTags";
 import { Button } from "./common/Button";
+import type { VideoSponsor } from "@/server/db/sponsors";
 
 const TextPill = ({
   sp,
   type,
   toggleSetSelectedSegment,
 }: {
-  sp: Sponsors;
+  sp: VideoSponsor; //Sponsors;
   type: AnnotationTags;
   toggleSetSelectedSegment(s: string): void;
 }) => {
@@ -53,7 +54,7 @@ const VideoSponsors = ({ videoId }: { videoId: string }) => {
   return (
     <div className="flex items-center justify-center rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-2">
       {sponsors.isLoading ? (
-        <div className="h-10 w-full skeleton-box "></div>
+        <div className="skeleton-box h-10 w-full "></div>
       ) : sponsors.data && sponsors.data.length > 0 ? (
         <>
           <h2 className="hidden py-2 pb-4 text-sm font-bold">
@@ -71,15 +72,15 @@ const VideoSponsors = ({ videoId }: { videoId: string }) => {
                     <span className="lowercase">{type.slice(1)}s</span>
                   </th>
                   <td className="flex flex-row flex-wrap items-center justify-start gap-2 py-2 pl-2 text-xxs capitalize">
-                    {sponsors.data
-                      .filter((sp) =>
+                    {sponsors?.data
+                      ?.filter((sp) =>
                         selectedSegment
                           ? sp.transcriptDetailsId === selectedSegment
                           : true
                       )
-                      .map((sp) => (
+                      .map((sp, i) => (
                         <TextPill
-                          key={sp.id}
+                          key={`${sp.brand}_${sp.transcriptDetailsId}_${i}`}
                           sp={sp}
                           type={type}
                           toggleSetSelectedSegment={toggleSetSelectedSegment}

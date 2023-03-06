@@ -1,6 +1,9 @@
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { z } from "zod";
-import { updateVideoSponsorsFromDB } from "@/server/db/sponsors";
+import {
+  getVideoSponsors,
+  updateVideoSponsorsFromDB,
+} from "@/server/db/sponsors";
 import {
   saveVideoDetails,
   SaveVideoDetailsSchema,
@@ -37,14 +40,12 @@ export const videoRouter = router({
   updateSponsors: publicProcedure
     .input(z.object({ videoId: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      await updateVideoSponsorsFromDB({ videoId: input.videoId });
+      await updateVideoSponsorsFromDB({ videoId: input.videoId, ctx });
     }),
   getSponsors: publicProcedure
     .input(z.object({ videoId: z.string() }))
     .query(async ({ input, ctx }) => {
-      return await ctx.prisma.sponsors.findMany({
-        where: { videoId: input.videoId },
-      });
+      return await getVideoSponsors({ videoId: input.videoId, ctx });
     }),
   testMutate: publicProcedure
     .input(z.object({ videoID: z.string() }))
@@ -53,7 +54,7 @@ export const videoRouter = router({
       await processVideo({
         videoId: input.videoID,
         ctx,
-        options: { callServer: true },
+        options: { callServer: false },
       });
     }),
 });

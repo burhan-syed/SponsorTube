@@ -38,10 +38,10 @@ const SegmentsPreview = ({
   if (sponsors.data && sponsors.data?.length > 0) {
     return (
       <div ref={ref} className={className}>
-        {sponsors.data?.map((sp) => (
+        {sponsors.data?.map((sp, i) => (
           <div
             className="rounded-full border border-th-additiveBackground/5 px-2 py-0.5"
-            key={sp.id}
+            key={sp.brand + `${i}`}
             style={{ backgroundColor: `${TAGS.get("BRAND")}80` }}
           >
             {sp.brand}

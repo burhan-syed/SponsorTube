@@ -38,26 +38,21 @@ const TranscriptAnnotationSubmit = ({
 }) => {
   const dialogueTrigger = useGlobalStore((store) => store.setDialogueTrigger);
   const utils = trpc.useContext();
-  const updateSponsors = trpc.video.updateSponsors.useMutation({
-    onSuccess() {
-      utils.video.getSponsors.invalidate({
-        videoId: videoID,
-      });
-    },
-  });
   const submitAnnotations = trpc.transcript.saveAnnotations.useMutation({
     async onSuccess() {
-      const transcriptInvalidate = utils.transcript.get.invalidate({
-        segmentUUID: segment.UUID,
-      });
-      if (transcript?.annotations?.[0]?.transcriptDetailsId) {
-        utils.transcript.getMyVote.invalidate({
-          transcriptDetailsId:
-            transcript?.annotations?.[0]?.transcriptDetailsId,
-        });
-      }
-      updateSponsors.mutate({ videoId: videoID });
-      await transcriptInvalidate;
+      await Promise.all([
+        utils.transcript.get.invalidate({
+          segmentUUID: segment.UUID,
+        }),
+        transcript?.annotations?.[0]?.transcriptDetailsId &&
+          utils.transcript.getMyVote.invalidate({
+            transcriptDetailsId:
+              transcript?.annotations?.[0]?.transcriptDetailsId,
+          }),
+        utils.video.getSponsors.invalidate({
+          videoId: videoID,
+        }),
+      ]);
       setEditable(false);
       setTabValue && setTabValue("user");
     },

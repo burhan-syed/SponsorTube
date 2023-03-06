@@ -1,5 +1,3 @@
-import { prisma } from "./client";
-
 import type {
   AnnotationTags,
   SponsorTimes,
@@ -7,32 +5,116 @@ import type {
   TranscriptDetails,
   Transcripts,
 } from "@prisma/client";
+import { Context } from "../trpc/context";
+
+export type VideoSponsor = {
+  videoId: string;
+  transcriptDetailsId: string;
+  brand: string;
+  product: string | undefined;
+  offer: string | undefined;
+};
+
+export const getVideoSponsors = async ({
+  videoId,
+  ctx,
+}: {
+  videoId: string;
+  ctx: Context;
+}) => {
+  const segments = await ctx.prisma.sponsorTimes.findMany({
+    where: {
+      videoID: videoId,
+      Transcripts: {
+        some: { TranscriptDetails: { some: { score: { gte: 1 } } } },
+      },
+    },
+    include: {
+      Transcripts: {
+        orderBy: { score: "desc" },
+        take: 5,
+        include: {
+          TranscriptDetails: {
+            orderBy: { score: "desc" },
+            take: 5,
+            include: { Annotations: true },
+          },
+        },
+      },
+    },
+  });
+
+  const flatPerSegmentSorted = segments.map((s) =>
+    [...s.Transcripts.map((t) => t.TranscriptDetails)]
+      .flat()
+      .flat()
+      .sort((a, b) => b.score - a.score)
+  );
+
+  const annotationinfos = new Map<
+    string,
+    {
+      brand: string;
+      product?: string;
+      offer?: string;
+      transcriptDetailsId: string;
+    }
+  >();
+
+  const products = new Map<string, string[]>();
+  const offers = new Map<string, string[]>();
+  flatPerSegmentSorted.map((td) =>
+    td?.[0]?.Annotations.forEach((annotation) => {
+      const transcriptId = td?.[0]?.id;
+      if (transcriptId) {
+        switch (annotation.tag) {
+          case "BRAND":
+            annotationinfos.set(annotation.text.toUpperCase(), {
+              brand: annotation.text,
+              transcriptDetailsId: transcriptId,
+            });
+            break;
+          case "PRODUCT":
+            const p = products.get(transcriptId);
+            products.set(
+              transcriptId,
+              p ? [...p, annotation.text] : [annotation.text]
+            );
+            break;
+          case "OFFER":
+            const o = offers.get(transcriptId);
+            offers.set(
+              transcriptId,
+              o ? [...o, annotation.text] : [annotation.text]
+            );
+            break;
+          default:
+            break;
+        }
+      }
+    })
+  );
+
+  return [...annotationinfos.entries()].map((v) => ({
+    videoId: videoId,
+    transcriptDetailsId: v[1].transcriptDetailsId,
+    brand: v[1].brand,
+    product: products.get(v[1].transcriptDetailsId)?.[0],
+    offer: offers.get(v[1].transcriptDetailsId)?.[0],
+  }));
+};
 
 export const updateVideoSponsorsFromDB = async ({
   videoId,
+  ctx,
 }: {
   videoId: string;
+  ctx: Context;
 }) => {
-  await tryUpdateVideoSponsors(0);
+  await updateVideoSponsorsBySegments();
 
-  //deadlock workaround
-  async function tryUpdateVideoSponsors(retryCount = 0) {
-    if (retryCount > 5) {
-      throw new Error(`SPONSOR UPDATE FAILED ${videoId}`);
-    }
-    try {
-      console.log("try sponsors upsert", retryCount);
-      await updateVideoSponsors();
-    } catch (err) {
-      console.log("SPONSOR UPDATE ERR?", err);
-      if (retryCount < 5) {
-        await tryUpdateVideoSponsors(++retryCount);
-      }
-    }
-  }
-
-  async function updateVideoSponsors() {
-    const segments = await prisma.sponsorTimes.findMany({
+  async function updateVideoSponsorsBySegments() {
+    const segments = await ctx.prisma.sponsorTimes.findMany({
       where: {
         videoID: videoId,
         Transcripts: {
@@ -105,9 +187,11 @@ export const updateVideoSponsorsFromDB = async ({
       })
     );
 
-    await prisma.$transaction(
+    console.log("updating video sponsors", videoId, annotationinfos.size);
+
+    await ctx.prisma.$transaction(
       [...annotationinfos.entries()].map((v) =>
-        prisma.sponsors.upsert({
+        ctx.prisma.sponsors.upsert({
           where: { videoId_brand: { videoId: videoId, brand: v[1].brand } },
           create: {
             videoId: videoId,
@@ -125,6 +209,7 @@ export const updateVideoSponsorsFromDB = async ({
         })
       )
     );
+    console.log("updated video sponsors", videoId, annotationinfos.size);
   }
 };
 
