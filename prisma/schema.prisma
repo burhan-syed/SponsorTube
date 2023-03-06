@@ -203,6 +203,7 @@ model Transcripts {
   @@index([userId])
   @@index([segmentUUID])
   @@index([textHash])
+  @@index([score(sort: Desc)])
 }
 
 //redundant with usertrancriptdetailsvotes - deprecating
@@ -276,6 +277,7 @@ model TranscriptDetails {
 
   @@unique([transcriptId, userId])
   @@index([userId])
+  @@index([score(sort: Desc)])
 }
 
 model UserTranscriptDetailsVotes {
