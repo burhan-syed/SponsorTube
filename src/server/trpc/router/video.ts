@@ -47,14 +47,14 @@ export const videoRouter = router({
     .query(async ({ input, ctx }) => {
       return await getVideoSponsors({ videoId: input.videoId, ctx });
     }),
-  testMutate: publicProcedure
+  processVideo: publicProcedure
     .input(z.object({ videoID: z.string() }))
     .mutation(async ({ input, ctx }) => {
       console.log("test:", input.videoID);
       await processVideo({
         videoId: input.videoID,
         ctx,
-        options: { callServer: false },
+        options: { spawnProcess: false },
       });
     }),
 });

@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import VideoPageLoader from "@/components/ui/loaders/VideoPageLoader";
 import GridVideoView from "@/components/ui/GridVideoView";
 import GridVideoLoader from "@/components/ui/loaders/GridVideoLoader";
+import { Button } from "@/components/ui/common/Button";
 
 const Home: NextPage = ({}) => {
   const router = useRouter();
@@ -25,7 +26,17 @@ const Home: NextPage = ({}) => {
     }
   );
 
-  const testMutate = trpc.video.testMutate.useMutation();
+  const utils = trpc.useContext();
+  const processVideo = trpc.video.processVideo.useMutation({
+    async onSuccess() {
+      await Promise.all([
+        utils.transcript.get.invalidate(),
+        utils.video.getSponsors.invalidate({
+          videoId: videoID,
+        }),
+      ]);
+    },
+  });
 
   const [videoSeek, setVideoSeek] = useState<[number, number, number]>([
     0, 0, 0,
@@ -57,15 +68,16 @@ const Home: NextPage = ({}) => {
       <Header />
       <div className="relative sm:p-4">
         {videoInfo?.data?.basic_info?.id && (
-          <button
+          <Button
+            disabled={processVideo.isLoading}
             onClick={() =>
-              testMutate.mutate({
+              processVideo.mutate({
                 videoID: videoInfo?.data?.basic_info?.id as string,
               })
             }
           >
-            testMutate
-          </button>
+            Process Video
+          </Button>
         )}
         <div className="flex flex-col gap-2 lg:flex-row">
           {videoInfo.isLoading ? (

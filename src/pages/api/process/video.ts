@@ -4,7 +4,6 @@ import { prisma } from "@/server/db/client";
 import { processVideo } from "@/server/functions/process";
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const secret = process.env.MY_SECRET_KEY;
-  console.log("REQ?", req.headers)
   if (req.headers.authorization !== secret) {
     res.status(401).send("unauthorized");
     return;
@@ -18,13 +17,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       videoId,
       ctx: { prisma, session: null },
       options: {
-        callServer: true,
+        spawnProcess: false,
       },
     });
-    console.log("video processing", videoId);
-    res.send("");
+    res.send("video processed");
   } catch (err) {
-    res.send({ error: "invalid post body" });
+    res.send({ error: "something went wrong" });
   }
 };
 

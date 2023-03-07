@@ -2,7 +2,6 @@ import { getVideoSegments } from "@/apis/sponsorblock";
 import { getXMLCaptions } from "./captions";
 import { getTranscriptsInTime } from "./transcripts";
 import { getSegmentAnnotationsOpenAICall } from "../db/bots";
-import { updateVideoSponsorsFromDB } from "../db/sponsors";
 import { getChannel, getVideoInfo } from "@/apis/youtube";
 import { getVideosContinuation } from "./channel";
 import Channel, {
@@ -11,6 +10,7 @@ import Channel, {
 import type Video from "youtubei.js/dist/src/parser/classes/Video";
 import type { Context } from "../trpc/context";
 import type { GetSegmentAnnotationsType } from "../db/bots";
+import { TRPCError } from "@trpc/server";
 
 const SECRET = process?.env?.MY_SECRET_KEY ?? "";
 const SERVER_URL = process.env.NEXTAUTH_URL;
@@ -23,7 +23,7 @@ export const processVideo = async ({
   videoId: string;
   ctx: Context;
   options?: {
-    callServer: boolean;
+    spawnProcess: boolean;
   };
 }) => {
   const [segments, videoInfo] = await Promise.all([
@@ -85,9 +85,9 @@ export const processVideo = async ({
     }),
   }));
 
-  if (options?.callServer) {
+  if (options?.spawnProcess) {
     segmentTranscripts.forEach((st) =>
-      callServerSegmentAnnotationsOpenAICall({
+      spawnSegmentAnnotationsOpenAICallProcess({
         segment: st.segment,
         transcript: st.transcript,
         startTime: st.transcriptStart,
@@ -96,6 +96,11 @@ export const processVideo = async ({
       })
     );
   } else {
+    console.log(
+      "processing video segments",
+      videoId,
+      segmentTranscripts.length
+    );
     try {
       await Promise.all([
         ...segmentTranscripts.map(
@@ -114,13 +119,21 @@ export const processVideo = async ({
         ),
       ]);
     } catch (err) {
-      console.log("ERROR?", err);
+      if (err instanceof TRPCError && err.code === "CONFLICT") {
+        console.log(err.message);
+      } else {
+        console.log("ERROR?", err);
+      }
     }
-    await updateVideoSponsorsFromDB({ videoId: videoId });
+    console.log(
+      "done processing video segments",
+      videoId,
+      segmentTranscripts.length
+    );
   }
 };
 
-export const callServerSegmentAnnotationsOpenAICall = async (
+export const spawnSegmentAnnotationsOpenAICallProcess = async (
   input: GetSegmentAnnotationsType
 ) => {
   const JSONdata = JSON.stringify(input);
@@ -227,10 +240,13 @@ export const processChannel = async ({
     page += 1;
   }
   const endFetch = performance.now();
+
+  //allVods = allVods.slice(0, 5);
+
   await Promise.all(
     allVods.map(async (v) => {
       console.log("call", v.published.text, v.title.text);
-      await callServerProcessVideo({ videoId: v.id });
+      await spawnVideoProcess({ videoId: v.id });
     })
   );
   const endServerCall = performance.now();
@@ -240,7 +256,7 @@ export const processChannel = async ({
   });
 };
 
-const callServerProcessVideo = async (input: { videoId: string }) => {
+const spawnVideoProcess = async (input: { videoId: string }) => {
   const JSONdata = JSON.stringify(input);
   const options = {
     method: "POST",
