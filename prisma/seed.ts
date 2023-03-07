@@ -7,7 +7,17 @@ async function main() {
       id: "_openaicurie1",
       name: "OpenAI Curie 1",
       model: "text-curie-001",
-      temparature: 0,
+      temperature: 0,
+      max_tokens: 100,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
+    },
+    {
+      id: "_openaigpt3.5turbo",
+      name: "OpenAI GPT 3.5 Turbo",
+      model: "gpt-3.5-turbo",
+      temperature: 0.7,
       max_tokens: 100,
       top_p: 1,
       frequency_penalty: 0,
@@ -17,35 +27,32 @@ async function main() {
 
   const botsUpsert = await prisma.$transaction(
     Bots.map((bot) => [
+      prisma.user.upsert({
+        where: { id: bot.id },
+        update: { name: bot.name },
+        create: { id: bot.id, name: bot.name },
+      }),
       prisma.bots.upsert({
         where: {
           id: bot.id,
         },
         update: {
-          User: {
-            connectOrCreate: {
-              where: { id: bot.id },
-              create: {
-                id: bot.id,
-                name: bot.name,
-              },
-            },
-          },
-        },
-        create: {
-          id: bot.id,
           model: bot.model,
-          temperature: bot.temparature,
+          temperature: bot.temperature,
           maxTokens: bot.max_tokens,
           topP: bot.top_p,
           frequencyPenalty: bot.frequency_penalty,
           presencePenalty: bot.presence_penalty,
         },
-      }),
-      prisma.user.upsert({
-        where: { id: bot.id },
-        update: { name: bot.name },
-        create: { id: bot.id, name: bot.name },
+        create: {
+          id: bot.id,
+          model: bot.model,
+          temperature: bot.temperature,
+          maxTokens: bot.max_tokens,
+          topP: bot.top_p,
+          frequencyPenalty: bot.frequency_penalty,
+          presencePenalty: bot.presence_penalty,
+        },
       }),
     ]).flat()
   );
