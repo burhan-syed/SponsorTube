@@ -159,7 +159,11 @@ export const getSegmentAnnotationsOpenAICall = async ({
         const response = await openai.createChatCompletion({
           model: bot.model,
           messages: [
-            { role: "system", content: "You are a helpful assistant that will only create tables" },
+            {
+              role: "system",
+              content:
+                "You are a helpful assistant that will only create tables",
+            },
             { role: "user", content: prompt },
           ],
           temperature: bot?.temperature ?? 0.7, //0,
@@ -170,7 +174,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
         });
         return response.data;
       } else {
-        const prompt = `Create a table to identify sponsor information if there is any in the following text:\n\"${input.transcript}"\n\nSponsor|Product|Offer|\n\n`;
+        const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\nSponsor|Product|Offer|\n\n`;
         const response = await openai.createCompletion({
           model: bot.model, //"text-curie-001",
           prompt: prompt,
@@ -203,6 +207,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
     }
     const rawResponseData = JSON.stringify(responseData);
 
+    const ignoreWords = ["-", "sponsor", "product","offer","---"];
     const parseResponseData = (
       responseData: CreateCompletionResponse | CreateChatCompletionResponse
     ) => {
@@ -214,16 +219,23 @@ export const getSegmentAnnotationsOpenAICall = async ({
           ?.map((p) => {
             const data = new Map<AnnotationTags, string>();
             p?.split("|").forEach((t, i) => {
-              switch (i) {
-                case 0:
-                  data.set("BRAND", t);
-                  break;
-                case 1:
-                  data.set("PRODUCT", t);
-                  break;
-                case 2:
-                  data.set("OFFER", t);
-                  break;
+              const textFormatted = t?.trim();
+              if (
+                textFormatted &&
+                !ignoreWords.includes(textFormatted.toLowerCase()) &&
+                textFormatted.length < 24
+              ) {
+                switch (i) {
+                  case 0:
+                    data.set("BRAND", t);
+                    break;
+                  case 1:
+                    data.set("PRODUCT", t);
+                    break;
+                  case 2:
+                    data.set("OFFER", t);
+                    break;
+                }
               }
             });
             return data;
@@ -309,8 +321,11 @@ export const getSegmentAnnotationsOpenAICall = async ({
           },
           inputVideoInfo,
         });
-      }else{
-        throw new TRPCError({code: "INTERNAL_SERVER_ERROR", message: "Unable to match sponsor information"})
+      } else {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unable to match sponsor information",
+        });
       }
       await ctx.prisma.botQueue.update({
         where: { id: botQueue.id },

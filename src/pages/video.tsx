@@ -70,6 +70,7 @@ const Home: NextPage = ({}) => {
         {videoInfo?.data?.basic_info?.id && (
           <Button
             disabled={processVideo.isLoading}
+            loading={processVideo.isLoading}
             onClick={() =>
               processVideo.mutate({
                 videoID: videoInfo?.data?.basic_info?.id as string,
