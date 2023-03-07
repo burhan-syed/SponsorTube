@@ -1,11 +1,21 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { env } from "../../env/server.mjs";
-import { OpenAIApi, Configuration, CreateCompletionResponse } from "openai";
+import {
+  OpenAIApi,
+  Configuration,
+  CreateCompletionResponse,
+  CreateChatCompletionResponse,
+} from "openai";
 import { textFindIndices } from "@/utils";
 import { md5 } from "../functions/hash";
 import { saveAnnotationsAndTranscript } from "./transcripts";
-import type { PrismaClient, AnnotationTags } from "@prisma/client";
+import type {
+  PrismaClient,
+  AnnotationTags,
+  BotQueue,
+  Bots,
+} from "@prisma/client";
 import type { Context } from "../trpc/context";
 import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo.js";
 
@@ -61,6 +71,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
 
   const bots = await ctx.prisma?.bots.findMany({
     include: { User: { select: { id: true } } },
+    where: { id: "_openaigpt3.5turbo" },
   });
 
   if (!bots?.[0]) {
@@ -141,20 +152,37 @@ export const getSegmentAnnotationsOpenAICall = async ({
   });
 
   try {
-    const makeOpenAICall = async () => {
+    const makeOpenAICall = async (bot: Bots) => {
       const openai = new OpenAIApi(configuration);
-      const prompt = `Create a table to identify sponsor information if there is any in the following text:\n\"${input.transcript}"\n\nSponsor|Product|Offer|\n\n`;
-      const response = await openai.createCompletion({
-        model: bot.model, //"text-curie-001",
-        prompt: prompt,
-        temperature: bot?.temperature ?? 0, //0,
-        max_tokens: bot?.maxTokens ?? 100,
-        top_p: bot?.topP ?? 1,
-        frequency_penalty: bot?.frequencyPenalty ?? 0,
-        presence_penalty: bot?.presencePenalty ?? 0,
-        //user
-      });
-      return response.data;
+      if (bot.model === "gpt-3.5-turbo") {
+        const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\nSponsor|Product|Offer|`;
+        const response = await openai.createChatCompletion({
+          model: bot.model,
+          messages: [
+            { role: "system", content: "You are a helpful assistant that will only create tables" },
+            { role: "user", content: prompt },
+          ],
+          temperature: bot?.temperature ?? 0.7, //0,
+          max_tokens: bot?.maxTokens ?? 100,
+          top_p: bot?.topP ?? 1,
+          frequency_penalty: bot?.frequencyPenalty ?? 0,
+          presence_penalty: bot?.presencePenalty ?? 0,
+        });
+        return response.data;
+      } else {
+        const prompt = `Create a table to identify sponsor information if there is any in the following text:\n\"${input.transcript}"\n\nSponsor|Product|Offer|\n\n`;
+        const response = await openai.createCompletion({
+          model: bot.model, //"text-curie-001",
+          prompt: prompt,
+          temperature: bot?.temperature ?? 0, //0,
+          max_tokens: bot?.maxTokens ?? 100,
+          top_p: bot?.topP ?? 1,
+          frequency_penalty: bot?.frequencyPenalty ?? 0,
+          presence_penalty: bot?.presencePenalty ?? 0,
+          //user
+        });
+        return response.data;
+      }
     };
 
     const responseData = (
@@ -162,32 +190,70 @@ export const getSegmentAnnotationsOpenAICall = async ({
         ? typeof botQueue.rawResponseData === "string"
           ? JSON.parse(botQueue.rawResponseData)
           : botQueue.rawResponseData
-        : await makeOpenAICall()
-    ) as CreateCompletionResponse;
+        : await makeOpenAICall(bot)
+    ) as CreateCompletionResponse | CreateChatCompletionResponse | undefined;
 
-    const rawResponseData = JSON.stringify(responseData);
-    //console.log("response?", JSON.stringify(response.data));
-    const parsed = (responseData.choices?.[0]?.text?.split("\n") ?? [])
-      .filter((p) => p)
-      .map((p) => {
-        const data = new Map<AnnotationTags, string>();
-        p.split("|").forEach((t, i) => {
-          switch (i) {
-            case 0:
-              data.set("BRAND", t);
-              break;
-            case 1:
-              data.set("PRODUCT", t);
-              break;
-            case 2:
-              data.set("OFFER", t);
-              break;
-          }
-        });
-        return data;
+    console.log("response?", JSON.stringify(responseData, null, 2));
+
+    if (!responseData) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "No OpenAI response",
       });
-    //console.log("parsed?", parsed);
-    // const parsedAnnotations = []
+    }
+    const rawResponseData = JSON.stringify(responseData);
+
+    const parseResponseData = (
+      responseData: CreateCompletionResponse | CreateChatCompletionResponse
+    ) => {
+      const formatText = (t?: string) => {
+        const split = t?.split("\n") ?? [t];
+        console.log("split?", split);
+        return split
+          ?.filter((p) => p)
+          ?.map((p) => {
+            const data = new Map<AnnotationTags, string>();
+            p?.split("|").forEach((t, i) => {
+              switch (i) {
+                case 0:
+                  data.set("BRAND", t);
+                  break;
+                case 1:
+                  data.set("PRODUCT", t);
+                  break;
+                case 2:
+                  data.set("OFFER", t);
+                  break;
+              }
+            });
+            return data;
+          });
+      };
+
+      if ((responseData as CreateCompletionResponse)?.choices?.[0]?.text) {
+        return formatText(
+          (responseData as CreateCompletionResponse).choices?.[0]?.text
+        );
+      } else if (
+        (responseData as CreateChatCompletionResponse)?.choices?.[0]?.message
+          ?.content
+      ) {
+        return formatText(
+          (responseData as CreateChatCompletionResponse)?.choices?.[0]?.message
+            ?.content
+        );
+      }
+    };
+
+    const parsed = parseResponseData(responseData);
+    console.log("parsed?", parsed);
+    // const parsedAnnotations = [];
+    if (!parsed) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "No parsed data",
+      });
+    }
     const matchedAnnotations = parsed
       .map((p) => {
         return [...p.keys()]
@@ -243,6 +309,8 @@ export const getSegmentAnnotationsOpenAICall = async ({
           },
           inputVideoInfo,
         });
+      }else{
+        throw new TRPCError({code: "INTERNAL_SERVER_ERROR", message: "Unable to match sponsor information"})
       }
       await ctx.prisma.botQueue.update({
         where: { id: botQueue.id },
