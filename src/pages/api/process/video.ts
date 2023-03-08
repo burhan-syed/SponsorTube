@@ -10,11 +10,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
   try {
     const videoId = req.body?.videoId;
+    const queueId = req.body?.queueId;
     if (!videoId) {
       throw new Error("Missing videoId");
     }
     await processVideo({
       videoId,
+      queueId,
       ctx: { prisma, session: null },
       options: {
         spawnProcess: false,

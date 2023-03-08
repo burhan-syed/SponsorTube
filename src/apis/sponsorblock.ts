@@ -18,6 +18,7 @@ export const getVideoSegments = async ({
     const segments = await sponsorBlock.getSegments(videoID, categories);
     return segments;
   } catch (err) {
+    console.log("sponsorblock err?", videoID, err);
     if (err instanceof ResponseError) {
       // console.log("segment fetch err", videoID, err)
       switch (err.message) {
@@ -36,7 +37,11 @@ export const getSegmentsByID = async ({
   userID: string;
   UUIDs: SegmentUUID[];
 }) => {
-  const sponsorBlock = new SponsorBlock(userID);
-  const segmentInfo = await sponsorBlock.getSegmentInfo(UUIDs);
-  return segmentInfo;
+  try {
+    const sponsorBlock = new SponsorBlock(userID);
+    const segmentInfo = await sponsorBlock.getSegmentInfo(UUIDs);
+    return segmentInfo;
+  } catch (err) {
+    console.log("sponsorblock segments error?", userID, UUIDs, err);
+  }
 };

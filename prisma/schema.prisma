@@ -143,7 +143,7 @@ model Channels {
 
   Videos       Videos[]
   ChannelStats ChannelStats[] //may be overtime data
-  ChannelQueue ChannelQueue?
+  ProcessQueue ProcessQueue?
 
   @@index([id])
 }
@@ -178,6 +178,7 @@ model Videos {
   Sponsors        Sponsors[]
   Channel         Channels       @relation(fields: [channelId], references: [id])
   BotQueue        BotQueue[]
+  ProcessQueue    ProcessQueue?
 
   @@index([id])
   @@index([channelId])
@@ -241,25 +242,38 @@ model BotQueue {
   totalTokens     Int?
   rawResponseData Json?
 
-  Transcript Transcripts @relation(fields: [transcriptId], references: [id])
-  Video      Videos?     @relation(fields: [videoId], references: [id])
-  Bot        Bots        @relation(fields: [botId], references: [id])
+  parentProcessId String?
+
+  Transcript     Transcripts   @relation(fields: [transcriptId], references: [id])
+  Video          Videos?       @relation(fields: [videoId], references: [id])
+  Bot            Bots          @relation(fields: [botId], references: [id])
+  ProcessQueue   ProcessQueue? @relation(fields: [processQueueId], references: [id])
+  processQueueId String?
 
   @@unique([transcriptId, botId])
   @@index([transcriptId])
   @@index([botId])
   @@index([videoId])
+  @@index([processQueueId])
 }
 
-model ChannelQueue {
-  id              String      @id
+model ProcessQueue {
+  id              String      @id @default(cuid())
+  parentProcessId String?
   status          QueueStatus
   timeInitialized DateTime    @default(now())
   lastUpdated     DateTime?
 
-  Channel Channels @relation(fields: [id], references: [id])
+  channelId String? @unique
+  videoId   String? @unique
+
+  Channel  Channels?  @relation(fields: [channelId], references: [id])
+  Video    Videos?    @relation(fields: [videoId], references: [id])
+  BotQueue BotQueue[]
 
   @@index([id])
+  @@index([videoId])
+  @@index([channelId])
 }
 
 model TranscriptDetails {

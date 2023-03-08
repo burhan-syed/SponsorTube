@@ -47,7 +47,7 @@ export const saveVideoDetails = async ({
     console.log(
       "try video upsert",
       input.videoId,
-      segmentInfos.map((s) => s.UUID)
+      segmentInfos?.map((s) => s.UUID)
     );
 
     if (
@@ -60,7 +60,7 @@ export const saveVideoDetails = async ({
       });
     }
 
-    const segmentsCreateData = segmentInfos.map((segment) => ({
+    const segmentsCreateData = segmentInfos?.map((segment) => ({
       UUID: segment.UUID,
       category: segment.category,
       startTime: segment.startTime,
@@ -79,7 +79,7 @@ export const saveVideoDetails = async ({
         where: { id: input.videoId },
         update: {
           SponsorSegments: {
-            connectOrCreate: segmentsCreateData.map((s) => ({
+            connectOrCreate: segmentsCreateData?.map((s) => ({
               where: { UUID: s.UUID },
               create: { ...s },
             })),
@@ -105,7 +105,7 @@ export const saveVideoDetails = async ({
             },
           },
           SponsorSegments: {
-            connectOrCreate: segmentsCreateData.map((s) => ({
+            connectOrCreate: segmentsCreateData?.map((s) => ({
               where: { UUID: s.UUID },
               create: { ...s },
             })),
@@ -116,7 +116,8 @@ export const saveVideoDetails = async ({
       //in the event of a deadlock the video information is already being written, just save the segments instead.
       if (
         err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === "P2034"
+        err.code === "P2034" &&
+        segmentsCreateData
       ) {
         await ctx.prisma.sponsorTimes.createMany({
           data: segmentsCreateData.map((data) => ({
