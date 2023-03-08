@@ -207,33 +207,45 @@ export const getSegmentAnnotationsOpenAICall = async ({
     }
     const rawResponseData = JSON.stringify(responseData);
 
-    const ignoreWords = ["-", "sponsor", "product","offer","---"];
+    const ignoreWords = ["-", "sponsor", "product", "offer", "---"];
     const parseResponseData = (
       responseData: CreateCompletionResponse | CreateChatCompletionResponse
     ) => {
       const formatText = (t?: string) => {
         const split = t?.split("\n") ?? [t];
         console.log("split?", split);
+        const columns = { brand: 0, product: 1, offer: 1 };
         return split
           ?.filter((p) => p)
-          ?.map((p) => {
+          ?.map((p, line) => {
             const data = new Map<AnnotationTags, string>();
+
             p?.split("|").forEach((t, i) => {
               const textFormatted = t?.trim();
+              if (line === 0) {
+                const textLower = textFormatted.toLowerCase();
+                if (textLower === "sponsor" || textLower === "brand") {
+                  columns.brand = i;
+                } else if (textLower === "product") {
+                  columns.product = i;
+                } else if (textLower === "offer") {
+                  columns.offer = i;
+                }
+              }
               if (
                 textFormatted &&
                 !ignoreWords.includes(textFormatted.toLowerCase()) &&
                 textFormatted.length < 24
               ) {
                 switch (i) {
-                  case 0:
-                    data.set("BRAND", t);
+                  case columns.brand:
+                    data.set("BRAND", textFormatted);
                     break;
-                  case 1:
-                    data.set("PRODUCT", t);
+                  case columns.product:
+                    data.set("PRODUCT", textFormatted);
                     break;
-                  case 2:
-                    data.set("OFFER", t);
+                  case columns.offer:
+                    data.set("OFFER", textFormatted);
                     break;
                 }
               }
