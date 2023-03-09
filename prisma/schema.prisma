@@ -149,17 +149,19 @@ model Channels {
 }
 
 model ChannelStats {
-  channelId                           String   @id
-  videosProcessed                     Int      @default(0)
-  processedTo                         DateTime @default(now())
-  processedFrom                       DateTime
-  numberVideosSponsored               Int?
-  percentVideosSponsored              Float?
-  aveSponsorSegmentsPerSponsoredVideo Float?
-  percentSponsorTimePerSponsoredVideo Float?
+  id                    String    @id @default(cuid())
+  channelId             String
+  videosProcessed       Int       @default(0)
+  lastUpdated           DateTime  @default(now())
+  processedTo           DateTime //datetime of latest video
+  processedFrom         DateTime?
+  numberVideosSponsored Int?
+  totalSponsorSegments  Int?
+  totalSponsorTime      Float?
 
   Channel Channels @relation(fields: [channelId], references: [id])
 
+  @@unique([channelId, processedTo])
   @@index([channelId])
 }
 
