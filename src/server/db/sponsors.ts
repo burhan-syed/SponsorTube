@@ -111,105 +111,121 @@ export const updateVideoSponsorsFromDB = async ({
   videoId: string;
   ctx: Context;
 }) => {
-  await updateVideoSponsorsBySegments();
+  const videoSponsors = await getVideoSponsors({ videoId, ctx });
 
-  async function updateVideoSponsorsBySegments() {
-    const segments = await ctx.prisma.sponsorTimes.findMany({
+  await ctx.prisma.$transaction([
+    ctx.prisma.sponsors.deleteMany({
+      where: { videoId: videoId, locked: { not: true } },
+    }),
+    ctx.prisma.sponsors.createMany({
+      data: videoSponsors.map((s) => ({ ...s })),
+      skipDuplicates: true
+    })
+  ]);
+  return videoSponsors;
+};
+
+export const summarizeChannelSponsors = async ({
+  channelId,
+  queueId,
+  ctx,
+}: {
+  channelId: string;
+  queueId?: string;
+  ctx: Context;
+}) => {
+  const now = new Date();
+  console.log("SUMMARIZE CHANNEL", channelId, queueId);
+  try {
+    const totalChannelVideosInDB = await ctx.prisma.videos.findMany({
+      where: { Channel: { id: channelId } },
+      select: { published: true },
+      orderBy: { published: "desc" },
+    });
+    const channelVideosWithSponsors = await ctx.prisma.videos.findMany({
       where: {
-        videoID: videoId,
-        Transcripts: {
-          some: { TranscriptDetails: { some: { score: { gte: 1 } } } },
-        },
+        Channel: { id: channelId },
+        SponsorSegments: { some: { UUID: { not: undefined } } },
       },
       include: {
-        Transcripts: {
-          orderBy: { score: "desc" },
-          take: 5,
-          include: {
-            TranscriptDetails: {
-              orderBy: { score: "desc" },
-              take: 5,
-              include: { Annotations: true },
-            },
+        SponsorSegments: {
+          select: {
+            UUID: true,
+            startTime: true,
+            endTime: true,
           },
+          // select: {
+          //   Transcripts: {
+          //     select: {
+          //       TranscriptDetails: {
+          //         select: {},
+          //       },
+          //     },
+          //   },
+          // },
         },
+      },
+      orderBy: { published: "desc" },
+    });
+
+    const videoSponsors = Promise.all(
+      channelVideosWithSponsors.map(
+        async (v) => await updateVideoSponsorsFromDB({ videoId: v.id, ctx })
+      )
+    );
+
+    let totalSponsorSegments = 0;
+    let totalSponsorTime = 0;
+    for (let i = 0; i < channelVideosWithSponsors.length - 1; i++) {
+      totalSponsorSegments +=
+        channelVideosWithSponsors[i]?.SponsorSegments?.length ?? 0;
+      channelVideosWithSponsors[i]?.SponsorSegments?.forEach(
+        (ss) => (totalSponsorTime += ss.endTime - ss.startTime)
+      );
+    }
+    const processedTo = totalChannelVideosInDB?.[0]?.published ?? now;
+
+    await ctx.prisma.channelStats.upsert({
+      where: { channelId_processedTo: { channelId, processedTo } },
+      create: {
+        channelId,
+        processedTo,
+        processedFrom:
+          totalChannelVideosInDB?.[totalChannelVideosInDB.length - 1]
+            ?.published ?? undefined,
+        lastUpdated: now,
+        videosProcessed: totalChannelVideosInDB.length,
+        numberVideosSponsored: channelVideosWithSponsors.length,
+        totalSponsorSegments,
+        totalSponsorTime,
+      },
+      update: {
+        processedFrom:
+          totalChannelVideosInDB?.[totalChannelVideosInDB.length - 1]
+            ?.published ?? undefined,
+        lastUpdated: now,
+        videosProcessed: totalChannelVideosInDB.length,
+        numberVideosSponsored: channelVideosWithSponsors.length,
+        totalSponsorSegments,
+        totalSponsorTime,
       },
     });
 
-    const flatPerSegmentSorted = segments.map((s) =>
-      [...s.Transcripts.map((t) => t.TranscriptDetails)]
-        .flat()
-        .flat()
-        .sort((a, b) => b.score - a.score)
-    );
+    await videoSponsors;
 
-    const annotationinfos = new Map<
-      string,
-      {
-        brand: string;
-        product?: string;
-        offer?: string;
-        transcriptDetailsId: string;
-      }
-    >();
-
-    const products = new Map<string, string[]>();
-    const offers = new Map<string, string[]>();
-    flatPerSegmentSorted.map((td) =>
-      td?.[0]?.Annotations.forEach((annotation) => {
-        const transcriptId = td?.[0]?.id;
-        if (transcriptId) {
-          switch (annotation.tag) {
-            case "BRAND":
-              annotationinfos.set(annotation.text.toUpperCase(), {
-                brand: annotation.text,
-                transcriptDetailsId: transcriptId,
-              });
-              break;
-            case "PRODUCT":
-              const p = products.get(transcriptId);
-              products.set(
-                transcriptId,
-                p ? [...p, annotation.text] : [annotation.text]
-              );
-              break;
-            case "OFFER":
-              const o = offers.get(transcriptId);
-              offers.set(
-                transcriptId,
-                o ? [...o, annotation.text] : [annotation.text]
-              );
-              break;
-            default:
-              break;
-          }
-        }
-      })
-    );
-
-    console.log("updating video sponsors", videoId, annotationinfos.size);
-
-    await ctx.prisma.$transaction(
-      [...annotationinfos.entries()].map((v) =>
-        ctx.prisma.sponsors.upsert({
-          where: { videoId_brand: { videoId: videoId, brand: v[1].brand } },
-          create: {
-            videoId: videoId,
-            transcriptDetailsId: v[1].transcriptDetailsId,
-            brand: v[1].brand,
-            product: products.get(v[1].transcriptDetailsId)?.[0],
-            offer: offers.get(v[1].transcriptDetailsId)?.[0],
-          },
-          update: {
-            transcriptDetailsId: v[1].transcriptDetailsId,
-            brand: v[1].brand,
-            product: products.get(v[1].transcriptDetailsId)?.[0],
-            offer: offers.get(v[1].transcriptDetailsId)?.[0],
-          },
-        })
-      )
-    );
-    console.log("updated video sponsors", videoId, annotationinfos.size);
+    if (queueId) {
+      await ctx.prisma.processQueue.update({
+        where: { id: queueId },
+        data: { status: "completed", lastUpdated: now },
+      });
+    }
+  } catch (err) {
+    if (queueId) {
+      await ctx.prisma.processQueue.update({
+        where: { id: queueId },
+        data: { status: "error", lastUpdated: now },
+      });
+    }
   }
 };
 
