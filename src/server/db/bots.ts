@@ -207,37 +207,36 @@ export const getSegmentAnnotationsOpenAICall = async ({
     }
     const rawResponseData = JSON.stringify(responseData);
 
-    const ignoreWords = ["-", "sponsor", "product", "offer", "---"];
     const parseResponseData = (
       responseData: CreateCompletionResponse | CreateChatCompletionResponse
     ) => {
       const formatText = (t?: string) => {
         const split = t?.split("\n") ?? [t];
         console.log("split?", split);
-        const columns = { brand: 0, product: 1, offer: 1 };
+        const columns = { brand: 0, product: 1, offer: 2 };
         return split
           ?.filter((p) => p)
           ?.map((p, line) => {
             const data = new Map<AnnotationTags, string>();
-
-            p?.split("|").forEach((t, i) => {
-              const textFormatted = t?.trim();
-              if (line === 0) {
-                const textLower = textFormatted.toLowerCase();
-                if (textLower === "sponsor" || textLower === "brand") {
-                  columns.brand = i;
-                } else if (textLower === "product") {
-                  columns.product = i;
-                } else if (textLower === "offer") {
-                  columns.offer = i;
-                }
+            const fillData = (
+              rawText: string | undefined,
+              switchCase: string | number,
+              columns: {
+                brand: number | string;
+                product: number | string;
+                offer: number | string;
               }
+            ) => {
+              const ignoreWords = ["-", "sponsor", "product", "offer", "---"];
+
+              const textFormatted = rawText?.trim();
+
               if (
                 textFormatted &&
                 !ignoreWords.includes(textFormatted.toLowerCase()) &&
-                textFormatted.length < 24
+                (textFormatted.length < 24 || switchCase === columns.offer)
               ) {
-                switch (i) {
+                switch (switchCase) {
                   case columns.brand:
                     data.set("BRAND", textFormatted);
                     break;
@@ -249,7 +248,35 @@ export const getSegmentAnnotationsOpenAICall = async ({
                     break;
                 }
               }
-            });
+            };
+            //expected table response
+            if (p?.includes("|")) {
+              p?.split("|").forEach((t, i) => {
+                if (line === 0) {
+                  const textLower = t?.trim()?.toLowerCase();
+                  if (textLower === "sponsor" || textLower === "brand") {
+                    columns.brand = i;
+                  } else if (textLower === "product") {
+                    columns.product = i;
+                  } else if (textLower === "offer") {
+                    columns.offer = i;
+                  }
+                }
+                fillData(t, i, columns);
+              });
+            }
+            //sometimes gpt likes to respond in this format..
+            else if (p?.includes(":")) {
+              const split = p.split(":");
+              if (split?.[0] && split?.[1]) {
+                fillData(split?.[1], split?.[0]?.toLowerCase(), {
+                  brand: "sponsor",
+                  product: "product",
+                  offer: "offer",
+                });
+              }
+            }
+
             return data;
           });
       };
