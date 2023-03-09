@@ -170,7 +170,7 @@ model Videos {
   channelId String
 
   title           String?
-  published       DateTime?
+  published       DateTime
   duration        Float?
   thumbnail       String?
   thumbnailHeight Int?

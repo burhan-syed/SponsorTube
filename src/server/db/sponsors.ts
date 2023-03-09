@@ -119,8 +119,8 @@ export const updateVideoSponsorsFromDB = async ({
     }),
     ctx.prisma.sponsors.createMany({
       data: videoSponsors.map((s) => ({ ...s })),
-      skipDuplicates: true
-    })
+      skipDuplicates: true,
+    }),
   ]);
   return videoSponsors;
 };
@@ -154,15 +154,6 @@ export const summarizeChannelSponsors = async ({
             startTime: true,
             endTime: true,
           },
-          // select: {
-          //   Transcripts: {
-          //     select: {
-          //       TranscriptDetails: {
-          //         select: {},
-          //       },
-          //     },
-          //   },
-          // },
         },
       },
       orderBy: { published: "desc" },
@@ -183,35 +174,38 @@ export const summarizeChannelSponsors = async ({
         (ss) => (totalSponsorTime += ss.endTime - ss.startTime)
       );
     }
-    const processedTo = totalChannelVideosInDB?.[0]?.published ?? now;
+    const processedTo = totalChannelVideosInDB?.[0]?.published;
+    if (processedTo) {
+      await ctx.prisma.channelStats.upsert({
+        where: { channelId_processedTo: { channelId, processedTo } },
+        create: {
+          channelId,
+          processedTo,
+          processedFrom:
+            totalChannelVideosInDB?.[totalChannelVideosInDB.length - 1]
+              ?.published ?? undefined,
+          lastUpdated: now,
+          videosProcessed: totalChannelVideosInDB.length,
+          numberVideosSponsored: channelVideosWithSponsors.length,
+          totalSponsorSegments,
+          totalSponsorTime,
+        },
+        update: {
+          processedFrom:
+            totalChannelVideosInDB?.[totalChannelVideosInDB.length - 1]
+              ?.published ?? undefined,
+          lastUpdated: now,
+          videosProcessed: totalChannelVideosInDB.length,
+          numberVideosSponsored: channelVideosWithSponsors.length,
+          totalSponsorSegments,
+          totalSponsorTime,
+        },
+      });
 
-    await ctx.prisma.channelStats.upsert({
-      where: { channelId_processedTo: { channelId, processedTo } },
-      create: {
-        channelId,
-        processedTo,
-        processedFrom:
-          totalChannelVideosInDB?.[totalChannelVideosInDB.length - 1]
-            ?.published ?? undefined,
-        lastUpdated: now,
-        videosProcessed: totalChannelVideosInDB.length,
-        numberVideosSponsored: channelVideosWithSponsors.length,
-        totalSponsorSegments,
-        totalSponsorTime,
-      },
-      update: {
-        processedFrom:
-          totalChannelVideosInDB?.[totalChannelVideosInDB.length - 1]
-            ?.published ?? undefined,
-        lastUpdated: now,
-        videosProcessed: totalChannelVideosInDB.length,
-        numberVideosSponsored: channelVideosWithSponsors.length,
-        totalSponsorSegments,
-        totalSponsorTime,
-      },
-    });
-
-    await videoSponsors;
+      await videoSponsors;
+    } else {
+      throw new Error("Missing last video published date");
+    }
 
     if (queueId) {
       await ctx.prisma.processQueue.update({

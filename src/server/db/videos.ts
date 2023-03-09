@@ -60,6 +60,13 @@ export const saveVideoDetails = async ({
       });
     }
 
+    if (!videoInfo.primary_info?.published.text) {
+      throw new TRPCError({
+        message: "Videos must have a published date",
+        code: "PRECONDITION_FAILED",
+      });
+    }
+
     const segmentsCreateData = segmentInfos?.map((segment) => ({
       UUID: segment.UUID,
       category: segment.category,
@@ -88,9 +95,9 @@ export const saveVideoDetails = async ({
         create: {
           id: input.videoId,
           title: videoInfo.basic_info.title,
-          published: videoInfo.primary_info?.published.text
-            ? new Date(Date.parse(videoInfo.primary_info?.published.text))
-            : undefined,
+          published: new Date(
+            Date.parse(videoInfo.primary_info?.published.text)
+          ),
           duration: videoInfo.basic_info.duration,
           thumbnail: videoInfo.basic_info.thumbnail?.[0]?.url?.split("?")?.[0],
           thumbnailHeight: videoInfo.basic_info.thumbnail?.[0]?.height,
