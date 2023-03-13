@@ -18,7 +18,7 @@ import type { ProcessQueue } from "@prisma/client";
 import type { VideoInfo } from "youtubei.js/dist/src/parser/youtube";
 
 const SECRET = process?.env?.MY_SECRET_KEY ?? "";
-const SERVER_URL = process.env.NEXTAUTH_URL;
+const SERVER_URL = process.env.SERVER_URL;
 
 export const processVideo = async ({
   videoId,
@@ -33,7 +33,6 @@ export const processVideo = async ({
   ctx: Context;
   options?: {
     spawnProcess?: boolean;
-    summarizeChannel?: boolean;
   };
 }) => {
   queueId && console.log("processing video with queue", queueId, videoId);
@@ -366,7 +365,7 @@ export const processChannel = async ({
       queueId: newQueue.id,
     });
   });
-  
+
   const endServerCall = performance.now();
   console.log("VODS PROCESSING?", {
     timeToFetch: endFetch - start,
