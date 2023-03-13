@@ -40,13 +40,13 @@ const ChannelPage: NextPage = () => {
         {channel.data?.pages?.[0]?.channelHeader && (
           <ChannelHeader channel={channel.data?.pages?.[0]?.channelHeader} />
         )}
-        <button
-          className={processChannel.isLoading ? "opacity-50" : ""}
+        <Button
           disabled={processChannel.isLoading}
+          loading={processChannel.isLoading}
           onClick={() => processChannel.mutate({ channelID })}
         >
           process channel
-        </button>
+        </Button>
         {channel.isLoading ? (
           <GridVideoLoader />
         ) : (

@@ -54,7 +54,6 @@ export const videoRouter = router({
       await processVideo({
         videoId: input.videoID,
         ctx,
-        options: { spawnProcess: false },
       });
     }),
 });

@@ -143,7 +143,7 @@ model Channels {
 
   Videos       Videos[]
   ChannelStats ChannelStats[] //may be overtime data
-  ProcessQueue ProcessQueue?
+  ProcessQueue ProcessQueue[]
 
   @@index([id])
 }
@@ -180,7 +180,7 @@ model Videos {
   Sponsors        Sponsors[]
   Channel         Channels       @relation(fields: [channelId], references: [id])
   BotQueue        BotQueue[]
-  ProcessQueue    ProcessQueue?
+  ProcessQueue    ProcessQueue[]
 
   @@index([id])
   @@index([channelId])
@@ -259,20 +259,28 @@ model BotQueue {
   @@index([processQueueId])
 }
 
+enum ProcessType {
+  video
+  channel_videos
+  channel_summary
+}
+
 model ProcessQueue {
   id              String      @id @default(cuid())
   parentProcessId String?
   status          QueueStatus
+  type            ProcessType
   timeInitialized DateTime    @default(now())
   lastUpdated     DateTime?
 
-  channelId String? @unique
-  videoId   String? @unique
+  channelId String?
+  videoId   String?
 
   Channel  Channels?  @relation(fields: [channelId], references: [id])
   Video    Videos?    @relation(fields: [videoId], references: [id])
   BotQueue BotQueue[]
 
+  @@unique([channelId, videoId, type])
   @@index([id])
   @@index([videoId])
   @@index([channelId])
