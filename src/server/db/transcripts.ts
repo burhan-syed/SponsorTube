@@ -10,6 +10,7 @@ import { isUserABot } from "./bots";
 import { md5 } from "../functions/hash";
 import type { Context } from "../trpc/context";
 import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo";
+import { CustomError } from "../common/errors";
 
 const AnnotationsSchema = z.array(
   z.object({
@@ -137,30 +138,44 @@ export const saveAnnotationsAndTranscript = async ({
   ctx: Context;
   inputVideoInfo?: VideoInfo;
 }) => {
-  console.log("SAVING ANNOTATIONS AND TRANSCRIPT", {
-    videoId: input.videoId,
-    transcriptDetailsId: input.transcriptDetailsId,
-    transcriptId: input.transcriptId,
-    transcript: input.transcript.length,
-    annotationsNum: input.annotations.length,
-    videoInfoIncluded: !!inputVideoInfo,
-  });
+  // console.log("SAVING ANNOTATIONS AND TRANSCRIPT", {
+  //   videoId: input.videoId,
+  //   transcriptDetailsId: input.transcriptDetailsId,
+  //   transcriptId: input.transcriptId,
+  //   transcript: input.transcript.length,
+  //   annotationsNum: input.annotations.length,
+  //   videoInfoIncluded: !!inputVideoInfo,
+  // });
 
   if (!ctx.session || !ctx.session?.user?.id) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   if (!input.annotations || !input.annotations.find((a) => a.tag === "BRAND")) {
+    const message = "A brand must be identified";
+    const cError = new CustomError({
+      message,
+      expose: true,
+      type: "",
+    });
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "A brand must be identified",
+      message,
+      cause: cError,
     });
   }
   input.annotations.forEach((annotation) => {
     if (checkAnnotationBadWords(annotation.text)) {
+      const message = "Invalid annotations. Check for Profanity.";
+      const cError = new CustomError({
+        message,
+        expose: true,
+        type: "",
+      });
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Invalid annotations. Check for Profanity.",
+        message,
+        cause: cError,
       });
     }
   });
@@ -173,9 +188,16 @@ export const saveAnnotationsAndTranscript = async ({
 
   const cleaned = filterTranscriptBadWords(input.transcript);
   if (!cleaned) {
+    const message = "Invalid transcript. Check for profanity.";
+    const cError = new CustomError({
+      message,
+      expose: true,
+      type: "",
+    });
     throw new TRPCError({
-      message: "Invalid transcript. Check for profanity.",
       code: "BAD_REQUEST",
+      message,
+      cause: cError,
     });
   }
   const textHash = md5(cleaned);
@@ -353,10 +375,10 @@ export const saveAnnotationsAndTranscript = async ({
 
     //existing transcript details
     if (transcriptDetailsId && transcriptId) {
-      console.log("FOUND EXISTING TRANSCRIPT DETAILS", {
-        UUID: input.segment.UUID,
-        transcriptDetailsId,
-      });
+      // console.log("FOUND EXISTING TRANSCRIPT DETAILS", {
+      //   UUID: input.segment.UUID,
+      //   transcriptDetailsId,
+      // });
       const r = await upsertTranscriptAndUserTranscriptAnnotations({
         transcriptDetailsId,
         transcriptId,
@@ -366,7 +388,7 @@ export const saveAnnotationsAndTranscript = async ({
       return r;
     }
     //new transcript or user transcript annotations
-    console.log("NEW TRANSCRIPT DETAILS", { UUID: input.segment.UUID });
+    //console.log("NEW TRANSCRIPT DETAILS", { UUID: input.segment.UUID });
     const r = await ctx.prisma.transcripts.upsert({
       where: {
         segmentUUID_textHash: {
@@ -422,10 +444,10 @@ export const saveAnnotationsAndTranscript = async ({
   }
   //existing user transcript annotations
   if (input.transcriptId && input.transcriptDetailsId) {
-    console.log("USING EXISTING TRANSCRIPT DETAILS", {
-      UUID: input.segment.UUID,
-      transcriptDetailsID: input.transcriptDetailsId,
-    });
+    // console.log("USING EXISTING TRANSCRIPT DETAILS", {
+    //   UUID: input.segment.UUID,
+    //   transcriptDetailsID: input.transcriptDetailsId,
+    // });
     const r = await upsertTranscriptAndUserTranscriptAnnotations({
       transcriptId: input.transcriptId,
       transcriptDetailsId: input.transcriptDetailsId,
@@ -435,9 +457,15 @@ export const saveAnnotationsAndTranscript = async ({
     return r;
   }
 
+  const cError = new CustomError({
+    message: "Missing required data",
+    expose: true,
+    level: "COMPLETE",
+  });
   throw new TRPCError({
     code: "BAD_REQUEST",
     message: "Missing required data",
+    cause: cError,
   });
 };
 
@@ -519,7 +547,7 @@ async function findCompleteMatchingTranscriptDetailsAndVote({
       const v = o[1];
       const k = o[0];
       if (v.count === annotations.length) {
-        console.log("DUPLICATE MATCH", v);
+        //console.log("DUPLICATE MATCH", v);
         const pVote = await getUserVote({
           input: { transcriptDetailsId: k },
           ctx,
@@ -536,9 +564,12 @@ async function findCompleteMatchingTranscriptDetailsAndVote({
           });
         }
 
+        const message = `These annotations were previously submitted. An upvote was placed on the previous annotations.`;
+        const cError = new CustomError({ message, expose: true });
         throw new TRPCError({
-          message: `These annotations were previously submitted. An upvote was placed on the previous annotations.`,
+          message,
           code: "PRECONDITION_FAILED",
+          cause: cError,
         });
       }
     })

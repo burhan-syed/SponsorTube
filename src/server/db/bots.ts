@@ -1,3 +1,4 @@
+import { CustomError } from "../common/errors";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { env } from "../../env/server.mjs";
@@ -50,9 +51,12 @@ export const isUserABot = async ({ ctx }: { ctx: Context }) => {
 export const getBotIds = async ({ prisma }: { prisma: PrismaClient }) => {
   const bots = await prisma?.bots.findMany();
   if (!bots) {
+    const message = "No Bots Found";
+    const cError = new CustomError({ message, type: "" });
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "No Bots Found",
+      message: message,
+      cause: cError,
     });
   }
   return bots.map((b) => b.id);
@@ -75,9 +79,12 @@ export const getSegmentAnnotationsOpenAICall = async ({
   });
 
   if (!bots?.[0]) {
+    const message = "No Bots Found";
+    const cError = new CustomError({ message, type: "" });
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "No Bots Found",
+      message: message,
+      cause: cError,
     });
   }
   const bot = bots[0];
@@ -113,10 +120,15 @@ export const getSegmentAnnotationsOpenAICall = async ({
   });
 
   if (queue?.status === "completed" || queue?.status === "pending") {
+    const cError = new CustomError({
+      message: "Request pending",
+      type: "BOT_PENDING",
+      expose: true,
+    });
     throw new TRPCError({
       code: "CONFLICT",
       message: `Bot annotations previously requested at ${queue.timeInitialized}: ${queue.id} Status: ${queue.status}`,
-      cause: queue,
+      cause: cError,
     });
   }
   // const previousAnnotations = await prisma?.transcriptDetails.findMany({
@@ -197,12 +209,19 @@ export const getSegmentAnnotationsOpenAICall = async ({
         : await makeOpenAICall(bot)
     ) as CreateCompletionResponse | CreateChatCompletionResponse | undefined;
 
-    console.log("response?", JSON.stringify(responseData, null, 2));
+    //console.log("response?", JSON.stringify(responseData, null, 2));
 
     if (!responseData) {
+      const cError = new CustomError({
+        level: "COMPLETE",
+        message: "bot unavailable",
+        type: "BOT_ERROR",
+        expose: true,
+      });
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "No OpenAI response",
+        cause: cError,
       });
     }
     const rawResponseData = JSON.stringify(responseData);
@@ -212,7 +231,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
     ) => {
       const formatText = (t?: string) => {
         const split = t?.split("\n") ?? [t];
-        console.log("split?", split);
+        //console.log("split?", split);
         const columns = { brand: 0, product: 1, offer: 2 };
         return split
           ?.filter((p) => p)
@@ -251,9 +270,16 @@ export const getSegmentAnnotationsOpenAICall = async ({
             };
             //expected table response
             if (p?.includes("|")) {
+              if (p?.charAt(0) === "|") {
+                //response was shifted
+                columns.brand = 1;
+                columns.product = 2;
+                columns.offer = 3;
+              }
               p?.split("|").forEach((t, i) => {
                 if (line === 0) {
                   const textLower = t?.trim()?.toLowerCase();
+                  //response has table headers
                   if (textLower === "sponsor" || textLower === "brand") {
                     columns.brand = i;
                   } else if (textLower === "product") {
@@ -297,12 +323,19 @@ export const getSegmentAnnotationsOpenAICall = async ({
     };
 
     const parsed = parseResponseData(responseData);
-    console.log("parsed?", parsed);
+    //console.log("parsed?", parsed);
     // const parsedAnnotations = [];
     if (!parsed) {
+      const cError = new CustomError({
+        message: "Bot failed to parse data",
+        type: "BOT_ERROR",
+        level: "PARTIAL",
+        expose: true,
+      });
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "No parsed data",
+        cause: cError,
       });
     }
     const matchedAnnotations = parsed
@@ -361,9 +394,16 @@ export const getSegmentAnnotationsOpenAICall = async ({
           inputVideoInfo,
         });
       } else {
+        const cError = new CustomError({
+          message: "Bot failed to parse data",
+          type: "BOT_ERROR",
+          level: "PARTIAL",
+          expose: true,
+        });
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Unable to match sponsor information",
+          cause: cError,
         });
       }
       await ctx.prisma.botQueue.update({
@@ -381,8 +421,8 @@ export const getSegmentAnnotationsOpenAICall = async ({
       console.error(
         "failed to save video & annotations",
         input.videoId,
-        input.segment.UUID,
-        err
+        input.segment.UUID
+        //err
       );
       await ctx.prisma.botQueue.update({
         where: { id: botQueue.id },
@@ -395,12 +435,16 @@ export const getSegmentAnnotationsOpenAICall = async ({
           rawResponseData: rawResponseData,
         },
       });
+
+      throw err;
     }
   } catch (err) {
     await ctx.prisma.botQueue.update({
       where: { id: botQueue.id },
       data: { status: "error", lastUpdated: new Date() },
     });
+
+    throw err;
   }
 
   return;
