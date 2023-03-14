@@ -375,7 +375,7 @@ export const processChannel = async ({
 
   const filteredVods = allVods
     .filter((v) => completedVodsMap.get(v.id) !== true)
-    .slice(0, 10);
+    .slice(10, 20);
 
   const spawn = await Promise.allSettled(
     filteredVods.map((v) => {
@@ -410,7 +410,8 @@ const spawnVideoProcess = async (input: {
     body: JSONdata,
   };
   console.log("call", input.videoId, input.channelId);
-  const res = await fetch(`${SERVER_URL}/api/process/video`, options);
+  const res = await fetch(`https://sponsor-tube.vercel.app/api/process/video`, options); //
+  console.log("res?", input.videoId, res.status)
   return;
 };
 
