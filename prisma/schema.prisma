@@ -273,8 +273,8 @@ model ProcessQueue {
   timeInitialized DateTime    @default(now())
   lastUpdated     DateTime?
 
-  channelId String?
-  videoId   String?
+  channelId String
+  videoId   String? @default("")
 
   Channel  Channels?  @relation(fields: [channelId], references: [id])
   Video    Videos?    @relation(fields: [videoId], references: [id])
