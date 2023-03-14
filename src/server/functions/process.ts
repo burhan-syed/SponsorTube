@@ -378,13 +378,15 @@ export const processChannel = async ({
   );
   //.slice(0, 15);
 
-  filteredVods.forEach((v) => {
-    spawnVideoProcess({
-      videoId: v.id,
-      channelId: channelId,
-      queueId: newQueue.id,
-    });
-  });
+  const spawn = await Promise.allSettled(
+    filteredVods.map((v) => {
+      spawnVideoProcess({
+        videoId: v.id,
+        channelId: channelId,
+        queueId: newQueue.id,
+      });
+    })
+  );
 
   const endServerCall = performance.now();
   console.log("VODS PROCESSING?", {
