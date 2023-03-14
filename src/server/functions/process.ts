@@ -373,10 +373,9 @@ export const processChannel = async ({
   }
   const endFetch = performance.now();
 
-  const filteredVods = allVods.filter(
-    (v) => completedVodsMap.get(v.id) !== true
-  );
-  //.slice(0, 15);
+  const filteredVods = allVods
+    .filter((v) => completedVodsMap.get(v.id) !== true)
+    .slice(0, 10);
 
   const spawn = await Promise.allSettled(
     filteredVods.map((v) => {
