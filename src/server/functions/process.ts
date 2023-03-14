@@ -378,13 +378,13 @@ export const processChannel = async ({
     .slice(10, 20);
 
   const spawn = await Promise.allSettled(
-    filteredVods.map((v) => {
+    filteredVods.map((v) =>
       spawnVideoProcess({
         videoId: v.id,
         channelId: channelId,
         queueId: newQueue.id,
-      });
-    })
+      })
+    )
   );
 
   const endServerCall = performance.now();
@@ -395,6 +395,7 @@ export const processChannel = async ({
     allvods: allVods.length,
     filtered: filteredVods.length,
     completed: completedVodsMap.size,
+    errored: spawn?.filter((s) => s.status === "rejected")?.length,
   });
 };
 
@@ -409,9 +410,12 @@ const spawnVideoProcess = async (input: {
     headers: { "Content-Type": "application/json", authorization: SECRET },
     body: JSONdata,
   };
-  console.log("call", input.videoId, input.channelId, "https://sponsor-tube.vercel.app/api/process/video");
-  const res = await fetch(`https://sponsor-tube.vercel.app/api/process/video`, options); //
-  console.log("res?", input.videoId, res.status)
+  console.log("call", input.videoId, input.channelId);
+  const res = await fetch(
+    `https://sponsor-tube.vercel.app/api/process/video`,
+    options
+  ); //
+  console.log("res?", input.videoId, res.status);
   return;
 };
 
