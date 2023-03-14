@@ -379,7 +379,6 @@ export const processChannel = async ({
   //.slice(0, 15);
 
   filteredVods.forEach((v) => {
-    //console.log("call", v.published.text, v.title.text);
     spawnVideoProcess({
       videoId: v.id,
       channelId: channelId,
@@ -409,6 +408,7 @@ const spawnVideoProcess = async (input: {
     headers: { "Content-Type": "application/json", authorization: SECRET },
     body: JSONdata,
   };
+  console.log("call", input.videoId, input.channelId);
   const res = await fetch(`${SERVER_URL}/api/process/video`, options);
   return;
 };

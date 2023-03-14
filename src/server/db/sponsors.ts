@@ -151,19 +151,20 @@ export const summarizeChannelSponsors = async ({
         type: "BOT_PENDING",
       });
       return cError;
-    } else if (
-      pChannelSummary &&
-      pChannelSummary?.lastUpdated &&
-      pChannelSummary.status !== "error" &&
-      pChannelSummary.lastUpdated.getTime() + 1000 * 60 * 60 * 12 <
-        now.getTime()
-    ) {
-      const cError = new CustomError({
-        message: `channel sponsor summarized in last 12 hours at ${pChannelSummary.lastUpdated}`,
-        expose: true,
-      });
-      return cError;
-    }
+    } 
+    // else if (
+    //   pChannelSummary &&
+    //   pChannelSummary?.lastUpdated &&
+    //   pChannelSummary.status !== "error" &&
+    //   pChannelSummary.lastUpdated.getTime() + 1000 * 60 * 60 * 12 <
+    //     now.getTime()
+    // ) {
+    //   const cError = new CustomError({
+    //     message: `channel sponsor summarized in last 12 hours at ${pChannelSummary.lastUpdated}`,
+    //     expose: true,
+    //   });
+    //   return cError;
+    // }
     return await tx.processQueue.upsert({
       where: {
         channelId_videoId_type: {
