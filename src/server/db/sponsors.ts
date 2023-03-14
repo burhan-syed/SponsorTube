@@ -6,6 +6,7 @@ import type {
   Transcripts,
 } from "@prisma/client";
 import { Context } from "../trpc/context";
+import { CustomError } from "../common/errors";
 
 export type VideoSponsor = {
   videoId: string;
@@ -127,15 +128,67 @@ export const updateVideoSponsorsFromDB = async ({
 
 export const summarizeChannelSponsors = async ({
   channelId,
-  queueId,
   ctx,
 }: {
   channelId: string;
-  queueId?: string;
   ctx: Context;
 }) => {
   const now = new Date();
-  console.log("SUMMARIZE CHANNEL", channelId, queueId);
+  console.log("SUMMARIZE CHANNEL", channelId);
+  const summarizeChannelProcess = await ctx.prisma.$transaction(async (tx) => {
+    const pChannelSummary = await tx.processQueue.findUnique({
+      where: {
+        channelId_videoId_type: {
+          channelId,
+          type: "channel_summary",
+          videoId: "",
+        },
+      },
+    });
+    if (pChannelSummary?.status === "pending") {
+      const cError = new CustomError({
+        message: "channel sponsor summary pending",
+        type: "BOT_PENDING",
+      });
+      return cError;
+    } else if (
+      pChannelSummary &&
+      pChannelSummary?.lastUpdated &&
+      pChannelSummary.status !== "error" &&
+      pChannelSummary.lastUpdated.getTime() + 1000 * 60 * 60 * 12 <
+        now.getTime()
+    ) {
+      const cError = new CustomError({
+        message: `channel sponsor summarized in last 12 hours at ${pChannelSummary.lastUpdated}`,
+        expose: true,
+      });
+      return cError;
+    }
+    return await tx.processQueue.upsert({
+      where: {
+        channelId_videoId_type: {
+          channelId,
+          type: "channel_summary",
+          videoId: "",
+        },
+      },
+      create: {
+        channelId,
+        type: "channel_summary",
+        status: "pending",
+        timeInitialized: new Date(),
+      },
+      update: {
+        channelId,
+        status: "pending",
+        timeInitialized: new Date(),
+      },
+    });
+  });
+  if (summarizeChannelProcess instanceof CustomError)
+    return summarizeChannelProcess;
+
+  //await ctx.prisma.processQueue.upsert({where: {channelId_videoId_type: {channelId, videoId: "", type: "channel_summary"}}})
   try {
     const totalChannelVideosInDB = await ctx.prisma.videos.findMany({
       where: { Channel: { id: channelId } },
@@ -159,7 +212,7 @@ export const summarizeChannelSponsors = async ({
       orderBy: { published: "desc" },
     });
 
-    const videoSponsors = Promise.all(
+    const videoSponsors = Promise.allSettled(
       channelVideosWithSponsors.map(
         async (v) => await updateVideoSponsorsFromDB({ videoId: v.id, ctx })
       )
@@ -207,19 +260,15 @@ export const summarizeChannelSponsors = async ({
       throw new Error("Missing last video published date");
     }
 
-    if (queueId) {
-      await ctx.prisma.processQueue.update({
-        where: { id: queueId },
-        data: { status: "completed", lastUpdated: now },
-      });
-    }
+    await ctx.prisma.processQueue.update({
+      where: { id: summarizeChannelProcess.id },
+      data: { status: "completed", lastUpdated: now },
+    });
   } catch (err) {
-    if (queueId) {
-      await ctx.prisma.processQueue.update({
-        where: { id: queueId },
-        data: { status: "error", lastUpdated: now },
-      });
-    }
+    await ctx.prisma.processQueue.update({
+      where: { id: summarizeChannelProcess.id },
+      data: { status: "error", lastUpdated: now },
+    });
   }
 };
 

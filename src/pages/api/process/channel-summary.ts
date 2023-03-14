@@ -10,13 +10,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
   try {
     const channelId = req.body?.channelId;
-    const queueId = req.body?.queueId;
     if (!channelId) {
       throw new Error("Missing channelId");
     }
     await summarizeChannelSponsors({
       channelId,
-      queueId,
       ctx: { prisma, session: null },
     });
     res.send("channel summarized");
