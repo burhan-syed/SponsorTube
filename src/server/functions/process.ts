@@ -389,7 +389,7 @@ export const processChannel = async ({
   );
 
   const endServerCall = performance.now();
-  console.log("VODS PROCESSING?", {
+  console.log("VODS PROCESSSED?", {
     timeToFetch: endFetch - start,
     timeToSend: endServerCall - endFetch,
     pages: page,
@@ -398,6 +398,8 @@ export const processChannel = async ({
     completed: completedVodsMap.size,
     errored: spawnProcesses?.filter((s) => s.status === "rejected")?.length,
   });
+
+  await summarizeChannelCall({ channelId });
 };
 
 const spawnVideoProcess = async (input: {
@@ -412,7 +414,7 @@ const spawnVideoProcess = async (input: {
     body: JSONdata,
   };
   console.log("call", input.videoId, input.channelId);
-  const res = await fetch(`${SERVER_URL}`, options); //
+  const res = await fetch(`${SERVER_URL}/api/process/video`, options); //
   console.log("res?", input.videoId, res.status);
   return;
 };
