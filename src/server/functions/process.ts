@@ -248,15 +248,30 @@ export const processChannel = async ({
       },
     },
   });
-  if (prevQueue?.status === "pending") {
-    const pendingChildProcesses = await ctx.prisma.processQueue.findMany({
-      where: { parentProcessId: prevQueue.id, status: "pending" },
+  if (prevQueue?.status === "pending" || prevQueue?.status === "completed") {
+    const pChannelSummaryPromise = ctx.prisma.processQueue.findUnique({
+      where: {
+        channelId_videoId_type: {
+          channelId,
+          videoId: "",
+          type: "channel_summary",
+        },
+      },
     });
-    if (pendingChildProcesses?.length > 0) {
-      console.log("pending?", pendingChildProcesses);
-      throw new Error(
-        `channel process pending from ${prevQueue.timeInitialized}`
-      );
+    if (prevQueue?.status === "pending") {
+      const pendingChildProcesses = await ctx.prisma.processQueue.findMany({
+        where: { parentProcessId: prevQueue.id, status: "pending" },
+      });
+      if (pendingChildProcesses?.length > 0) {
+        console.log("pending?", pendingChildProcesses);
+        throw new Error(
+          `channel process pending from ${prevQueue.timeInitialized}`
+        );
+      }
+    }
+    const pChannelSummary = await pChannelSummaryPromise;
+    if (!pChannelSummary || pChannelSummary.status !== "pending") {
+      summarizeChannelCall({ channelId });
     }
   }
 
@@ -296,13 +311,18 @@ export const processChannel = async ({
   const completedVodsMap = new Map<string, boolean>();
   (
     await ctx.prisma.processQueue.findMany({
-      where: { channelId: channelId, videoId: { not: "" }, type: "video" },
+      where: {
+        channelId: channelId,
+        videoId: { not: "" },
+        type: "video",
+        status: "completed",
+      },
       select: { videoId: true },
     })
   ).forEach((v) => v.videoId && completedVodsMap.set(v.videoId, true));
 
   console.log("CHANNEL PROCESS QUEUE:", newQueue.id);
-  
+
   let videosTab: Channel | ChannelListContinuation = await channel.getVideos();
   let allVods: Video[] = [];
   let processMore = true;
@@ -353,9 +373,10 @@ export const processChannel = async ({
   }
   const endFetch = performance.now();
 
-  const filteredVods = allVods
-    .filter((v) => completedVodsMap.get(v.id) !== true)
-    .slice(0, 15);
+  const filteredVods = allVods.filter(
+    (v) => completedVodsMap.get(v.id) !== true
+  );
+  //.slice(0, 15);
 
   filteredVods.forEach((v) => {
     //console.log("call", v.published.text, v.title.text);
@@ -371,8 +392,8 @@ export const processChannel = async ({
     timeToFetch: endFetch - start,
     timeToSend: endServerCall - endFetch,
     pages: page,
-    vods: allVods.length,
-    filtered: allVods.length,
+    allvods: allVods.length,
+    filtered: filteredVods.length,
     completed: completedVodsMap.size,
   });
 };
@@ -392,10 +413,7 @@ const spawnVideoProcess = async (input: {
   return;
 };
 
-const summarizeChannelCall = async (input: {
-  channelId: string;
-  queueId?: string;
-}) => {
+const summarizeChannelCall = async (input: { channelId: string }) => {
   const JSONdata = JSON.stringify(input);
   const options = {
     method: "POST",
