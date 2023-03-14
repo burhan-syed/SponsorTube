@@ -249,15 +249,15 @@ export const processChannel = async ({
     },
   });
   if (prevQueue?.status === "pending" || prevQueue?.status === "completed") {
-    const pChannelSummaryPromise = ctx.prisma.processQueue.findUnique({
-      where: {
-        channelId_videoId_type: {
-          channelId,
-          videoId: "",
-          type: "channel_summary",
-        },
-      },
-    });
+    // const pChannelSummaryPromise = ctx.prisma.processQueue.findUnique({
+    //   where: {
+    //     channelId_videoId_type: {
+    //       channelId,
+    //       videoId: "",
+    //       type: "channel_summary",
+    //     },
+    //   },
+    // });
     if (prevQueue?.status === "pending") {
       const pendingChildProcesses = await ctx.prisma.processQueue.findMany({
         where: { parentProcessId: prevQueue.id, status: "pending" },
@@ -269,10 +269,10 @@ export const processChannel = async ({
         );
       }
     }
-    const pChannelSummary = await pChannelSummaryPromise;
-    if (!pChannelSummary || pChannelSummary.status !== "pending") {
-      summarizeChannelCall({ channelId });
-    }
+    // const pChannelSummary = await pChannelSummaryPromise;
+    // if (!pChannelSummary || pChannelSummary.status !== "pending") {
+    //   summarizeChannelCall({ channelId });
+    // }
   }
 
   const channel = await getChannel({ channelID: channelId });
