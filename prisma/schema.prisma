@@ -225,6 +225,7 @@ model Transcripts {
 
 enum QueueStatus {
   pending
+  partial
   completed
   error
 }
@@ -261,6 +262,7 @@ model BotQueue {
 
 enum ProcessType {
   video
+  video_sponsors
   channel_videos
   channel_summary
 }
