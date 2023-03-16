@@ -12,6 +12,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const videoId = req.body?.videoId;
     const channelId = req.body?.channelId;
     const queueId = req.body?.queueId;
+    const skipAnnotations = req.body?.skipAnnotations;
+    const botId = req.body?.botId;
+
     if (!videoId) {
       throw new Error("Missing videoId");
     }
@@ -22,9 +25,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       videoId,
       channelId,
       queueId,
-      ctx: { prisma, session: null },
+      botId,
+      ctx: {
+        prisma,
+        session: null,
+      },
       options: {
         spawnProcess: false,
+        skipAnnotations,
       },
     });
     res.send("video processed");

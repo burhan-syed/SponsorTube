@@ -1,7 +1,7 @@
 import { getVideoSegments } from "@/apis/sponsorblock";
 import { getXMLCaptions } from "./captions";
 import { getTranscriptsInTime } from "./transcripts";
-import { getSegmentAnnotationsOpenAICall } from "../db/bots";
+import { getBotIds, getSegmentAnnotationsOpenAICall } from "../db/bots";
 import { getChannel, getVideoInfo } from "@/apis/youtube";
 import { getVideosContinuation } from "./channel";
 import { TRPCError } from "@trpc/server";
@@ -16,7 +16,10 @@ import type { GetSegmentAnnotationsType } from "../db/bots";
 import type { C4TabbedHeader } from "youtubei.js/dist/src/parser/map";
 import type { ProcessQueue } from "@prisma/client";
 import type { VideoInfo } from "youtubei.js/dist/src/parser/youtube";
+import { saveVideoDetails } from "../db/videos";
+import { saveTranscript } from "../db/transcripts";
 
+const OPENAI_RPM = 20;
 const SECRET = process?.env?.MY_SECRET_KEY ?? "";
 const SERVER_URL = process.env.SERVER_URL;
 
@@ -24,15 +27,18 @@ export const processVideo = async ({
   videoId,
   channelId,
   queueId,
+  botId,
   ctx,
   options,
 }: {
   videoId: string;
   channelId?: string;
   queueId?: string;
+  botId?: string;
   ctx: Context;
   options?: {
     spawnProcess?: boolean;
+    skipAnnotations?: boolean;
   };
 }) => {
   queueId && console.log("processing video with queue", queueId, videoId);
@@ -70,11 +76,14 @@ export const processVideo = async ({
     },
   });
 
-  const completeQueue = async (processQueue: ProcessQueue, error = false) => {
+  const completeQueue = async (
+    processQueue: ProcessQueue,
+    status?: "error" | "partial"
+  ) => {
     const completeVideoProcess = ctx.prisma.processQueue.update({
       where: { id: processQueue.id },
       data: {
-        status: error ? "error" : "completed",
+        status: status ? status : "completed",
         lastUpdated: new Date(),
       },
     });
@@ -92,7 +101,7 @@ export const processVideo = async ({
     ]);
 
     if (!videoInfo) {
-      await completeQueue(processQueue, true);
+      await completeQueue(processQueue, "error");
       return;
     }
 
@@ -111,8 +120,10 @@ export const processVideo = async ({
         videoInfo.primary_info?.published.text
       ) {
         try {
-          await ctx.prisma.videos.create({
-            data: {
+          await ctx.prisma.videos.upsert({
+            where: { id: videoInfo.basic_info.id },
+            update: {},
+            create: {
               id: videoInfo.basic_info.id,
               title: videoInfo.basic_info.title,
               published: new Date(
@@ -136,7 +147,7 @@ export const processVideo = async ({
           });
         } catch (err) {}
       }
-      await completeQueue(processQueue, true);
+      await completeQueue(processQueue, "error");
       return;
     }
 
@@ -150,38 +161,8 @@ export const processVideo = async ({
       }),
     }));
 
-    if (options?.spawnProcess) {
-      segmentTranscripts.forEach((st) =>
-        spawnSegmentAnnotationsOpenAICallProcess({
-          segment: st.segment,
-          transcript: st.transcript,
-          startTime: st.transcriptStart,
-          endTime: st.transcriptEnd,
-          videoId: videoId,
-        })
-      );
-    } else {
-      console.log(
-        "processing video segments",
-        videoId,
-        segmentTranscripts.length
-      );
-      let errored = false;
-      const calls = await Promise.allSettled(
-        segmentTranscripts.map(async (st) => {
-          await getSegmentAnnotationsOpenAICall({
-            input: {
-              segment: st.segment,
-              transcript: st.transcript,
-              startTime: st.transcriptStart,
-              endTime: st.transcriptEnd,
-              videoId: videoId,
-            },
-            ctx: ctx,
-            inputVideoInfo: videoInfo,
-          });
-        })
-      );
+    let errored = false;
+    const checkIfErrored = (calls: PromiseSettledResult<void>[]) => {
       const errors = calls
         .filter(
           (result): result is PromiseRejectedResult =>
@@ -202,6 +183,81 @@ export const processVideo = async ({
         errored = true;
         return true;
       });
+
+      return errors;
+    };
+
+    if (options?.skipAnnotations) {
+      const bot = botId ?? (await ctx.prisma.bots.findFirst())?.id;
+
+      if (!bot) {
+        errored = true;
+      } else {
+        const saveAnnotations = await Promise.allSettled([
+          saveVideoDetails({
+            ctx: { ...ctx, session: { user: { id: bot }, expires: "" } },
+            input: { videoId, segmentIDs: segments.map((s) => s.UUID) },
+            inputVideoInfo: videoInfo,
+          }),
+          ...segmentTranscripts.map(
+            async (st) =>
+              await saveTranscript({
+                input: {
+                  segmentUUID: st.segment.UUID,
+                  text: st.transcript,
+                  endTime: st.transcriptEnd,
+                  startTime: st.transcriptStart,
+                },
+                ctx: {
+                  ...ctx,
+                  session: { expires: "", user: { id: bot } },
+                },
+              })
+          ),
+        ]);
+        const errors = checkIfErrored(saveAnnotations);
+        console.log("done saving vod transcript", {
+          videoId,
+          segmentTranscriptsLength: segmentTranscripts.length,
+          errors: errors,
+          errorsLength: errors.length,
+          errored,
+        });
+      }
+      await completeQueue(processQueue, errored ? "error" : "partial");
+    } else if (options?.spawnProcess) {
+      segmentTranscripts.forEach((st) =>
+        spawnSegmentAnnotationsOpenAICallProcess({
+          segment: st.segment,
+          transcript: st.transcript,
+          startTime: st.transcriptStart,
+          endTime: st.transcriptEnd,
+          videoId: videoId,
+        })
+      );
+    } else {
+      console.log(
+        "processing video segments",
+        videoId,
+        segmentTranscripts.length
+      );
+      const calls = await Promise.allSettled(
+        segmentTranscripts.map(async (st) => {
+          await getSegmentAnnotationsOpenAICall({
+            input: {
+              segment: st.segment,
+              transcript: st.transcript,
+              startTime: st.transcriptStart,
+              endTime: st.transcriptEnd,
+              videoId: videoId,
+            },
+            ctx: ctx,
+            inputVideoInfo: videoInfo,
+          });
+        })
+      );
+      const errors = checkIfErrored(calls);
+
       console.log("done processing video segments", {
         videoId,
         segmentTranscriptsLength: segmentTranscripts.length,
@@ -209,12 +265,209 @@ export const processVideo = async ({
         errorsLength: errors.length,
         errored,
       });
-      await completeQueue(processQueue, errored);
+      await completeQueue(processQueue, errored ? "error" : undefined);
     }
   } catch (err) {
-    await completeQueue(processQueue, true);
+    await completeQueue(processQueue, "error");
     throw err;
   }
+};
+
+export const processChannelVideoTranscriptAnnotations = async ({
+  channelId,
+  parentQueueId,
+  continueQueue,
+  stopAt,
+  ctx,
+}: {
+  channelId: string;
+  parentQueueId?: string;
+  continueQueue?: true;
+  stopAt?: Date;
+  ctx: Context;
+}) => {
+  console.log(
+    "process channnel video transcript annotations..",
+    channelId,
+    parentQueueId,
+    continueQueue
+  );
+
+  const queue = await ctx.prisma.$transaction(async (tx) => {
+    const pQueue = await tx.processQueue.findFirst({
+      where: {
+        channelId: channelId,
+        type: "video_sponsors",
+        status: "pending",
+      },
+    });
+    if (pQueue) {
+      return continueQueue ? pQueue.id : false;
+    }
+    const newQueue = await tx.processQueue.upsert({
+      where: {
+        channelId_videoId_type: {
+          channelId: channelId,
+          videoId: "",
+          type: "video_sponsors",
+        },
+      },
+      update: {
+        status: "pending",
+        timeInitialized: new Date(),
+      },
+      create: {
+        channelId,
+        videoId: "",
+        status: "pending",
+        parentProcessId: parentQueueId,
+        type: "video_sponsors",
+        timeInitialized: new Date(),
+      },
+    });
+    return newQueue.id;
+  });
+
+  if (!queue) {
+    console.error(`channel ${channelId} video sponsor queue already pending`);
+    throw new Error("Process still pending");
+  }
+
+  const completeVideoQueue = async (videoId: string, errored = false) => {
+    await ctx.prisma.processQueue.update({
+      where: {
+        channelId_videoId_type: {
+          channelId,
+          videoId: videoId,
+          type: "video",
+        },
+      },
+      data: {
+        status: errored ? "error" : "completed",
+        lastUpdated: new Date(),
+      },
+    });
+  };
+  const botIds = await getBotIds({ prisma: ctx.prisma });
+  const transcripts = await ctx.prisma.transcripts.findMany({
+    where: {
+      SponsorSegment: {
+        Video: {
+          ProcessQueue: {
+            some: { type: "video", status: "partial", channelId },
+          },
+        },
+      },
+      userId: { in: botIds },
+    },
+    include: {
+      SponsorSegment: {
+        select: {
+          UUID: true,
+          videoID: true,
+        },
+      },
+    },
+  });
+  console.log(
+    "process channnel video transcript annotations..",
+    transcripts.length,
+    "stop at",
+    stopAt
+  );
+  //delay calls
+  let earlyReturn = false;
+  let slicedTranscripts = transcripts;
+  const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
+  if (stopAt) {
+    const minutesUntilStop =
+      (stopAt.getTime() - new Date().getTime()) / 1000 / 60;
+    const numToProcess = Math.floor(OPENAI_RPM * minutesUntilStop);
+    slicedTranscripts =
+      numToProcess < transcripts.length
+        ? transcripts.slice(0, numToProcess)
+        : transcripts;
+
+    console.log({
+      minutesUntilStop,
+      numToProcess,
+      transcripts: transcripts.length,
+      processing: slicedTranscripts.length,
+    });
+  }
+
+  await Promise.allSettled(
+    slicedTranscripts.map(async (t, index) => {
+      await sleep(index * (1000 * (60 / OPENAI_RPM)));
+      if (stopAt && new Date() >= stopAt) {
+        console.log("STOP");
+        earlyReturn = true;
+        return;
+      }
+      let errored = false;
+      try {
+        console.log("process", t.SponsorSegment.videoID, t.id);
+        await getSegmentAnnotationsOpenAICall({
+          ctx,
+          input: {
+            segment: t.SponsorSegment,
+            transcript: t.text,
+            videoId: t.SponsorSegment.videoID,
+            endTime: t.endTime,
+            startTime: t.startTime,
+            transcriptId: t.id,
+          },
+          stopAt,
+        });
+      } catch (err) {
+        if (
+          !(err instanceof TRPCError) ||
+          (err instanceof TRPCError &&
+            err.cause instanceof CustomError &&
+            err.cause.level === "COMPLETE")
+        ) {
+          console.log("segment err", err);
+          errored = true;
+        }
+      } finally {
+        await completeVideoQueue(t.SponsorSegment.videoID, errored);
+      }
+    })
+  );
+
+  earlyReturn =
+    slicedTranscripts.length < transcripts.length ? true : earlyReturn;
+  console.log("DONE PROCESSING SEGMENTS", earlyReturn);
+
+  if (!earlyReturn) {
+    await Promise.allSettled([
+      ctx.prisma.processQueue.update({
+        where: {
+          channelId_videoId_type: {
+            channelId,
+            videoId: "",
+            type: "video_sponsors",
+          },
+        },
+        data: { status: "completed", lastUpdated: new Date() },
+      }),
+      ctx.prisma.processQueue.update({
+        where: {
+          channelId_videoId_type: {
+            channelId,
+            videoId: "",
+            type: "channel_videos",
+          },
+        },
+        data: { status: "completed", lastUpdated: new Date() },
+      }),
+      summarizeChannelCall({ channelId }),
+    ]);
+  }
+
+  return earlyReturn;
 };
 
 export const spawnSegmentAnnotationsOpenAICallProcess = async (
@@ -233,11 +486,13 @@ export const spawnSegmentAnnotationsOpenAICallProcess = async (
 export const processChannel = async ({
   channelId,
   ctx,
-  maxPages = 4,
+  maxVideos = 25,
+  maxPages = undefined,
 }: {
   channelId: string;
   ctx: Context;
   maxPages?: number;
+  maxVideos?: number;
 }) => {
   const prevQueue = await ctx.prisma.processQueue.findUnique({
     where: {
@@ -315,7 +570,7 @@ export const processChannel = async ({
         channelId: channelId,
         videoId: { not: "" },
         type: "video",
-        status: "completed",
+        status: { in: ["completed", "partial"] },
       },
       select: { videoId: true },
     })
@@ -325,13 +580,14 @@ export const processChannel = async ({
 
   let videosTab: Channel | ChannelListContinuation = await channel.getVideos();
   let allVods: Video[] = [];
+  let filteredVods: Video[] = [];
   let processMore = true;
   let page = 0;
   const start = performance.now();
   while (
     (page === 0 || videosTab.has_continuation) &&
     processMore &&
-    page < maxPages
+    (maxPages ? page < maxPages : true)
   ) {
     const { videos, hasNext, continuation } = (await getVideosContinuation({
       videosTab,
@@ -342,51 +598,46 @@ export const processChannel = async ({
       continuation: ChannelListContinuation;
     };
     processMore = hasNext;
-    // if (from && videos?.length > 0 && videos?.[videos?.length - 1]?.id) {
-    //   const lastVideo = await getVideoInfo({
-    //     videoID: videos?.[videos?.length - 1]?.id as string,
-    //   });
-    //   if (lastVideo) {
-    //     const lastDate =
-    //       lastVideo.primary_info?.published.text &&
-    //       new Date(Date.parse(lastVideo.primary_info?.published.text ?? ""));
-    //     console.log({
-    //       lastDate,
-    //       lastDateString: lastVideo.primary_info?.published.text,
-    //       from,
-    //       fromString: new Date(from),
-    //       page,
-    //     });
-    //     if (lastDate && from > lastDate) {
-    //       processMore = false;
-    //     }
-    //   }
-    // }
     if (continuation) {
       console.log("assign continuation");
       videosTab = continuation;
     }
     if (videos.length > 0) {
       allVods = [...allVods, ...videos];
+      filteredVods = [...filteredVods, ...videos].filter(
+        (v) => completedVodsMap.get(v.id) !== true
+      );
+    }
+    if (maxVideos && filteredVods.length >= maxVideos) {
+      processMore = false;
     }
     page += 1;
   }
   const endFetch = performance.now();
 
-  const filteredVods = allVods.filter(
-    (v) => completedVodsMap.get(v.id) !== true
-  );
-  //.slice(10, 20);
+  filteredVods = allVods
+    .sort((a, b) => Date.parse(a.published.text) - Date.parse(a.published.text))
+    .slice(0, maxVideos > 0 ? maxVideos : undefined);
 
+  const botId = (await ctx.prisma.bots.findFirst())?.id;
   const spawnProcesses = await Promise.allSettled(
     filteredVods.map((v) =>
       spawnVideoProcess({
         videoId: v.id,
         channelId: channelId,
         queueId: newQueue.id,
+        skipAnnotations: true,
+        botId,
       })
     )
   );
+
+  await ctx.prisma.processQueue.update({
+    where: { id: newQueue.id },
+    data: { status: "partial", lastUpdated: new Date() },
+  });
+
+  await spawnAnnotateChannelVideosProcess({ channelId, queueId: newQueue.id });
 
   const endServerCall = performance.now();
   console.log("VODS PROCESSSED?", {
@@ -398,14 +649,14 @@ export const processChannel = async ({
     completed: completedVodsMap.size,
     errored: spawnProcesses?.filter((s) => s.status === "rejected")?.length,
   });
-
-  await summarizeChannelCall({ channelId });
 };
 
 const spawnVideoProcess = async (input: {
   videoId: string;
   channelId: string;
   queueId?: string;
+  skipAnnotations?: boolean;
+  botId?: string;
 }) => {
   const JSONdata = JSON.stringify(input);
   const options = {
@@ -416,6 +667,26 @@ const spawnVideoProcess = async (input: {
   console.log("call", input.videoId, input.channelId);
   const res = await fetch(`${SERVER_URL}/api/process/video`, options); //
   console.log("res?", input.videoId, res.status);
+  return;
+};
+
+export const spawnAnnotateChannelVideosProcess = async (input: {
+  channelId: string;
+  queueId?: string;
+  continueQueue?: boolean;
+}) => {
+  const JSONdata = JSON.stringify(input);
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json", authorization: SECRET },
+    body: JSONdata,
+  };
+  console.log("call annotate videos", input.channelId);
+  const res = await fetch(
+    `${SERVER_URL}/api/process/channel-segments`,
+    options
+  ); //
+  console.log("res?");
   return;
 };
 
