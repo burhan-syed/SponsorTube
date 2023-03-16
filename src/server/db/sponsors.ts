@@ -266,6 +266,7 @@ export const summarizeChannelSponsors = async ({
       data: { status: "completed", lastUpdated: now },
     });
   } catch (err) {
+    console.error("channel summarize err", err);
     await ctx.prisma.processQueue.update({
       where: { id: summarizeChannelProcess.id },
       data: { status: "error", lastUpdated: now },
