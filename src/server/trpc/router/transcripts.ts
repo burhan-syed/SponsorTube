@@ -2,16 +2,13 @@ import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
-import { md5 } from "@/server/functions/hash";
-import {
-  checkAnnotationBadWords,
-  filterTranscriptBadWords,
-} from "@/server/functions/badwords";
 import {
   GetUserVoteSchema,
   SaveAnnotationsSchema,
+  SaveTranscriptSchema,
   VoteTranscriptDetailsSchema,
   saveAnnotationsAndTranscript,
+  saveTranscript,
 } from "@/server/db/transcripts";
 import { getBotIds } from "@/server/db/bots";
 
@@ -194,33 +191,9 @@ export const transcriptRouter = router({
       return transcripts;
     }),
   saveTranscript: protectedProcedure
-    .input(
-      z.object({
-        segmentUUID: z.string(),
-        text: z.string(),
-        startTime: z.number().nullish(),
-        endTime: z.number().nullish(),
-      })
-    )
+    .input(SaveTranscriptSchema)
     .mutation(async ({ input, ctx }) => {
-      const cleaned = filterTranscriptBadWords(input.text);
-      if (!cleaned) {
-        throw new TRPCError({
-          message: "Invalid transcript. Check for profanity.",
-          code: "BAD_REQUEST",
-        });
-      }
-      const textHash = md5(cleaned);
-      const create = await ctx.prisma?.transcripts.create({
-        data: {
-          segmentUUID: input.segmentUUID,
-          text: cleaned,
-          textHash: textHash,
-          userId: ctx.session.user.id,
-          startTime: input.startTime,
-          endTime: input.endTime,
-        },
-      });
+      await saveTranscript({ input, ctx });
     }),
   saveAnnotations: protectedProcedure
     .input(SaveAnnotationsSchema)

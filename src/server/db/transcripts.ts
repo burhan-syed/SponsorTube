@@ -21,6 +21,13 @@ const AnnotationsSchema = z.array(
   })
 );
 
+export const SaveTranscriptSchema = z.object({
+  segmentUUID: z.string(),
+  text: z.string(),
+  startTime: z.number().nullish(),
+  endTime: z.number().nullish(),
+});
+
 export const SaveAnnotationsSchema = z.object({
   segment: z.object({
     UUID: z.string(),
@@ -44,6 +51,7 @@ export const VoteTranscriptDetailsSchema = z.object({
 export const GetUserVoteSchema = z.object({ transcriptDetailsId: z.string() });
 
 type AnnotationsType = z.infer<typeof AnnotationsSchema>;
+type SaveTranscriptType = z.infer<typeof SaveTranscriptSchema>;
 type SaveAnnotationsInputType = z.infer<typeof SaveAnnotationsSchema>;
 type VoteTranscriptDetailsType = z.infer<typeof VoteTranscriptDetailsSchema>;
 type GetUserVoteType = z.infer<typeof GetUserVoteSchema>;
@@ -125,6 +133,48 @@ export const updateUserTranscriptDetailsVote = async ({
           },
         },
       },
+    },
+  });
+};
+
+export const saveTranscript = async ({
+  input,
+  ctx,
+}: {
+  input: SaveTranscriptType;
+  ctx: Context;
+}) => {
+  if (!ctx.session?.user?.id) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      cause: new CustomError({ level: "COMPLETE", message: "Unauthorized" }),
+    });
+  }
+  const cleaned = filterTranscriptBadWords(input.text);
+  if (!cleaned) {
+    throw new TRPCError({
+      message: "Invalid transcript. Check for profanity.",
+      code: "BAD_REQUEST",
+      cause: new CustomError({
+        message: "Invalid transcript. Check for profanity.",
+        expose: true,
+        level: "COMPLETE",
+      }),
+    });
+  }
+  const textHash = md5(cleaned);
+  const create = await ctx.prisma?.transcripts.upsert({
+    where: {
+      segmentUUID_textHash: { segmentUUID: input.segmentUUID, textHash },
+    },
+    update: {},
+    create: {
+      segmentUUID: input.segmentUUID,
+      text: cleaned,
+      textHash: textHash,
+      userId: ctx.session.user.id,
+      startTime: input.startTime,
+      endTime: input.endTime,
     },
   });
 };
