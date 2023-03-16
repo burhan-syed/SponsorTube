@@ -17,6 +17,11 @@ export const openAIRouter = router({
   getSegmentAnnotations: publicProcedure
     .input(GetSegmentAnnotationsSchema)
     .mutation(async ({ ctx, input }) => {
-      return await getSegmentAnnotationsOpenAICall({ input: input, ctx: ctx });
+      const stopAt = new Date(new Date().getTime() + 1000 * 30); //30sec timeout
+      return await getSegmentAnnotationsOpenAICall({
+        input: input,
+        ctx: ctx,
+        stopAt,
+      });
     }),
 });

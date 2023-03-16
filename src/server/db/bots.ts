@@ -24,6 +24,8 @@ const configuration = new Configuration({
   apiKey: env.OPENAI_API_KEY,
 });
 
+const MAX_RETRY = 10;
+
 export const GetSegmentAnnotationsSchema = z.object({
   segment: z.object({
     UUID: z.string(),
@@ -66,10 +68,12 @@ export const getSegmentAnnotationsOpenAICall = async ({
   input,
   ctx,
   inputVideoInfo,
+  stopAt,
 }: {
   input: GetSegmentAnnotationsType;
   ctx: Context;
   inputVideoInfo?: VideoInfo;
+  stopAt?: Date;
 }) => {
   const textHash = md5(input.transcript);
 
@@ -164,40 +168,69 @@ export const getSegmentAnnotationsOpenAICall = async ({
   });
 
   try {
-    const makeOpenAICall = async (bot: Bots) => {
-      const openai = new OpenAIApi(configuration);
-      if (bot.model === "gpt-3.5-turbo") {
-        const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\nSponsor|Product|Offer|`;
-        const response = await openai.createChatCompletion({
-          model: bot.model,
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a helpful assistant that will only create tables",
-            },
-            { role: "user", content: prompt },
-          ],
-          temperature: bot?.temperature ?? 0.7, //0,
-          max_tokens: bot?.maxTokens ?? 100,
-          top_p: bot?.topP ?? 1,
-          frequency_penalty: bot?.frequencyPenalty ?? 0,
-          presence_penalty: bot?.presencePenalty ?? 0,
+    const makeOpenAICall = async (
+      bot: Bots,
+      retry = 0
+    ): Promise<
+      CreateChatCompletionResponse | CreateCompletionResponse | undefined
+    > => {
+      const delay = 2 ** retry * 100 + Math.random() * 10;
+      if (stopAt && retry && new Date().getTime() + delay >= stopAt.getTime()) {
+        throw new TRPCError({
+          message: "out of time",
+          code: "TIMEOUT",
+          cause: new CustomError({
+            expose: true,
+            message: "request timed out",
+            level: "COMPLETE",
+          }),
         });
-        return response.data;
-      } else {
-        const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\nSponsor|Product|Offer|\n\n`;
-        const response = await openai.createCompletion({
-          model: bot.model, //"text-curie-001",
-          prompt: prompt,
-          temperature: bot?.temperature ?? 0, //0,
-          max_tokens: bot?.maxTokens ?? 100,
-          top_p: bot?.topP ?? 1,
-          frequency_penalty: bot?.frequencyPenalty ?? 0,
-          presence_penalty: bot?.presencePenalty ?? 0,
-          //user
-        });
-        return response.data;
+      }
+      retry && (await new Promise((resolve) => setTimeout(resolve, delay)));
+      try {
+        const openai = new OpenAIApi(configuration);
+        if (bot.model === "gpt-3.5-turbo") {
+          const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\nSponsor|Product|Offer|`;
+          const response = await openai.createChatCompletion({
+            model: bot.model,
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are a helpful assistant that will only create tables",
+              },
+              { role: "user", content: prompt },
+            ],
+            temperature: bot?.temperature ?? 0.7, //0,
+            max_tokens: bot?.maxTokens ?? 100,
+            top_p: bot?.topP ?? 1,
+            frequency_penalty: bot?.frequencyPenalty ?? 0,
+            presence_penalty: bot?.presencePenalty ?? 0,
+          });
+          //console.log("AI RES?", response.headers);
+          return response.data;
+        } else {
+          const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\nSponsor|Product|Offer|\n\n`;
+          const response = await openai.createCompletion({
+            model: bot.model, //"text-curie-001",
+            prompt: prompt,
+            temperature: bot?.temperature ?? 0, //0,
+            max_tokens: bot?.maxTokens ?? 100,
+            top_p: bot?.topP ?? 1,
+            frequency_penalty: bot?.frequencyPenalty ?? 0,
+            presence_penalty: bot?.presencePenalty ?? 0,
+            //user
+          });
+          return response.data;
+        }
+      } catch (err) {
+        if ((err as any)?.response?.status === 429 && retry <= MAX_RETRY) {
+          console.log("DEBOUNCE", input.videoId, retry, delay);
+          return makeOpenAICall(bot, ++retry);
+        } else {
+          console.log("OPENAI ERR", err);
+          throw err;
+        }
       }
     };
 
