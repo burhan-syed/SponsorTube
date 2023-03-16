@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
 import Innertube from "youtubei.js";
 import { Platform } from "youtubei.js";
 const SERVER_URL = process.env.SERVER_URL;
@@ -34,13 +36,13 @@ const InnerTubeSettings = {
             .join("\n")}`
         : "    (none)";
 
-    console.log(
-      "YouTube.js Fetch:\n" +
-        `  url: ${url.toString()}\n` +
-        `  method: ${init?.method || "GET"}\n` +
-        `  headers:\n${headers_serialized}\n' + 
-    '  body:\n${body_contents}`
-    );
+    // console.log(
+    //   "YouTube.js Fetch:\n" +
+    //     `  url: ${url.toString()}\n` +
+    //     `  method: ${init?.method || "GET"}\n` +
+    //     `  headers:\n${headers_serialized}\n' + 
+    // '  body:\n${body_contents}`
+    // );
 
     return Platform.shim.fetch(input, init);
   },
