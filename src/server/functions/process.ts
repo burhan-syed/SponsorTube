@@ -13,7 +13,7 @@ import Channel, {
 import type Video from "youtubei.js/dist/src/parser/classes/Video";
 import type { Context } from "../trpc/context";
 import type { GetSegmentAnnotationsType } from "../db/bots";
-import type { C4TabbedHeader } from "youtubei.js/dist/src/parser/map";
+import type { C4TabbedHeader } from "youtubei.js/dist/src/parser/nodes";
 import type { ProcessQueue } from "@prisma/client";
 import type { VideoInfo } from "youtubei.js/dist/src/parser/youtube";
 import { saveVideoDetails } from "../db/videos";
@@ -616,7 +616,11 @@ export const processChannel = async ({
   const endFetch = performance.now();
 
   filteredVods = allVods
-    .sort((a, b) => Date.parse(a.published.text) - Date.parse(a.published.text))
+    .sort((a, b) =>
+      a.published.text && b.published.text
+        ? Date.parse(a.published.text) - Date.parse(b.published.text)
+        : 1
+    )
     .slice(0, maxVideos > 0 ? maxVideos : undefined);
 
   const botId = (await ctx.prisma.bots.findFirst())?.id;
