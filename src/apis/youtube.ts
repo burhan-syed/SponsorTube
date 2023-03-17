@@ -12,28 +12,28 @@ const InnerTubeSettings = {
         ? input
         : new URL(input.url);
 
-    const headers = init?.headers
-      ? new Headers(init.headers)
-      : input instanceof Request
-      ? input.headers
-      : new Headers();
+    // const headers = init?.headers
+    //   ? new Headers(init.headers)
+    //   : input instanceof Request
+    //   ? input.headers
+    //   : new Headers();
 
-    const arr_headers = [...headers];
+    // const arr_headers = [...headers];
 
-    const body_contents = init?.body
-      ? typeof init.body === "string"
-        ? headers.get("content-type") === "application/json"
-          ? JSON.stringify(JSON.parse(init.body), null, 2) // Body is string and json
-          : init.body // Body is string
-        : "    <binary>" // Body is not string
-      : "    (none)"; // No body provided
+    // const body_contents = init?.body
+    //   ? typeof init.body === "string"
+    //     ? headers.get("content-type") === "application/json"
+    //       ? JSON.stringify(JSON.parse(init.body), null, 2) // Body is string and json
+    //       : init.body // Body is string
+    //     : "    <binary>" // Body is not string
+    //   : "    (none)"; // No body provided
 
-    const headers_serialized =
-      arr_headers.length > 0
-        ? `${arr_headers
-            .map(([key, value]) => `    ${key}: ${value}`)
-            .join("\n")}`
-        : "    (none)";
+    // const headers_serialized =
+    //   arr_headers.length > 0
+    //     ? `${arr_headers
+    //         .map(([key, value]) => `    ${key}: ${value}`)
+    //         .join("\n")}`
+    //     : "    (none)";
 
     // console.log(
     //   "YouTube.js Fetch:\n" +
@@ -42,7 +42,7 @@ const InnerTubeSettings = {
     //     `  headers:\n${headers_serialized}\n' +
     // '  body:\n${body_contents}`
     // );
-    console.log("fetch?", url, { method: init?.method, body: init?.body });
+    //console.log("fetch?", url, { method: init?.method, body: init?.body });
 
     //return Platform.shim.fetch(input, init);
     return fetch(url, {
