@@ -615,7 +615,7 @@ export const processChannel = async ({
   }
   const endFetch = performance.now();
 
-  filteredVods = allVods
+  filteredVods = filteredVods
     .sort((a, b) =>
       a.published.text && b.published.text
         ? Date.parse(a.published.text) - Date.parse(b.published.text)
