@@ -42,12 +42,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       ),
     ]);
     if (earlyReturn) {
-      res.send("channel segments continued");
       await spawnAnnotateChannelVideosProcess({
         channelId,
         queueId,
         continueQueue: true,
       });
+      res.send("channel segments continued");
     } else {
       res.send("channel segments done");
     }
