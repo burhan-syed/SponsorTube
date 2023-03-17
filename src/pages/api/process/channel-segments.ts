@@ -19,7 +19,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (!channelId) {
       throw new Error("Missing channelId");
     }
-    res.send("channel video segments process started")
     let earlyReturn = false;
     await Promise.race([
       (async () => {
@@ -43,14 +42,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       ),
     ]);
     if (earlyReturn) {
-      //res.send("channel segments continued");
+      res.send("channel segments continued");
       await spawnAnnotateChannelVideosProcess({
         channelId,
         queueId,
         continueQueue: true,
       });
     } else {
-      //res.send("channel segments done");
+      res.send("channel segments done");
     }
   } catch (err) {
     res.send({ error: "something went wrong" });

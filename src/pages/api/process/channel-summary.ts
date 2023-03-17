@@ -13,12 +13,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (!channelId) {
       throw new Error("Missing channelId");
     }
-    res.send("channel summary started")
+    //res.send("channel summary started")
     await summarizeChannelSponsors({
       channelId,
       ctx: { prisma, session: null },
     });
-    //res.send("channel summarized");
+    res.send("channel summarized");
   } catch (err) {
     res.send({ error: "something went wrong" });
   }

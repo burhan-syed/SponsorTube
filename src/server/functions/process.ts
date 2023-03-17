@@ -636,12 +636,11 @@ export const processChannel = async ({
     )
   );
 
+  spawnAnnotateChannelVideosProcess({ channelId, queueId: newQueue.id });
   await ctx.prisma.processQueue.update({
     where: { id: newQueue.id },
     data: { status: "partial", lastUpdated: new Date() },
   });
-
-  await spawnAnnotateChannelVideosProcess({ channelId, queueId: newQueue.id });
 
   const endServerCall = performance.now();
   console.log("VODS PROCESSSED?", {
@@ -668,9 +667,9 @@ const spawnVideoProcess = async (input: {
     headers: { "Content-Type": "application/json", authorization: SECRET },
     body: JSONdata,
   };
-  console.log("call", input.videoId, input.channelId);
+  //console.log("call", input.videoId, input.channelId);
   const res = await fetch(`${SERVER_URL}/api/process/video`, options); //
-  console.log("res?", input.videoId, res.status);
+  //console.log("res?", input.videoId, res.status);
   return;
 };
 
