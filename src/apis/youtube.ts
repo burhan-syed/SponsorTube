@@ -1,11 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import Innertube from "youtubei.js";
-import { Platform } from "youtubei.js";
-const SERVER_URL = process.env.SERVER_URL;
+//import { Platform } from "youtubei.js";
 
 const InnerTubeSettings = {
-  fetch: async (input:any, init:any) => {
+  fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
     const url =
       typeof input === "string"
         ? new URL(input)
@@ -40,11 +39,17 @@ const InnerTubeSettings = {
     //   "YouTube.js Fetch:\n" +
     //     `  url: ${url.toString()}\n` +
     //     `  method: ${init?.method || "GET"}\n` +
-    //     `  headers:\n${headers_serialized}\n' + 
+    //     `  headers:\n${headers_serialized}\n' +
     // '  body:\n${body_contents}`
     // );
+    console.log("fetch?", url, { method: init?.method, body: init?.body });
 
-    return Platform.shim.fetch(input, init);
+    //return Platform.shim.fetch(input, init);
+    return fetch(url, {
+      body: init?.body,
+      headers: init?.headers,
+      method: init?.body ? "POST" : init?.method ?? "GET",
+    });
   },
   /* fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
     // url
@@ -116,7 +121,12 @@ export const ytSearchQuery = async ({ query }: { query: string }) => {
     // console.log("D?", details);
     return details;
   } catch (err) {
-    console.error("INNERTUBE SEARCH ERROR: ", { query }, err);
+    console.error(
+      "INNERTUBE SEARCH ERROR: ",
+      { query },
+      err,
+      (err as any)?.input
+    );
   }
 };
 
