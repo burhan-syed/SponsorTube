@@ -54,4 +54,44 @@ export const channelRouter = router({
     .mutation(async ({ input, ctx }) => {
       await processChannel({ channelId: input.channelID, ctx });
     }),
+  getStats: publicProcedure
+    .input(z.object({ channelId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const channelStatus = await ctx.prisma.channelStats.findMany({
+        where: { channelId: input.channelId },
+        orderBy: { processedTo: "desc" },
+      });
+      return channelStatus;
+    }),
+  getStatus: publicProcedure
+    .input(z.object({ channelId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const processStatus = await ctx.prisma.processQueue.findFirst({
+        where: { channelId: input.channelId, type: "channel_videos" },
+      });
+      return {
+        status: processStatus?.status,
+      };
+    }),
+
+  getSponsors: publicProcedure
+    .input(z.object({ channelId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const channelSponsors = await ctx.prisma.sponsors.findMany({
+        where: { Video: { channelId: input.channelId } },
+        include: {
+          Video: {
+            select: {
+              published: true,
+            },
+          },
+        },
+        orderBy: {
+          Video: {
+            published: "desc",
+          },
+        },
+      });
+      return channelSponsors;
+    }),
 });

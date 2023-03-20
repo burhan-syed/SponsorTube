@@ -10,6 +10,7 @@ import { getChannel, ytSearchQuery } from "../../apis/youtube";
 import GridVideoView from "@/components/ui/GridVideoView";
 import GridVideoLoader from "@/components/ui/loaders/GridVideoLoader";
 import { Button } from "@/components/ui/common/Button";
+import ChannelStats from "@/components/ui/ChannelStats";
 
 const ChannelPage: NextPage = () => {
   const router = useRouter();
@@ -40,6 +41,7 @@ const ChannelPage: NextPage = () => {
         {channel.data?.pages?.[0]?.channelHeader && (
           <ChannelHeader channel={channel.data?.pages?.[0]?.channelHeader} />
         )}
+        <ChannelStats channelId={channelID} />
         <Button
           disabled={processChannel.isLoading}
           loading={processChannel.isLoading}
@@ -84,15 +86,28 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
   try {
+    if (channelID?.[0] === "@") {
+      throw new Error("not an id");
+    }
     const channel = await getChannel({ channelID: channelID });
   } catch (err) {
     //channel with id does not exist
-    const search = await await ytSearchQuery({ query: channelID });
-    const channel = search?.channels[0]?.author.id;
-    if (channel) {
+    try {
+      const search = await ytSearchQuery({ query: channelID });
+      const channel = search?.channels?.[0]?.author.id;
+      if (channel) {
+        return {
+          redirect: {
+            destination: `/channel/${channel}`,
+            permanent: false,
+          },
+        };
+      }
+    } catch (err) {
+    } finally {
       return {
         redirect: {
-          destination: `/channel/${channel}`,
+          destination: `/search?q=${channelID}`,
           permanent: false,
         },
       };
