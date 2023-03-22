@@ -1,16 +1,17 @@
-import Head from "next/head";
-import { useRouter } from "next/router";
-import ChannelHeader from "../../components/ui/ChannelHeader";
-import Header from "../../components/Header";
-import { trpc } from "../../utils/trpc";
-
-import type { NextPage } from "next";
 import { GetServerSideProps } from "next";
-import { getChannel, ytSearchQuery } from "../../apis/youtube";
+import Head from "next/head";
+import Image from "next/image";
+import { useRouter } from "next/router";
+import { trpc } from "@/utils/trpc";
+import { getChannel, ytSearchQuery } from "@/apis/youtube";
+import ChannelHeader from "@/components/ui/channel/ChannelHeader";
+import Header from "@/components/Header";
 import GridVideoView from "@/components/ui/GridVideoView";
 import GridVideoLoader from "@/components/ui/loaders/GridVideoLoader";
 import { Button } from "@/components/ui/common/Button";
-import ChannelStats from "@/components/ui/ChannelStats";
+import ChannelStatsWrapper from "@/components/ui/channel/ChannelStatsWrapper";
+
+import type { NextPage } from "next";
 
 const ChannelPage: NextPage = () => {
   const router = useRouter();
@@ -37,11 +38,25 @@ const ChannelPage: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
-      <div>
-        {channel.data?.pages?.[0]?.channelHeader && (
-          <ChannelHeader channel={channel.data?.pages?.[0]?.channelHeader} />
+      {channel.data?.pages?.[0]?.channelHeader &&
+        channel.data?.pages?.[0]?.channelHeader?.banner?.[0]?.url && (
+          <Image
+            src={channel.data?.pages?.[0]?.channelHeader.banner[0]?.url}
+            height={channel.data?.pages?.[0]?.channelHeader.banner[0].height}
+            width={channel.data?.pages?.[0]?.channelHeader.banner[0].width}
+            alt=""
+            unoptimized={true}
+          />
         )}
-        <ChannelStats channelId={channelID} />
+      <div className="mx-auto px-4 2xl:max-w-[192rem]">
+        <div className="flex flex-col items-center justify-center md:flex-row md:justify-between">
+          {channel.data?.pages?.[0]?.channelHeader && (
+            <ChannelHeader channel={channel.data?.pages?.[0]?.channelHeader} />
+          )}
+        </div>
+
+        <ChannelStatsWrapper channelId={channelID} />
+
         <Button
           disabled={processChannel.isLoading}
           loading={processChannel.isLoading}

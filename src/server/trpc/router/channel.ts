@@ -5,6 +5,7 @@ import { getVideosContinuation } from "@/server/functions/channel";
 import { processChannel } from "@/server/functions/process";
 import type C4TabbedHeader from "youtubei.js/dist/src/parser/classes/C4TabbedHeader";
 import { TRPCError } from "@trpc/server";
+import { summarizeChannelSponsors } from "@/server/db/sponsors";
 
 export const channelRouter = router({
   hello: publicProcedure
@@ -53,6 +54,11 @@ export const channelRouter = router({
     .input(z.object({ channelID: z.string() }))
     .mutation(async ({ input, ctx }) => {
       await processChannel({ channelId: input.channelID, ctx });
+    }),
+  updateChannelSponsors: publicProcedure
+    .input(z.object({ channelId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      await summarizeChannelSponsors({ channelId: input.channelId, ctx });
     }),
   getStats: publicProcedure
     .input(z.object({ channelId: z.string() }))

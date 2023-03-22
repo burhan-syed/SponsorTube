@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { trpc } from "../utils/trpc";
 import VideoCard from "../components/ui/VideoCard";
 import Header from "../components/Header";
-import ChannelCard from "../components/ui/ChannelCard";
+import ChannelCard from "../components/ui/channel/ChannelCard";
 import ListVideoLoader from "@/components/ui/loaders/ListVideoLoader";
 
 import type { VideoWithThumbnail } from "../types";
