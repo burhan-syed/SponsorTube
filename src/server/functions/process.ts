@@ -488,11 +488,13 @@ export const processChannel = async ({
   ctx,
   maxVideos = 25,
   maxPages = undefined,
+  limitToPreviousDate = true,
 }: {
   channelId: string;
   ctx: Context;
   maxPages?: number;
   maxVideos?: number;
+  limitToPreviousDate?: boolean;
 }) => {
   const prevQueue = await ctx.prisma.processQueue.findUnique({
     where: {
@@ -503,31 +505,21 @@ export const processChannel = async ({
       },
     },
   });
-  if (prevQueue?.status === "pending" || prevQueue?.status === "completed") {
-    // const pChannelSummaryPromise = ctx.prisma.processQueue.findUnique({
-    //   where: {
-    //     channelId_videoId_type: {
-    //       channelId,
-    //       videoId: "",
-    //       type: "channel_summary",
-    //     },
-    //   },
-    // });
-    if (prevQueue?.status === "pending") {
-      const pendingChildProcesses = await ctx.prisma.processQueue.findMany({
-        where: { parentProcessId: prevQueue.id, status: "pending" },
-      });
-      if (pendingChildProcesses?.length > 0) {
-        console.log("pending?", pendingChildProcesses);
-        throw new Error(
-          `channel process pending from ${prevQueue.timeInitialized}`
-        );
-      }
+  if (prevQueue?.status === "pending") {
+    const pendingChildProcesses = await ctx.prisma.processQueue.findMany({
+      where: {
+        channelId,
+        type: "video",
+        videoId: { not: "" },
+        status: "pending",
+      },
+    });
+    if (pendingChildProcesses?.length > 0) {
+      console.log("pending?", pendingChildProcesses);
+      throw new Error(
+        `channel process pending from ${prevQueue.timeInitialized}`
+      );
     }
-    // const pChannelSummary = await pChannelSummaryPromise;
-    // if (!pChannelSummary || pChannelSummary.status !== "pending") {
-    //   summarizeChannelCall({ channelId });
-    // }
   }
 
   const channel = await getChannel({ channelID: channelId });
@@ -578,6 +570,15 @@ export const processChannel = async ({
 
   console.log("CHANNEL PROCESS QUEUE:", newQueue.id);
 
+  const from = limitToPreviousDate
+    ? (
+        await ctx.prisma.channelStats.findFirst({
+          where: { channelId },
+          orderBy: { processedTo: "desc" },
+        })
+      )?.processedTo
+    : undefined;
+
   let videosTab: Channel | ChannelListContinuation = await channel.getVideos();
   let allVods: Video[] = [];
   let filteredVods: Video[] = [];
@@ -608,20 +609,31 @@ export const processChannel = async ({
         (v) => completedVodsMap.get(v.id) !== true
       );
     }
-    if (maxVideos && filteredVods.length >= maxVideos) {
+    const lastVod = filteredVods?.[filteredVods.length - 1];
+    let lastVideoDateString: string | undefined;
+    if (from && lastVod) {
+      const lastVidInfo = await getVideoInfo({ videoID: lastVod.id });
+      lastVideoDateString = lastVidInfo?.primary_info?.published?.text;
+    }
+    if (
+      (maxVideos && filteredVods.length >= maxVideos) ||
+      (limitToPreviousDate &&
+        from &&
+        lastVideoDateString &&
+        from >= new Date(Date.parse(lastVideoDateString)))
+    ) {
       processMore = false;
     }
     page += 1;
   }
   const endFetch = performance.now();
 
-  filteredVods = filteredVods
-    .sort((a, b) =>
-      a.published.text && b.published.text
-        ? Date.parse(a.published.text) - Date.parse(b.published.text)
-        : 1
-    )
-    .slice(0, maxVideos > 0 ? maxVideos : undefined);
+  if (limitToPreviousDate && from) {
+    filteredVods.filter(
+      (v) => v.published.text && from < new Date(Date.parse(v.published.text))
+    );
+  }
+  filteredVods = filteredVods.slice(0, maxVideos > 0 ? maxVideos : undefined);
 
   const botId = (await ctx.prisma.bots.findFirst())?.id;
   const spawnProcesses = await Promise.allSettled(
@@ -650,6 +662,8 @@ export const processChannel = async ({
     allvods: allVods.length,
     filtered: filteredVods.length,
     completed: completedVodsMap.size,
+    limitToPreviousDate,
+    from,
     errored: spawnProcesses?.filter((s) => s.status === "rejected")?.length,
   });
 };
