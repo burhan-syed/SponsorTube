@@ -1,14 +1,34 @@
 import { trpc } from "@/utils/trpc";
+import { useEffect, useState } from "react";
 
 const useMonitorChannel = ({ channelId }: { channelId: string }) => {
-  const channelStatusQuery = trpc.channel.getStatus.useQuery(
+  const [enableMonitor, setEnableMonitor] = useState(false);
+  const startMonitor = () => {
+    setEnableMonitor(true);
+  };
+  const channelStatusQuery = trpc.channel.getVideosStatus.useQuery(
     { channelId },
-    { refetchInterval: 10 * 1000 }
+    {
+      enabled: !!channelId,
+      refetchOnReconnect: true,
+      refetchOnWindowFocus: true,
+      refetchInterval: enableMonitor ? 5 * 1000 : Infinity,
+    }
   );
 
+  useEffect(() => {
+    if (
+      !channelStatusQuery.isLoading &&
+      channelStatusQuery.data?.status === "completed"
+    ) {
+      setEnableMonitor(false);
+    }
+  }, [channelStatusQuery.isLoading, channelStatusQuery.data]);
 
-  return channelStatusQuery;
-
+  return {
+    channelStatusQuery,
+    startMonitor,
+  };
 };
 
 export default useMonitorChannel;
