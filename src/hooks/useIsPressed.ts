@@ -16,12 +16,12 @@ const useIsPressed = ({ delay = true }: useIsPressedProps = {}) => {
       }
       setIsPressed(true);
     };
-    containerRef?.current?.addEventListener("mousedown", onMouseDown);
-    containerRef?.current?.addEventListener("touchstart", onMouseDown);
+    containerRef?.current?.addEventListener("pointerdown", onMouseDown);
+    // containerRef?.current?.addEventListener("touchstart", onMouseDown);
 
     return () => {
-      containerRef?.current?.removeEventListener("mousedown", onMouseDown);
-      containerRef?.current?.removeEventListener("touchstart", onMouseDown);
+      containerRef?.current?.removeEventListener("pointerdown", onMouseDown);
+      // containerRef?.current?.removeEventListener("touchstart", onMouseDown);
     };
   }, [containerRef, delay]);
 
@@ -35,6 +35,7 @@ const useIsPressed = ({ delay = true }: useIsPressedProps = {}) => {
       }
     };
     if (isPressed) {
+      window.addEventListener("pointerup", onMouseUp);
       window.addEventListener("mouseup", onMouseUp);
       window.addEventListener("touchend", onMouseUp);
       window.addEventListener("touchcancel", onMouseUp);
@@ -42,6 +43,7 @@ const useIsPressed = ({ delay = true }: useIsPressedProps = {}) => {
     }
 
     return () => {
+      window.removeEventListener("pointerup", onMouseUp);
       window.removeEventListener("mouseup", onMouseUp);
       window.removeEventListener("touchend", onMouseUp);
       window.removeEventListener("touchcancel", onMouseUp);
