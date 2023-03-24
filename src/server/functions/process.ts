@@ -28,6 +28,7 @@ export const processVideo = async ({
   channelId,
   queueId,
   botId,
+  suppliedVideoInfo,
   ctx,
   options,
 }: {
@@ -36,6 +37,7 @@ export const processVideo = async ({
   queueId?: string;
   botId?: string;
   ctx: Context;
+  suppliedVideoInfo?: VideoInfo;
   options?: {
     spawnProcess?: boolean;
     skipAnnotations?: boolean;
@@ -43,9 +45,9 @@ export const processVideo = async ({
 }) => {
   queueId && console.log("processing video with queue", queueId, videoId);
 
-  let preVidInfo: VideoInfo | undefined;
+  let preVidInfo = suppliedVideoInfo;
 
-  if (!channelId) {
+  if (!channelId && !preVidInfo) {
     preVidInfo = await getVideoInfo({ videoID: videoId });
   }
 
@@ -581,7 +583,8 @@ export const processChannel = async ({
 
   let videosTab: Channel | ChannelListContinuation = await channel.getVideos();
   let allVods: Video[] = [];
-  let filteredVods: Video[] = [];
+  type VideoWithVideoInfo = Video & { videoInfo: VideoInfo };
+  let filteredVods: (Video | VideoWithVideoInfo)[] = [];
   let processMore = true;
   let page = 0;
   const start = performance.now();
@@ -628,12 +631,24 @@ export const processChannel = async ({
   }
   const endFetch = performance.now();
 
-  if (limitToPreviousDate && from) {
-    filteredVods.filter(
-      (v) => v.published.text && from < new Date(Date.parse(v.published.text))
-    );
-  }
   filteredVods = filteredVods.slice(0, maxVideos > 0 ? maxVideos : undefined);
+
+  if (limitToPreviousDate && from) {
+    await Promise.allSettled(
+      filteredVods.map(async (v, i) => {
+        const videoInfo = await getVideoInfo({ videoID: v.id });
+        filteredVods[i] = {
+          ...(v as Video),
+          videoInfo: videoInfo as VideoInfo,
+        } as VideoWithVideoInfo;
+      })
+    );
+    filteredVods = filteredVods.filter((v) => {
+      const publishedText = (v as VideoWithVideoInfo)?.videoInfo?.primary_info
+        ?.published.text;
+      return publishedText && from <= new Date(Date.parse(publishedText));
+    });
+  }
 
   const botId = (await ctx.prisma.bots.findFirst())?.id;
   const spawnProcesses = await Promise.allSettled(
@@ -644,15 +659,43 @@ export const processChannel = async ({
         queueId: newQueue.id,
         skipAnnotations: true,
         botId,
+        videoInfo: (v as VideoWithVideoInfo)?.videoInfo
       })
     )
   );
 
-  spawnAnnotateChannelVideosProcess({ channelId, queueId: newQueue.id });
-  await ctx.prisma.processQueue.update({
-    where: { id: newQueue.id },
-    data: { status: "partial", lastUpdated: new Date() },
-  });
+  if (filteredVods.length > 0) {
+    spawnAnnotateChannelVideosProcess({ channelId, queueId: newQueue.id });
+    await ctx.prisma.processQueue.update({
+      where: { id: newQueue.id },
+      data: {
+        status: "partial",
+        lastUpdated: new Date(),
+      },
+    });
+  } else {
+    await ctx.prisma.$transaction(async (tx) => {
+      const pendingVods = await tx.processQueue.findMany({
+        where: {
+          channelId,
+          videoId: { not: "" },
+          type: "video",
+          status: { in: ["partial", "pending"] },
+        },
+        select: { id: true },
+      });
+      if (pendingVods.length > 0) {
+        spawnAnnotateChannelVideosProcess({ channelId, queueId: newQueue.id });
+      }
+      await tx.processQueue.update({
+        where: { id: newQueue.id },
+        data: {
+          status: pendingVods.length > 0 ? "partial" : "completed",
+          lastUpdated: new Date(),
+        },
+      });
+    });
+  }
 
   const endServerCall = performance.now();
   console.log("VODS PROCESSSED?", {
@@ -674,6 +717,7 @@ const spawnVideoProcess = async (input: {
   queueId?: string;
   skipAnnotations?: boolean;
   botId?: string;
+  videoInfo?:VideoInfo
 }) => {
   const JSONdata = JSON.stringify(input);
   const options = {
