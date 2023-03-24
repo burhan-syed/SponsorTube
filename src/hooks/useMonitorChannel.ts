@@ -1,11 +1,15 @@
 import { trpc } from "@/utils/trpc";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const useMonitorChannel = ({ channelId }: { channelId: string }) => {
   const [enableMonitor, setEnableMonitor] = useState(false);
-  const startMonitor = () => {
-    setEnableMonitor(true);
-  };
+  const startMonitor = useCallback(
+    () => {
+      setEnableMonitor(true);
+    },
+    [],
+  )
+  
   const channelStatusQuery = trpc.channel.getVideosStatus.useQuery(
     { channelId },
     {
