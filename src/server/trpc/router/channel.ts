@@ -20,6 +20,7 @@ export const channelRouter = router({
     .query(async ({ input }) => {
       //let hasNext = false;
       const channel = await getChannel({ channelID: input.channelID });
+      console.log("channel?", channel);
       if (!channel) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -44,6 +45,7 @@ export const channelRouter = router({
       // });
 
       return {
+        metadata: { description: channel.metadata.description },
         channelHeader: channel.header as C4TabbedHeader,
         channelVideos: videos,
         hasNext: hasNext,
@@ -69,15 +71,13 @@ export const channelRouter = router({
       });
       return channelStatus;
     }),
-  getStatus: publicProcedure
+  getVideosStatus: publicProcedure
     .input(z.object({ channelId: z.string() }))
     .query(async ({ input, ctx }) => {
       const processStatus = await ctx.prisma.processQueue.findFirst({
         where: { channelId: input.channelId, type: "channel_videos" },
       });
-      return {
-        status: processStatus?.status,
-      };
+      return processStatus;
     }),
 
   getSponsors: publicProcedure
