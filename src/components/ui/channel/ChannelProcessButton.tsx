@@ -5,6 +5,109 @@ import Dropdown from "../common/Dropdown";
 import { BiBrain, BiChevronDown, BiRefresh } from "react-icons/bi";
 import { useWindowWidth } from "@react-hook/window-size/throttled";
 import useMonitorChannel from "@/hooks/useMonitorChannel";
+import clsx from "clsx";
+import ToolTip from "../common/Tooltip";
+import { Button } from "../common/Button";
+import { BsInfo } from "react-icons/bs";
+import { ProcessQueue } from "@prisma/client";
+
+const ChannelProcessButtonChildren = ({
+  isOpen,
+  isLoading,
+}: {
+  isOpen?: boolean;
+  isLoading: boolean;
+}) => {
+  return (
+    <span className="flex flex-none select-none items-center gap-2">
+      <span className="md:hidden">Process Channel Sponsors</span>
+      <span className="hidden md:block">Channel Sponsors</span>
+
+      <>
+        {isLoading ? (
+          <div className="animate-spin">
+            <BiRefresh className="h-5 w-5 flex-none -scale-x-100  " />
+          </div>
+        ) : (
+          <BiChevronDown
+            className={clsx(
+              "h-5 w-5 flex-none transition-transform ease-in-out",
+              isOpen ? "rotate-180" : ""
+            )}
+          />
+        )}
+      </>
+    </span>
+  );
+};
+
+const ChannelStatusToolTip = ({
+  isError,
+  isLoading,
+  data,
+  processChannelLoading,
+}: {
+  isError: boolean;
+  isLoading: boolean;
+  processChannelLoading: boolean;
+  data?: ProcessQueue;
+}) => {
+  return (
+    <ToolTip
+      manualControl={true}
+      text={
+        <>
+          {isLoading ? (
+            <span>Waiting for status..</span>
+          ) : isError ? (
+            <span>error fetching status</span>
+          ) : data?.id ? (
+            <p className="flex flex-col items-center justify-center">
+              {data.status === "partial" ||
+              (data.status === "pending" && data.timeInitialized) ? (
+                <span>{`Update Initialized ${data?.timeInitialized?.toLocaleString(
+                  undefined,
+                  {
+                    dateStyle: "short",
+                    timeStyle: "short",
+                  }
+                )}`}</span>
+              ) : (
+                processChannelLoading && <span>Job pending</span>
+              )}
+              {(data.status === "completed" || data.status === "error") &&
+                data.lastUpdated && (
+                  <span>{`Last updated ${data?.lastUpdated?.toLocaleString(
+                    undefined,
+                    {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    }
+                  )}`}</span>
+                )}
+            </p>
+          ) : (
+            <span>
+              {processChannelLoading
+                ? "Job pending"
+                : "No previous process jobs found"}
+            </span>
+          )}
+        </>
+      }
+      tooltipOptions={{
+        align: "end",
+        side: "bottom",
+        sideOffset: 10,
+      }}
+    >
+      <Button dummyButton={true} round={true}>
+        <BsInfo className="h-5 w-5 flex-none" />
+      </Button>
+    </ToolTip>
+  );
+};
+
 const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [waitToFinish, setWaitToFinish] = useState(false);
@@ -60,6 +163,7 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
     } else {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     startMonitor,
     channelId,
@@ -68,29 +172,16 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
     updateSponsors.isLoading,
     processChannel.isLoading,
     waitToFinish,
-    utils.video.getSponsors,
-    utils.channel.getSponsors,
-    utils.channel.getStats,
+    // unnecessary causes effect loops
+    // utils.video.getSponsors,
+    // utils.channel.getSponsors,
+    // utils.channel.getStats,
   ]);
 
   return (
-    <div>
+    <div className="flex w-full gap-2 md:w-auto">
       <Dropdown
         disabled={isLoading}
-        TriggerElementChildren={
-          <span className="flex flex-none select-none items-center gap-2">
-            Process
-            <>
-              {isLoading ? (
-                <div className="animate-spin">
-                  <BiRefresh className="h-5 w-5 flex-none -scale-x-100  " />
-                </div>
-              ) : (
-                <BiChevronDown className="h-5 w-5 flex-none" />
-              )}
-            </>
-          </span>
-        }
         MenuItems={[
           <button
             disabled={isLoading}
@@ -101,7 +192,7 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
             }}
           >
             <BiBrain className="h-5 w-5 flex-none" />
-            <span>Process Channel</span>
+            <span>Process Recent Videos</span>
           </button>,
           <button
             disabled={isLoading}
@@ -112,7 +203,7 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
             }}
           >
             <BiRefresh className="h-5 w-5 flex-none -scale-x-100 " />
-            <span>Update Sponsors</span>{" "}
+            <span>Check for Updates</span>
           </button>,
         ]}
         menuOptions={{
@@ -120,8 +211,17 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
           side: "bottom",
           align: windowWidth > 768 ? "end" : "center",
         }}
-      />
-    </div>
+      >
+        <ChannelProcessButtonChildren isLoading={isLoading} />
+      </Dropdown>
+
+      <ChannelStatusToolTip
+      isError={channelStatusQuery.isError}
+      isLoading={channelStatusQuery.isLoading}
+      data={channelStatusQuery?.data ?? undefined}
+      processChannelLoading={processChannel.isLoading}
+      />    
+      </div>
   );
 };
 
