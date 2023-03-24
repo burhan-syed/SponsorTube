@@ -23,6 +23,7 @@ interface ButtonAsButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 type ButtonProps = ButtonBaseProps &
   (ButtonAsAnchorProps | ButtonAsButtonProps) & {
     requireSession?: { required: boolean; reason?: string };
+    dummyButton?: boolean;
   };
 
 const buttonClasses = cva(
@@ -114,6 +115,7 @@ export const Button = ({
   round,
   disabled,
   loading,
+  dummyButton,
   requireSession = { required: false },
   ...props
 }: ButtonProps) => {
@@ -131,13 +133,37 @@ export const Button = ({
   );
   const { containerRef, isPressed } = useIsPressed();
 
+  if (dummyButton) {
+    return (
+      <div ref={containerRef} className={clsx(classes)}>
+        {children}
+
+        <TouchResponse
+          variant="ring"
+          className={"rounded-full"}
+          isPressed={!disabled && isPressed}
+        />
+        {loading && (
+          <mark
+            className={clsx(
+              "absolute bg-transparent",
+              variant === "accent" && "text-th-textPrimaryInverse"
+            )}
+          >
+            <CgSpinnerTwoAlt className="animate-spin" />
+          </mark>
+        )}
+      </div>
+    );
+  }
+
   if ("href" in props && props.href !== undefined) {
     return (
-      <Link {...props} ref={containerRef} className={classes}>
-        {children}
-        <TouchResponse
-          isPressed={isPressed}
-        />
+      <Link {...props}>
+        <span className={clsx(classes)} ref={containerRef}>
+          {children}
+          <TouchResponse isPressed={isPressed} className={"rounded-full"} />
+        </span>
       </Link>
     );
   }
