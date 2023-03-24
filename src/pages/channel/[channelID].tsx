@@ -19,7 +19,6 @@ const ChannelPage: NextPage = () => {
     (Array.isArray(router.query.channelID)
       ? router.query.channelID?.[0]
       : router.query.channelID) ?? "";
-  const processChannel = trpc.channel.processChannel.useMutation();
   const channel = trpc.channel.details.useInfiniteQuery(
     { channelID: channelID },
     {
@@ -40,30 +39,28 @@ const ChannelPage: NextPage = () => {
       <Header />
       {channel.data?.pages?.[0]?.channelHeader &&
         channel.data?.pages?.[0]?.channelHeader?.banner?.[0]?.url && (
-          <Image
-            src={channel.data?.pages?.[0]?.channelHeader.banner[0]?.url}
-            height={channel.data?.pages?.[0]?.channelHeader.banner[0].height}
-            width={channel.data?.pages?.[0]?.channelHeader.banner[0].width}
-            alt=""
-            unoptimized={true}
-          />
+            <Image
+              src={channel.data?.pages?.[0]?.channelHeader.banner[0]?.url}
+              height={channel.data?.pages?.[0]?.channelHeader.banner[0].height}
+              width={channel.data?.pages?.[0]?.channelHeader.banner[0].width}
+              alt=""
+              layout="responsive"
+              unoptimized={true}
+            />
         )}
       <div className="mx-auto px-4 2xl:max-w-[192rem]">
         <div className="flex flex-col items-center justify-center md:flex-row md:justify-between">
           {channel.data?.pages?.[0]?.channelHeader && (
-            <ChannelHeader channel={channel.data?.pages?.[0]?.channelHeader} />
+            <ChannelHeader
+              channel={channel.data?.pages?.[0]?.channelHeader}
+              description={channel.data?.pages?.[0]?.metadata?.description}
+              channelId={channelID}
+            />
           )}
         </div>
-
+        <h2>Channel Sponsors</h2>
         <ChannelStatsWrapper channelId={channelID} />
-
-        <Button
-          disabled={processChannel.isLoading}
-          loading={processChannel.isLoading}
-          onClick={() => processChannel.mutate({ channelID })}
-        >
-          process channel
-        </Button>
+        <h2>Channel Videos</h2>
         {channel.isLoading ? (
           <GridVideoLoader />
         ) : (
