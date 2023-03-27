@@ -10,6 +10,7 @@ import ToolTip from "../common/Tooltip";
 import { Button } from "../common/Button";
 import { BsInfo } from "react-icons/bs";
 import { ProcessQueue } from "@prisma/client";
+import ChannelStats from "./ChannelStatsWrapper/ChannelStats";
 
 const ChannelProcessButtonChildren = ({
   isOpen,
@@ -42,11 +43,13 @@ const ChannelProcessButtonChildren = ({
 };
 
 const ChannelStatusToolTip = ({
+  channelId,
   isError,
   isLoading,
   data,
   processChannelLoading,
 }: {
+  channelId: string;
   isError: boolean;
   isLoading: boolean;
   processChannelLoading: boolean;
@@ -54,9 +57,9 @@ const ChannelStatusToolTip = ({
 }) => {
   return (
     <ToolTip
-      manualControl={true}
+      manualControlMS={5000}
       text={
-        <>
+        <div className="flex flex-col items-end">
           {isLoading ? (
             <span>Waiting for status..</span>
           ) : isError ? (
@@ -93,7 +96,8 @@ const ChannelStatusToolTip = ({
                 : "No previous process jobs found"}
             </span>
           )}
-        </>
+          <ChannelStats channelId={channelId} />
+        </div>
       }
       tooltipOptions={{
         align: "end",
@@ -121,9 +125,15 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
       setWaitToFinish(true);
     },
   });
+  //keep this loaded for invalidation
+  trpc.channel.getStats.useQuery({ channelId });
+
   const updateSponsors = trpc.channel.updateChannelSponsors.useMutation({
     async onSuccess() {
-      await utils.channel.getSponsors.invalidate({ channelId });
+      await Promise.allSettled([
+        utils.channel.getSponsors.invalidate({ channelId }),
+        utils.channel.getStats.invalidate({ channelId }),
+      ]);
     },
   });
   useEffect(() => {
@@ -216,12 +226,13 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
       </Dropdown>
 
       <ChannelStatusToolTip
-      isError={channelStatusQuery.isError}
-      isLoading={channelStatusQuery.isLoading}
-      data={channelStatusQuery?.data ?? undefined}
-      processChannelLoading={processChannel.isLoading}
-      />    
-      </div>
+        channelId={channelId}
+        isError={channelStatusQuery.isError}
+        isLoading={channelStatusQuery.isLoading}
+        data={channelStatusQuery?.data ?? undefined}
+        processChannelLoading={processChannel.isLoading}
+      />
+    </div>
   );
 };
 
