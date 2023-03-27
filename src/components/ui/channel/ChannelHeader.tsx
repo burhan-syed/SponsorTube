@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import type C4TabbedHeader from "youtubei.js/dist/src/parser/classes/C4TabbedHeader";
 import ChannelProcessButton from "./ChannelProcessButton";
+import { BsCheck2 } from "react-icons/bs";
 
 type ChannelHeaderProps = {
   channel: C4TabbedHeader;
@@ -15,8 +16,8 @@ const ChannelHeader = ({
   description,
 }: ChannelHeaderProps) => {
   return (
-    <div className="flex flex-none flex-col items-center gap-2 p-2 md:flex-row md:gap-7 md:p-6 w-full">
-      <div className="h-14 w-14 overflow-hidden rounded-full md:h-32 md:w-32">
+    <div className="flex w-full flex-none flex-col items-center gap-2 md:flex-row md:gap-7">
+      <div className="h-14 w-14 flex-none overflow-hidden rounded-full md:h-32 md:w-32">
         {channel.author.thumbnails?.[0]?.url && (
           <Image
             src={channel.author.thumbnails?.[0]?.url}
@@ -27,11 +28,15 @@ const ChannelHeader = ({
           />
         )}
       </div>
-      <div className="flex flex-col items-center gap-y-2 md:items-start md:flex-row md:justify-between md:flex-grow">
+      <div className="flex w-full flex-col items-center gap-y-2 md:flex-grow md:flex-row md:items-start md:justify-between">
         <div className="flex flex-col items-center gap-1 md:items-start md:gap-2">
-          <h1 className="flex gap-1 text-2xl font-semibold">
+          <h1 className="flex items-center gap-2 text-2xl font-semibold">
             {channel.author.name}
-            <div>{channel?.author?.is_verified ? "(V)" : ""}</div>
+            {channel?.author?.is_verified ? (
+              <BsCheck2 className="h-4 w-4 flex-none md:h-6 md:w-6" />
+            ) : (
+              <></>
+            )}
           </h1>
           <ul className="flex flex-wrap space-x-2 text-xs text-th-textSecondary md:text-sm">
             <li className="font-semibold">{channel?.channel_handle?.text}</li>
