@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { CookiesProvider } from "react-cookie";
 import type { Session } from "next-auth";
 import type { AppType } from "next/app";
+import Router from "next/router";
 import { trpc } from "../utils/trpc";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useQueryClient } from "@tanstack/react-query";
@@ -12,6 +13,8 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import Head from "next/head";
 import AlertDialogueProvider from "@/components/ui/dialogue/AlertDialogueProvider";
 import GeneralDialogueProvider from "@/components/ui/dialogue/GeneralDialogueProvider";
+import { useEffect, useState } from "react";
+import RouteChangeLoader from "@/components/ui/loaders/RouteChangeLoader";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -21,11 +24,27 @@ const MyApp: AppType<{ session: Session | null }> = ({
   queryClient.setDefaultOptions({
     queries: {
       staleTime: Infinity,
+      cacheTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
     },
   });
+
+  const [routeIsLoading, setRouteIsLoading] = useState(false);
+  useEffect(() => {
+    Router.events.on("routeChangeStart", (url) => {
+      console.log("loading?", url);
+      setRouteIsLoading(true);
+    });
+    Router.events.on("routeChangeComplete", (url) => {
+      setRouteIsLoading(false);
+    });
+
+    Router.events.on("routeChangeError", (url) => {
+      setRouteIsLoading(false);
+    });
+  }, [Router]);
 
   return (
     <>
@@ -41,7 +60,10 @@ const MyApp: AppType<{ session: Session | null }> = ({
             <TooltipProvider>
               <AlertDialogueProvider>
                 <GeneralDialogueProvider>
-                  <Component {...pageProps} />
+                  <>
+                    <RouteChangeLoader routeIsLoading={routeIsLoading} />
+                    <Component {...pageProps} />
+                  </>
                 </GeneralDialogueProvider>
               </AlertDialogueProvider>
               <ReactQueryDevtools initialIsOpen={false} />
