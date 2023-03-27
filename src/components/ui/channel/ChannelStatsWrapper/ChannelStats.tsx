@@ -43,21 +43,29 @@ const ChannelStats = ({ channelId }: { channelId: string }) => {
   return (
     <div>
       {channelStats.isLoading ? (
-        "loading.."
+        "loading stats.."
       ) : channelStats.data?.[0]?.channelId ? (
         <>
-          <ul className="flex flex-wrap items-center justify-center space-x-2 font-semibold md:text-base ">
+          <ul className="flex flex-col flex-wrap items-end justify-center space-x-2 ">
             <li>{numVideosProcessed} videos analyzed</li>
             <li>{numVideosSponsored} videos with sponsors</li>
             <li>{totalSponsorSegments} sponsored segments</li>
-            <li>
-              {channelStats.data?.[0]?.processedFrom?.toDateString()} to{" "}
-              {channelStats.data?.[0]?.processedTo?.toDateString()}{" "}
+            <li className="flex flex-col items-end">
+              <ul className="flex flex-col items-end">
+                <li>
+                  Earliest{" "}
+                  {channelStats.data?.[0]?.processedFrom?.toDateString()}
+                </li>
+                <li>
+                  Latest{" "}
+                  {channelStats.data?.[0]?.processedTo?.toDateString()}
+                </li>
+              </ul>
             </li>
           </ul>
         </>
       ) : channelStats.error ? (
-        "error"
+        "error fetching channel stats"
       ) : (
         "no channel stats"
       )}

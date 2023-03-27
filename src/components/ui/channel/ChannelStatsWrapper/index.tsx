@@ -3,8 +3,7 @@ import ChannelStats from "./ChannelStats";
 
 const ChannelStatsWrapper = ({ channelId }: { channelId: string }) => {
   return (
-    <div className="text-xs ">
-      <ChannelStats channelId={channelId} />
+    <div className="text-xs p-2 ">
       <ChannelSponsors channelId={channelId} />
     </div>
   );

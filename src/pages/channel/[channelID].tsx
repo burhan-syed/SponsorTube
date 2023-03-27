@@ -37,8 +37,9 @@ const ChannelPage: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
-      {channel.data?.pages?.[0]?.channelHeader &&
-        channel.data?.pages?.[0]?.channelHeader?.banner?.[0]?.url && (
+      <section>
+        {channel.data?.pages?.[0]?.channelHeader &&
+          channel.data?.pages?.[0]?.channelHeader?.banner?.[0]?.url && (
             <Image
               src={channel.data?.pages?.[0]?.channelHeader.banner[0]?.url}
               height={channel.data?.pages?.[0]?.channelHeader.banner[0].height}
@@ -47,39 +48,40 @@ const ChannelPage: NextPage = () => {
               layout="responsive"
               unoptimized={true}
             />
-        )}
-      <div className="mx-auto px-4 2xl:max-w-[192rem]">
-        <div className="flex flex-col items-center justify-center md:flex-row md:justify-between">
-          {channel.data?.pages?.[0]?.channelHeader && (
-            <ChannelHeader
-              channel={channel.data?.pages?.[0]?.channelHeader}
-              description={channel.data?.pages?.[0]?.metadata?.description}
-              channelId={channelID}
-            />
+          )}
+        <div className="mx-auto px-4 2xl:max-w-[192rem]">
+          <div className="flex flex-col items-center justify-center md:flex-row md:justify-between md:p-6 p-2">
+            {channel.data?.pages?.[0]?.channelHeader && (
+              <ChannelHeader
+                channel={channel.data?.pages?.[0]?.channelHeader}
+                description={channel.data?.pages?.[0]?.metadata?.description}
+                channelId={channelID}
+              />
+            )}
+          </div>
+          <ChannelStatsWrapper channelId={channelID} />
+          <h2 className="hidden invisible">Channel Videos</h2>
+          <div className="py-1 md:py-3"></div>
+          {channel.isLoading ? (
+            <GridVideoLoader />
+          ) : (
+            flatVideos &&
+            flatVideos.length > 0 && <GridVideoView videos={flatVideos} />
+          )}
+          {channel.hasNextPage && (
+            <div className="w-full items-center justify-center p-4 text-center">
+              <Button
+                loading={channel.isFetchingNextPage}
+                disabled={channel.isFetchingNextPage || channel.isLoading}
+                className=""
+                onClick={() => channel.fetchNextPage()}
+              >
+                more
+              </Button>
+            </div>
           )}
         </div>
-        <h2>Channel Sponsors</h2>
-        <ChannelStatsWrapper channelId={channelID} />
-        <h2>Channel Videos</h2>
-        {channel.isLoading ? (
-          <GridVideoLoader />
-        ) : (
-          flatVideos &&
-          flatVideos.length > 0 && <GridVideoView videos={flatVideos} />
-        )}
-        {channel.hasNextPage && (
-          <div className="w-full items-center justify-center p-4 text-center">
-            <Button
-              loading={channel.isFetchingNextPage}
-              disabled={channel.isFetchingNextPage || channel.isLoading}
-              className=""
-              onClick={() => channel.fetchNextPage()}
-            >
-              more
-            </Button>
-          </div>
-        )}
-      </div>
+      </section>
     </>
   );
 };
