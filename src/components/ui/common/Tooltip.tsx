@@ -4,12 +4,12 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 const ToolTip = ({
   children,
   text,
-  manualControl,
+  manualControlMS,
   tooltipOptions = { side: "bottom", sideOffset: 10 },
 }: {
   children: React.ReactNode;
   text: string | React.ReactNode;
-  manualControl?: boolean;
+  manualControlMS?: number;
   tooltipOptions?: TooltipPrimitive.TooltipContentProps;
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>();
@@ -17,32 +17,32 @@ const ToolTip = ({
   const triggerRef = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     let timeout: any;
-    if (isOpen && manualControl && focused) {
-      timeout = setTimeout(() => {console.log("blur?", triggerRef?.current?.blur); setIsOpen(false); setFocused(false);  if(triggerRef.current){triggerRef?.current?.blur(); triggerRef.current.tabIndex = 1}}, 2000);
+    if (isOpen && manualControlMS && focused) {
+      timeout = setTimeout(() => {console.log("blur?", triggerRef?.current?.blur); setIsOpen(false); setFocused(false);  if(triggerRef.current){triggerRef?.current?.blur(); triggerRef.current.tabIndex = 1}}, manualControlMS);
     }
 
     return () => {
       timeout && clearTimeout(timeout);
     };
-  }, [manualControl, isOpen, focused]);
+  }, [manualControlMS, isOpen, focused]);
 
   return (
-    <TooltipPrimitive.Root open={manualControl ? isOpen : undefined}>
+    <TooltipPrimitive.Root open={manualControlMS ? isOpen : undefined}>
       <TooltipPrimitive.Trigger asChild>
         <span
           ref={triggerRef}
           tabIndex={0}
           onMouseEnter={() => {
-            manualControl && setIsOpen(true);
+            manualControlMS && setIsOpen(true);
           }}
           onMouseLeave={() => {
-            manualControl && setIsOpen(false);
+            manualControlMS && setIsOpen(false);
           }}
           onFocus={() => {
-            if(manualControl) {setIsOpen(true); setFocused(true);}
+            if(manualControlMS) {setIsOpen(true); setFocused(true);}
           }}
           onBlur={() => {
-            manualControl && setIsOpen(false);
+            manualControlMS && setIsOpen(false);
           }}
         >
           {children}
