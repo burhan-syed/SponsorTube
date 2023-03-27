@@ -16,7 +16,7 @@ const ChannelSponsorsPills = ({ sponsors }: { sponsors: string[] }) => {
   const [atBottom, setAtBottom] = useState(false);
   const listRef = useRef<HTMLUListElement>(null);
   useLayoutEffect(() => {
-    console.log(listRef?.current?.scrollHeight, listRef.current?.clientHeight);
+    // console.log(listRef?.current?.scrollHeight, listRef.current?.clientHeight);
     const checkShowExpand = () => {
       if (
         (listRef?.current?.scrollHeight ?? 0) >
@@ -37,7 +37,7 @@ const ChannelSponsorsPills = ({ sponsors }: { sponsors: string[] }) => {
     const el = listRef.current;
     if (el) {
       const onScroll = (e: Event) => {
-        console.log(el.clientHeight, el.scrollTop, el.scrollHeight);
+        //console.log(el.clientHeight, el.scrollTop, el.scrollHeight);
         if (el.scrollTop > 0) {
           setScrolled(true);
         } else {

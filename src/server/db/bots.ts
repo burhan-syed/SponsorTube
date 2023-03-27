@@ -190,7 +190,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
       try {
         const openai = new OpenAIApi(configuration);
         if (bot.model === "gpt-3.5-turbo") {
-          const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\nSponsor|Product|Offer|`;
+          const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\n|Sponsor|Product|Offer|`;
           const response = await openai.createChatCompletion({
             model: bot.model,
             messages: [

@@ -65,11 +65,11 @@ export const channelRouter = router({
   getStats: publicProcedure
     .input(z.object({ channelId: z.string() }))
     .query(async ({ input, ctx }) => {
-      const channelStatus = await ctx.prisma.channelStats.findMany({
+      const channelStats = await ctx.prisma.channelStats.findMany({
         where: { channelId: input.channelId },
         orderBy: { processedTo: "desc" },
       });
-      return channelStatus;
+      return channelStats;
     }),
   getVideosStatus: publicProcedure
     .input(z.object({ channelId: z.string() }))
