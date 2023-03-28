@@ -190,14 +190,13 @@ export const getSegmentAnnotationsOpenAICall = async ({
       try {
         const openai = new OpenAIApi(configuration);
         if (bot.model === "gpt-3.5-turbo") {
-          const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\n|Sponsor|Product|Offer|`;
+          const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\n|Sponsor|Product|URL|Promo Code|Offer|`;
           const response = await openai.createChatCompletion({
             model: bot.model,
             messages: [
               {
                 role: "system",
-                content:
-                  "You are a helpful assistant that will only create tables",
+                content: "You parse text and create tables",
               },
               { role: "user", content: prompt },
             ],
@@ -210,7 +209,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
           //console.log("AI RES?", response.headers);
           return response.data;
         } else {
-          const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\nSponsor|Product|Offer|\n\n`;
+          const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\n|Sponsor|Product|URL|Promo Code|Offer|\n\n`;
           const response = await openai.createCompletion({
             model: bot.model, //"text-curie-001",
             prompt: prompt,
@@ -234,12 +233,46 @@ export const getSegmentAnnotationsOpenAICall = async ({
       }
     };
 
+    const timeOutOpenAICall = async (bot: Bots) => {
+      const SECTOTIMEOUT = 20;
+      let returnObject:
+        | CreateCompletionResponse
+        | CreateChatCompletionResponse
+        | undefined;
+      let timedOut = false;
+      await Promise.race([
+        (async () => {
+          returnObject = await makeOpenAICall(bot);
+        })(),
+        new Promise((resolve) =>
+          setTimeout((v) => {
+            timedOut = true;
+            resolve(v);
+          }, SECTOTIMEOUT * 1000)
+        ),
+      ]);
+      if (timedOut) {
+        const message = "request timed out";
+        throw new TRPCError({
+          message,
+          code: "TIMEOUT",
+          cause: new CustomError({
+            level: "COMPLETE",
+            message,
+            type: "BOT_ERROR",
+            expose: true,
+          }),
+        });
+      }
+      return returnObject;
+    };
+
     const responseData = (
       botQueue.rawResponseData
         ? typeof botQueue.rawResponseData === "string"
           ? JSON.parse(botQueue.rawResponseData)
           : botQueue.rawResponseData
-        : await makeOpenAICall(bot)
+        : await timeOutOpenAICall(bot)
     ) as CreateCompletionResponse | CreateChatCompletionResponse | undefined;
 
     //console.log("response?", JSON.stringify(responseData, null, 2));
@@ -253,7 +286,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
       });
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "No OpenAI response",
+        message: "No bot response",
         cause: cError,
       });
     }
@@ -265,7 +298,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
       const formatText = (t?: string) => {
         const split = t?.split("\n") ?? [t];
         //console.log("split?", split);
-        const columns = { brand: 0, product: 1, offer: 2 };
+        const columns = { brand: 0, product: 1, url: 2, code: 3, offer: 4 };
         return split
           ?.filter((p) => p)
           ?.map((p, line) => {
@@ -277,16 +310,31 @@ export const getSegmentAnnotationsOpenAICall = async ({
                 brand: number | string;
                 product: number | string;
                 offer: number | string;
+                url: number | string | string[];
+                code: number | string | string[];
               }
             ) => {
-              const ignoreWords = ["-", "sponsor", "product", "offer", "---"];
+              const ignoreWords = [
+                "-",
+                "sponsor",
+                "product",
+                "offer",
+                "url",
+                "promo code",
+                // "link below",
+                // "link down below",
+                "N/A",
+                "---",
+              ];
 
               const textFormatted = rawText?.trim();
 
               if (
                 textFormatted &&
                 !ignoreWords.includes(textFormatted.toLowerCase()) &&
-                (textFormatted.length < 24 || switchCase === columns.offer)
+                (textFormatted.length < 24 ||
+                  switchCase === columns.offer ||
+                  switchCase === columns.url)
               ) {
                 switch (switchCase) {
                   case columns.brand:
@@ -298,6 +346,18 @@ export const getSegmentAnnotationsOpenAICall = async ({
                   case columns.offer:
                     data.set("OFFER", textFormatted);
                     break;
+                  case typeof switchCase === "string" &&
+                  Array.isArray(columns.url)
+                    ? columns.url.includes(switchCase)
+                    : columns.url:
+                    data.set("URL", textFormatted);
+                    break;
+                  case typeof switchCase === "string" &&
+                  Array.isArray(columns.code)
+                    ? columns.code.includes(switchCase)
+                    : columns.code:
+                    data.set("CODE", textFormatted);
+                    break;
                 }
               }
             };
@@ -307,7 +367,9 @@ export const getSegmentAnnotationsOpenAICall = async ({
                 //response was shifted
                 columns.brand = 1;
                 columns.product = 2;
-                columns.offer = 3;
+                columns.url = 3;
+                columns.code = 4;
+                columns.offer = 5;
               }
               p?.split("|").forEach((t, i) => {
                 if (line === 0) {
@@ -319,6 +381,18 @@ export const getSegmentAnnotationsOpenAICall = async ({
                     columns.product = i;
                   } else if (textLower === "offer") {
                     columns.offer = i;
+                  } else if (
+                    textLower === "url" ||
+                    textLower === "website" ||
+                    textLower === "link"
+                  ) {
+                    columns.url = i;
+                  } else if (
+                    textLower === "code" ||
+                    textLower === "promo code" ||
+                    textLower === "promo"
+                  ) {
+                    columns.code = i;
                   }
                 }
                 fillData(t, i, columns);
@@ -332,6 +406,8 @@ export const getSegmentAnnotationsOpenAICall = async ({
                   brand: "sponsor",
                   product: "product",
                   offer: "offer",
+                  code: ["code", "offer code", "promo code"],
+                  url: ["url", "website", "link"],
                 });
               }
             }
@@ -356,8 +432,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
     };
 
     const parsed = parseResponseData(responseData);
-    //console.log("parsed?", parsed);
-    // const parsedAnnotations = [];
+
     if (!parsed) {
       const cError = new CustomError({
         message: "Bot failed to parse data",
@@ -371,27 +446,78 @@ export const getSegmentAnnotationsOpenAICall = async ({
         cause: cError,
       });
     }
+
+    const matchAndUpdateText = (
+      originalText: string,
+      newTextSegment: string
+    ): string => {
+      //original transcripts may be missing the following characters which gpt will respond with.
+      const chars = ["%", "/", "$", "https://", "."];
+      if (
+        originalText.includes(newTextSegment) ||
+        !chars.some((c) => newTextSegment.includes(c))
+      ) {
+        return originalText;
+      }
+      const replacedNewTexts = [
+        newTextSegment.replace(/%|\/|\$|https:\/\/|\./gm, ""),
+        newTextSegment.replace(/%|\/|\$|https:\/\/|\./gm, " "),
+        //newTextSegment.replace(/%|\/|\$|https:\/\/|\./gm, " or "),
+
+      ];
+      if (!replacedNewTexts.some((r) => r !== newTextSegment)) {
+        return originalText;
+      }
+      const regEscape = (v: string) =>
+        v.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+      const updatedTexts = replacedNewTexts.map((newText) => {
+        const splitOriginalText = originalText.split(
+          new RegExp(regEscape(newText), "ig")
+        );
+        //matched new text not in original text
+        if (splitOriginalText.length === 0) {
+          return originalText;
+        }
+        //insert the new text where split took place
+        return splitOriginalText.join(newTextSegment);
+      });
+
+      //return an updated text that is different from original
+      for (let i = 0; i < updatedTexts.length; i++) {
+        if (updatedTexts[i] && updatedTexts[i] !== originalText) {
+          return updatedTexts[i] ?? originalText;
+        }
+      }
+
+      return originalText;
+    };
+
+    //match transcript with special characters returned in gpt responses
+    const parsedToArray: string[] = [...parsed.values()]
+      .map((v) => [...v.values()])
+      .flat();
+    let updatedTranscript = input.transcript;
+    for (let i = 0; i < parsedToArray.length; i++) {
+      updatedTranscript = matchAndUpdateText(
+        updatedTranscript,
+        parsedToArray?.[i] ?? ""
+      );
+    }
     const matchedAnnotations = parsed
       .map((p) => {
         return [...p.keys()]
           .map((k) => {
             const value = p.get(k);
             if (!value) return [];
-            const indices = textFindIndices(input.transcript, value);
+            const indices = textFindIndices(updatedTranscript, value);
             return indices.map((i) => ({
               start: i,
               end: i + value.length,
-              text: input.transcript.substring(i, i + value.length),
+              text: updatedTranscript.substring(i, i + value.length),
               tag: k,
             }));
           })
           .flat();
-        // return brandIndices.map((i) => ({
-        //   start: i,
-        //   end: i + brandCaps.length,
-        //   text: p.sponsor,
-        //   tag: "BRAND",
-        // }));
       })
       .flat()
       .sort((a, b) => (a.tag === "BRAND" ? -1 : a.tag === b.tag ? 0 : 1)) //move brands to start to prioritize for filter
@@ -411,14 +537,18 @@ export const getSegmentAnnotationsOpenAICall = async ({
       text: string;
       tag: AnnotationTags;
     }[];
-    //console.log("matched?", matchedAnnotations);
     try {
       if (matchedAnnotations.length > 0) {
+        const transformedInputValues =
+          updatedTranscript === input.transcript
+            ? { transcriptId: transcript.id }
+            : { transcript: updatedTranscript };
+
         await saveAnnotationsAndTranscript({
           input: {
             ...input,
             annotations: matchedAnnotations,
-            transcriptId: transcript.id,
+            ...transformedInputValues,
           },
           ctx: {
             ...ctx,

@@ -324,6 +324,8 @@ enum AnnotationTags {
   BRAND
   PRODUCT
   OFFER
+  URL
+  CODE
 }
 
 model TranscriptAnnotations {
@@ -345,6 +347,8 @@ model Sponsors {
   transcriptDetailsId String
   brand               String
   product             String?
+  url                 String?
+  code                String?
   type                BigInt?
   offer               String?
   locked              Boolean @default(false)
