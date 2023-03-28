@@ -6,4 +6,6 @@ export const TAGS = new Map<AnnotationTags, string>([
   ["BRAND", "#B3F541"],
   ["PRODUCT", "#42f5f5"],
   ["OFFER", "#4b46cd"],
+  ["CODE", "#9441B5"],
+  ["URL", "#94FFB5"],
 ]);
