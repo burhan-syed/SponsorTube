@@ -3,7 +3,7 @@ import { AnnotationTags } from "@prisma/client";
 import React, { useState } from "react";
 import { TAGS } from "../transcripts/edits/TranscriptTags";
 import { Button } from "./common/Button";
-import type { VideoSponsors } from "@/server/db/sponsors";
+import { VideoSponsors } from "@/server/db/sponsors";
 
 type ArrayElement<ArrayType extends readonly unknown[]> =
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
