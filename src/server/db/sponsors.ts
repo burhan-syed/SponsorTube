@@ -7,14 +7,8 @@ import type {
 } from "@prisma/client";
 import { Context } from "../trpc/context";
 import { CustomError } from "../common/errors";
+import { inferAsyncReturnType } from "@trpc/server";
 
-export type VideoSponsor = {
-  videoId: string;
-  transcriptDetailsId: string;
-  brand: string;
-  product: string | undefined;
-  offer: string | undefined;
-};
 
 export const getVideoSponsors = async ({
   videoId,
@@ -64,6 +58,9 @@ export const getVideoSponsors = async ({
 
   const products = new Map<string, string[]>();
   const offers = new Map<string, string[]>();
+  const urls = new Map<string, string[]>();
+  const codes = new Map<string, string[]>();
+
   flatPerSegmentSorted.map((td) =>
     td?.[0]?.Annotations.forEach((annotation) => {
       const transcriptId = td?.[0]?.id;
@@ -89,6 +86,20 @@ export const getVideoSponsors = async ({
               o ? [...o, annotation.text] : [annotation.text]
             );
             break;
+          case "URL":
+            const u = urls.get(transcriptId);
+            urls.set(
+              transcriptId,
+              u ? [...u, annotation.text] : [annotation.text]
+            );
+            break;
+          case "CODE":
+            const c = codes.get(transcriptId);
+            codes.set(
+              transcriptId,
+              c ? [...c, annotation.text] : [annotation.text]
+            );
+            break;
           default:
             break;
         }
@@ -102,8 +113,11 @@ export const getVideoSponsors = async ({
     brand: v[1].brand,
     product: products.get(v[1].transcriptDetailsId)?.[0],
     offer: offers.get(v[1].transcriptDetailsId)?.[0],
+    url: urls.get(v[1].transcriptDetailsId)?.[0],
+    code: codes.get(v[1].transcriptDetailsId)?.[0],
   }));
 };
+export type VideoSponsors = inferAsyncReturnType<typeof getVideoSponsors>;
 
 export const updateVideoSponsorsFromDB = async ({
   videoId,
@@ -151,7 +165,7 @@ export const summarizeChannelSponsors = async ({
         type: "BOT_PENDING",
       });
       return cError;
-    } 
+    }
     // else if (
     //   pChannelSummary &&
     //   pChannelSummary?.lastUpdated &&

@@ -3,14 +3,17 @@ import { AnnotationTags } from "@prisma/client";
 import React, { useState } from "react";
 import { TAGS } from "../transcripts/edits/TranscriptTags";
 import { Button } from "./common/Button";
-import type { VideoSponsor } from "@/server/db/sponsors";
+import type { VideoSponsors } from "@/server/db/sponsors";
+
+type ArrayElement<ArrayType extends readonly unknown[]> =
+  ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 
 const TextPill = ({
   sp,
   type,
   toggleSetSelectedSegment,
 }: {
-  sp: VideoSponsor; //Sponsors;
+  sp: ArrayElement<VideoSponsors>; //Sponsors;
   type: AnnotationTags;
   toggleSetSelectedSegment(s: string): void;
 }) => {
@@ -21,6 +24,10 @@ const TextPill = ({
       ? sp.product
       : type === "OFFER"
       ? sp.offer
+      : type === "CODE"
+      ? sp.code
+      : type === "URL"
+      ? sp.url
       : "";
   if (text) {
     return (
@@ -50,7 +57,7 @@ const VideoSponsors = ({ videoId }: { videoId: string }) => {
   const toggleSetSelectedSegment = (s: string) => {
     setSelectedSegment((p) => (p === s ? "" : s));
   };
-  console.log(sponsors.data);
+  //console.log("vod sponsors?", sponsors.data);
   return (
     <div className="flex items-center justify-center rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-2">
       {sponsors.isLoading ? (
