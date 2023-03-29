@@ -133,6 +133,9 @@ model SponsorTimes {
 
   @@index([UUID])
   @@index([videoID])
+  @@index([category])
+  @@index([locked])
+  @@index([timeSubmitted])
 }
 
 model Channels {
