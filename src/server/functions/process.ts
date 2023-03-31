@@ -14,7 +14,7 @@ import type Video from "youtubei.js/dist/src/parser/classes/Video";
 import type { Context } from "../trpc/context";
 import type { GetSegmentAnnotationsType } from "../db/bots";
 import type { C4TabbedHeader } from "youtubei.js/dist/src/parser/nodes";
-import type { ProcessQueue } from "@prisma/client";
+import type { ProcessQueue, QueueStatus } from "@prisma/client";
 import type { VideoInfo } from "youtubei.js/dist/src/parser/youtube";
 import { saveVideoDetails } from "../db/videos";
 import { saveTranscript } from "../db/transcripts";
@@ -80,12 +80,12 @@ export const processVideo = async ({
 
   const completeQueue = async (
     processQueue: ProcessQueue,
-    status?: "error" | "partial"
+    status?: QueueStatus
   ) => {
     const completeVideoProcess = ctx.prisma.processQueue.update({
       where: { id: processQueue.id },
       data: {
-        status: status ? status : "completed",
+        status: status ? status : "partial",
         lastUpdated: new Date(),
       },
     });
@@ -94,13 +94,20 @@ export const processVideo = async ({
   };
 
   try {
-    const [segments, videoInfo] = await Promise.all([
+    const [segmentsResult, videoInfoResult] = await Promise.allSettled([
       getVideoSegments({
         userID: ctx.session?.user?.id ?? "sponsortubebot",
         videoID: videoId,
       }),
       preVidInfo ? preVidInfo : getVideoInfo({ videoID: videoId }),
     ]);
+
+    const videoInfo =
+      videoInfoResult.status === "fulfilled"
+        ? videoInfoResult.value
+        : undefined;
+    const segments =
+      segmentsResult.status === "fulfilled" ? segmentsResult.value : undefined;
 
     if (!videoInfo) {
       await completeQueue(processQueue, "error");
@@ -111,18 +118,15 @@ export const processVideo = async ({
       (t) => t.language_code === "en" || t.language_code === "en-US"
     );
 
-    if (
-      !segments ||
-      !(segments.length > 0) ||
-      !englishCaptionTracks?.[0]?.base_url
-    ) {
+    const vodUpsert = async (videoInfo: VideoInfo, segments?: any[]) => {
       if (
         videoInfo.basic_info.id &&
         videoInfo.basic_info.channel?.id &&
-        videoInfo.primary_info?.published.text
+        videoInfo.primary_info?.published.text &&
+        englishCaptionTracks?.[0]?.base_url //we won't save vods without english transcripts b/c gpt isn't good at deciphering non-english text, this is our best assumption
       ) {
         try {
-          await ctx.prisma.videos.upsert({
+          const vodUpsert = await ctx.prisma.videos.upsert({
             where: { id: videoInfo.basic_info.id },
             update: {},
             create: {
@@ -142,18 +146,53 @@ export const processVideo = async ({
                   create: {
                     id: videoInfo.basic_info.channel?.id,
                     name: videoInfo.basic_info.channel?.name,
+                    hasSponsors:
+                      segments && segments.length > 0 ? true : undefined,
                   },
                 },
               },
             },
+            include: { Channel: true },
           });
+          if (
+            !vodUpsert.Channel.hasSponsors &&
+            segments &&
+            segments.length > 0
+          ) {
+            try {
+              await ctx.prisma.channels.update({
+                where: { id: videoInfo.basic_info.channel.id },
+                data: { hasSponsors: true },
+              });
+            } catch (err) {}
+          }
         } catch (err) {}
       }
+    };
+
+    if (
+      !segments ||
+      !(segments.length > 0) ||
+      !englishCaptionTracks?.[0]?.base_url
+    ) {
+      await vodUpsert(videoInfo, segments);
       await completeQueue(processQueue, "error");
       return;
     }
 
-    const captions = await getXMLCaptions(englishCaptionTracks[0].base_url);
+    let captions: {
+      text: string;
+      start: number;
+      dur: number;
+    }[];
+
+    try {
+      captions = await getXMLCaptions(englishCaptionTracks[0].base_url);
+    } catch (err) {
+      await vodUpsert(videoInfo, segments);
+      console.log("XMLCAPTIONS ERR");
+      throw err;
+    }
 
     const segmentTranscripts = segments.map((s) => ({
       segment: { ...s },
@@ -175,7 +214,7 @@ export const processVideo = async ({
       //video is errored if there was an uncaught error or if the caught custom error has a level of complete
       errors.some((e) => {
         if (e instanceof TRPCError && e.cause instanceof CustomError) {
-          console.log("is custom error", e.cause);
+          //console.log("is custom error", e.cause);
           if (e.cause.level === "COMPLETE") {
             errored = true;
             return true;
@@ -260,14 +299,14 @@ export const processVideo = async ({
       );
       const errors = checkIfErrored(calls);
 
-      console.log("done processing video segments", {
-        videoId,
-        segmentTranscriptsLength: segmentTranscripts.length,
-        errors: errors,
-        errorsLength: errors.length,
-        errored,
-      });
-      await completeQueue(processQueue, errored ? "error" : undefined);
+      // console.log("done processing video segments", {
+      //   videoId,
+      //   segmentTranscriptsLength: segmentTranscripts.length,
+      //   errors: errors,
+      //   errorsLength: errors.length,
+      //   errored,
+      // });
+      await completeQueue(processQueue, errored ? "error" : "completed");
     }
   } catch (err) {
     await completeQueue(processQueue, "error");
@@ -659,7 +698,7 @@ export const processChannel = async ({
         queueId: newQueue.id,
         skipAnnotations: true,
         botId,
-        videoInfo: (v as VideoWithVideoInfo)?.videoInfo
+        videoInfo: (v as VideoWithVideoInfo)?.videoInfo,
       })
     )
   );
@@ -717,7 +756,7 @@ const spawnVideoProcess = async (input: {
   queueId?: string;
   skipAnnotations?: boolean;
   botId?: string;
-  videoInfo?:VideoInfo
+  videoInfo?: VideoInfo;
 }) => {
   const JSONdata = JSON.stringify(input);
   const options = {
@@ -760,4 +799,190 @@ const summarizeChannelCall = async (input: { channelId: string }) => {
   };
   const res = await fetch(`${SERVER_URL}/api/process/channel-summary`, options);
   return;
+};
+
+export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
+  const prisma = ctx.prisma;
+  const allVodsProcessing = new Set<string>();
+  const successedVods = new Set<string>();
+  const RATELIMIT_PER_MINUTE = 20;
+
+  const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+  const completeVideoQueue = async (videoId: string, errored = false) => {
+    await prisma.processQueue.updateMany({
+      where: {
+        videoId: videoId,
+        type: "video",
+      },
+      data: {
+        status: errored ? "error" : "completed",
+        lastUpdated: new Date(),
+      },
+    });
+  };
+
+  async function rateLimitedVideoProcess(
+    botId: string,
+    parentProcessId: string,
+    videos: string[]
+  ) {
+    const vodQueue = await prisma.processQueue.findMany({
+      where: {
+        type: "video",
+        videoId: { in: videos },
+        status: { in: ["completed", "partial", "pending"] },
+      },
+    });
+    const vodQueueSet = new Set<string>();
+    vodQueue.forEach((v) => vodQueueSet.add(v.videoId ?? ""));
+
+    const vodsToProcess = videos.filter((v) => !vodQueueSet.has(v));
+    console.log(
+      "SKIPPING",
+      vodQueueSet.size,
+      "PROCESSING",
+      vodsToProcess.length
+    );
+
+    await Promise.allSettled(
+      vodsToProcess.map(async (videoId, index) => {
+        await sleep(index * (1000 * (60 / RATELIMIT_PER_MINUTE)));
+        let errored = false;
+        try {
+          console.log("process", videoId);
+          const videoInfo = await getVideoInfo({ videoID: videoId });
+          await prisma.processQueue.upsert({
+            where: {
+              channelId_videoId_type: {
+                channelId: videoInfo?.basic_info.channel?.id ?? "",
+                videoId,
+                type: "video",
+              },
+            },
+            create: {
+              status: "pending",
+              videoId: videoId,
+              channelId: videoInfo?.basic_info.channel?.id ?? "",
+              parentProcessId,
+              type: "video",
+              timeInitialized: new Date(),
+            },
+            update: {
+              status: "pending",
+              parentProcessId,
+              timeInitialized: new Date(),
+            },
+          });
+          await processVideo({
+            videoId,
+            botId,
+            queueId: parentProcessId,
+            suppliedVideoInfo: videoInfo,
+            channelId: videoInfo?.basic_info.channel?.id,
+            ctx: { prisma, session: null },
+          });
+        } catch (err) {
+          if (
+            !(err instanceof TRPCError) ||
+            (err instanceof TRPCError &&
+              err.cause instanceof CustomError &&
+              err.cause.level === "COMPLETE")
+          ) {
+            console.log("video err", err);
+            errored = true;
+          }
+        } finally {
+          successedVods.add(videoId);
+          await completeVideoQueue(videoId, errored);
+        }
+      })
+    );
+  }
+
+  (async () => {
+    const start = new Date();
+    const botId = (await prisma.bots.findFirst())?.id;
+    let errored = false;
+    if (!botId) {
+      console.error("no bot found");
+    }
+
+    const parentQueue = await prisma.processQueue.upsert({
+      where: {
+        channelId_videoId_type: {
+          channelId: "",
+          videoId: "",
+          type: "bulk_process",
+        },
+      },
+      create: {
+        status: "pending",
+        type: "bulk_process",
+        timeInitialized: new Date(),
+      },
+      update: {
+        status: "pending",
+        type: "bulk_process",
+        timeInitialized: new Date(),
+      },
+    });
+
+    let skip = 0;
+    let done = false;
+    try {
+      while (!done && skip < 15000) {
+        const sponsorTimes = await prisma.sponsorTimes.groupBy({
+          by: ["videoID", "timeSubmitted"],
+          orderBy: {
+            timeSubmitted: "desc",
+          },
+          where: {
+            category: "sponsor",
+            locked: true,
+          },
+          take: 100,
+          skip,
+        });
+        skip += sponsorTimes.length;
+
+        if (!sponsorTimes || !(sponsorTimes.length > 0)) {
+          done = true;
+        }
+
+        const vodsInProcessSegment = new Set<string>();
+        for (let i = 0; i < sponsorTimes.length; i++) {
+          if (!allVodsProcessing.has(sponsorTimes[i]?.videoID ?? "")) {
+            allVodsProcessing.add(sponsorTimes[i]?.videoID ?? "");
+            vodsInProcessSegment.add(sponsorTimes[i]?.videoID ?? "");
+          }
+        }
+        console.log("PROCESS", vodsInProcessSegment.size);
+        await rateLimitedVideoProcess(
+          botId as string,
+          parentQueue.id,
+          Array.from(vodsInProcessSegment)
+        );
+      }
+    } catch (error) {
+      errored = true;
+      console.log("error:", error);
+    } finally {
+      await prisma.processQueue.update({
+        where: { id: parentQueue.id },
+        data: {
+          status: errored ? "error" : "completed",
+          lastUpdated: new Date(),
+        },
+      });
+      console.log(`process done. Started: ${start}, ended: ${new Date()}`);
+      console.log("total vods:", allVodsProcessing.size);
+      console.log("vods successfull:", successedVods.size);
+      const failed = new Set(
+        [...allVodsProcessing].filter((x) => !successedVods.has(x))
+      );
+
+      console.log("failed vods", failed, failed.size);
+    }
+  })();
 };
