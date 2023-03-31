@@ -142,7 +142,8 @@ model Channels {
   id   String  @id
   name String?
 
-  thumbnail String?
+  thumbnail   String?
+  hasSponsors Boolean?
 
   Videos       Videos[]
   ChannelStats ChannelStats[] //may be overtime data
@@ -268,6 +269,7 @@ enum ProcessType {
   video_sponsors
   channel_videos
   channel_summary
+  bulk_process
 }
 
 model ProcessQueue {
@@ -278,7 +280,7 @@ model ProcessQueue {
   timeInitialized DateTime    @default(now())
   lastUpdated     DateTime?
 
-  channelId String
+  channelId String? @default("")
   videoId   String? @default("")
 
   Channel  Channels?  @relation(fields: [channelId], references: [id])
