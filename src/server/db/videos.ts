@@ -44,11 +44,7 @@ export const saveVideoDetails = async ({
   await videoUpsert();
 
   async function videoUpsert() {
-    console.log(
-      "try video upsert",
-      input.videoId,
-      segmentInfos?.map((s) => s.UUID)
-    );
+    console.log("try video upsert", input.videoId);
 
     if (
       !videoInfo?.basic_info.channel?.id ||
@@ -81,8 +77,10 @@ export const saveVideoDetails = async ({
       shadowHidden: !!segment.shadowHidden,
     }));
 
+    let videoChannelIsMarkedWithSponsors = false;
+
     try {
-      await ctx.prisma.videos.upsert({
+      const vodUpsert = await ctx.prisma.videos.upsert({
         where: { id: input.videoId },
         update: {
           SponsorSegments: {
@@ -108,6 +106,8 @@ export const saveVideoDetails = async ({
               create: {
                 id: videoInfo.basic_info.channel.id,
                 name: videoInfo.basic_info.channel?.name,
+                hasSponsors:
+                  segmentInfos && segmentInfos?.length > 0 ? true : undefined,
               },
             },
           },
@@ -118,7 +118,13 @@ export const saveVideoDetails = async ({
             })),
           },
         },
+        include: {
+          Channel: true,
+        },
       });
+      if (vodUpsert.Channel.hasSponsors) {
+        videoChannelIsMarkedWithSponsors = true;
+      }
     } catch (err) {
       //in the event of a deadlock the video information is already being written, just save the segments instead.
       if (
@@ -136,6 +142,19 @@ export const saveVideoDetails = async ({
         throw err;
       }
     }
+    //update channel if a video has sponsors and channel not already marked
+    try {
+      if (
+        !videoChannelIsMarkedWithSponsors &&
+        segmentInfos &&
+        segmentInfos.length > 0
+      ) {
+        await ctx.prisma.channels.update({
+          where: { id: videoInfo.basic_info.channel.id },
+          data: { hasSponsors: true },
+        });
+      }
+    } catch (err) {}
   }
 };
 
