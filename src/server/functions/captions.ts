@@ -4,7 +4,9 @@ import he from 'he';
 export const getXMLCaptions = async (
   url: string
 ): Promise<{ text: string; start: number; dur: number }[]> => {
+  //console.log("captions?", url)
   const XMLdata = await fetch(url).then((response) => response.text());
+  //console.log("raw?", XMLdata)
   const parser = new XMLParser({
     ignoreAttributes: false,
     parseAttributeValue: true,
@@ -13,6 +15,7 @@ export const getXMLCaptions = async (
     textNodeName: "text",
   });
   const parsedCaptions = parser.parse(XMLdata);
+  //console.log("parsed?", parsedCaptions)
   const firstSegment = parsedCaptions?.[1]?.["transcript"]?.[0];
   //check for unexpected xml format
   if (
@@ -22,9 +25,17 @@ export const getXMLCaptions = async (
   ) {
     throw new Error("Unexpected XML Format. First segment:", firstSegment);
   }
+  const tryDecodeTextSegment = (text:string|number) => {
+    try{
+      return he.decode(`${text}`); //make all inputs into string
+    }catch (err){
+      console.log("decode err", text); 
+      return "<--parse error-->"
+    }
+  }
   const formattedCaptions = parsedCaptions?.[1]?.["transcript"]?.map(
     (segment: any) => ({
-      text: he.decode(segment?.["text"]?.[0]?.text ?? ""),
+      text: tryDecodeTextSegment(segment?.["text"]?.[0]?.text ?? ""),
       ...segment?.[":@"],
     })
   );
