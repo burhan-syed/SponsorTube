@@ -75,6 +75,18 @@ export const getSegmentAnnotationsOpenAICall = async ({
   inputVideoInfo?: VideoInfo;
   stopAt?: Date;
 }) => {
+  if (input.transcript.length > 2048) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Input segment too long",
+      cause: new CustomError({
+        message: "Input segment too long. Please annotate manually.",
+        expose: true,
+        level: "PARTIAL",
+      }),
+    });
+  }
+
   const textHash = md5(input.transcript);
 
   const bots = await ctx.prisma?.bots.findMany({
@@ -323,9 +335,9 @@ export const getSegmentAnnotationsOpenAICall = async ({
                 "promo code",
                 // "link below",
                 // "link down below",
-                "N/A",
+                "n/a",
                 "---",
-              ];
+              ]; //lowercase matching
 
               const textFormatted = rawText?.trim();
 
@@ -463,7 +475,6 @@ export const getSegmentAnnotationsOpenAICall = async ({
         newTextSegment.replace(/%|\/|\$|https:\/\/|\./gm, ""),
         newTextSegment.replace(/%|\/|\$|https:\/\/|\./gm, " "),
         //newTextSegment.replace(/%|\/|\$|https:\/\/|\./gm, " or "),
-
       ];
       if (!replacedNewTexts.some((r) => r !== newTextSegment)) {
         return originalText;
