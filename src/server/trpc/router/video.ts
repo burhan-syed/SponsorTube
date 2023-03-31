@@ -10,7 +10,7 @@ import {
   getVideoInfoFormatted,
   GetVideoInfoSchema,
 } from "@/server/db/videos";
-import { processVideo } from "@/server/functions/process";
+import { processAllSegments, processVideo } from "@/server/functions/process";
 
 export const videoRouter = router({
   segments: publicProcedure
@@ -55,5 +55,48 @@ export const videoRouter = router({
         videoId: input.videoID,
         ctx,
       });
+    }),
+  processAll: protectedProcedure.mutation(async ({ ctx }) => {
+    await processAllSegments({ ctx });
+  }),
+  getRecent: publicProcedure
+    .input(
+      z.object({
+        withSponsors: z.boolean().nullish(),
+        limit: z.number().min(1).max(25).nullish(),
+        cursor: z.string().nullish(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const limit = input.limit ?? 25;
+      const { cursor } = input;
+      const vods = await ctx.prisma.videos.findMany({
+        take: limit + 1,
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: {
+          published: "desc",
+        },
+        where: input.withSponsors
+          ? {
+              ProcessQueue: {
+                some: {
+                  status: "completed",
+                },
+              },
+            }
+          : undefined,
+        include: {
+          Channel: true,
+        },
+      });
+      let nextCursor: typeof cursor | undefined = undefined;
+      if (vods.length > limit) {
+        const nextItem = vods.pop();
+        nextCursor = nextItem?.id;
+      }
+      return {
+        vods,
+        nextCursor,
+      };
     }),
 });
