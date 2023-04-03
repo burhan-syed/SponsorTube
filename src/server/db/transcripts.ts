@@ -8,9 +8,9 @@ import {
 import { saveVideoDetails } from "./videos";
 import { isUserABot } from "./bots";
 import { md5 } from "../functions/hash";
-import type { Context } from "../trpc/context";
-import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo";
 import { CustomError } from "../common/errors";
+import type { Context } from "@/server/api/trpc";
+import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo";
 
 const AnnotationsSchema = z.array(
   z.object({

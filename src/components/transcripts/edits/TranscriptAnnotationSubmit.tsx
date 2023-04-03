@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/common/Button";
 import useGlobalStore from "@/store/useGlobalStore";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import type { TranscriptAnnotations } from "@prisma/client";
 import React from "react";
 import { Segment } from "sponsorblock-api";
@@ -37,8 +37,8 @@ const TranscriptAnnotationSubmit = ({
   setTabValue?(v: string): void;
 }) => {
   const dialogueTrigger = useGlobalStore((store) => store.setDialogueTrigger);
-  const utils = trpc.useContext();
-  const submitAnnotations = trpc.transcript.saveAnnotations.useMutation({
+  const utils = api.useContext();
+  const submitAnnotations = api.transcript.saveAnnotations.useMutation({
     async onSuccess() {
       await Promise.all([
         utils.transcript.get.invalidate({

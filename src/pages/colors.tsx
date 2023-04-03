@@ -1,10 +1,10 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { trpc } from "../utils/trpc";
+import { api } from "../utils/api";
 
 const Home: NextPage = () => {
-  const hello = trpc.example.hello.useQuery({ text: "from tRPC" });
+  const hello = api.example.hello.useQuery({ text: "from tRPC" });
 
   return (
     <>
@@ -17,7 +17,7 @@ const Home: NextPage = () => {
         <div className="h-36 w-full bg-red-500"></div>
         <div className="h-36 w-full bg-red-700"></div>
         <div className="h-36 w-full bg-rose-600 "></div>
-        <div className="h-36 w-full bg-slate-50 flex items-center justify-center p-4">
+        <div className="flex h-36 w-full items-center justify-center bg-slate-50 p-4">
           <span className="text-lg text-slate-700 ">
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum
             doloribus voluptate repellat. Consequuntur aspernatur minima sequi
@@ -25,7 +25,7 @@ const Home: NextPage = () => {
             quaerat possimus quo harum hic error.
           </span>
         </div>
-        <div className="h-36 w-full bg-slate-500 flex items-center justify-center p-4">
+        <div className="flex h-36 w-full items-center justify-center bg-slate-500 p-4">
           <span className="text-lg text-slate-50">
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum
             doloribus voluptate repellat. Consequuntur aspernatur minima sequi
@@ -33,7 +33,7 @@ const Home: NextPage = () => {
             quaerat possimus quo harum hic error.
           </span>
         </div>
-        <div className="h-36 w-full bg-slate-900 flex items-center justify-center p-4">
+        <div className="flex h-36 w-full items-center justify-center bg-slate-900 p-4">
           <span className="text-lg text-slate-50">
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum
             doloribus voluptate repellat. Consequuntur aspernatur minima sequi

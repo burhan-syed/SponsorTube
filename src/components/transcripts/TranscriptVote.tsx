@@ -1,4 +1,4 @@
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import {
   RiThumbUpLine,
   RiThumbUpFill,
@@ -20,8 +20,8 @@ const TranscriptVote = ({
   initialDirection?: number;
   disabled?: boolean;
 }) => {
-  const utils = trpc.useContext();
-  const votes = trpc.transcript.getMyVote.useQuery(
+  const utils = api.useContext();
+  const votes = api.transcript.getMyVote.useQuery(
     {
       transcriptDetailsId: transcriptDetailsId,
     },
@@ -30,7 +30,7 @@ const TranscriptVote = ({
       initialData: { direction: initialDirection },
     }
   );
-  const vote = trpc.transcript.voteTranscriptDetails.useMutation({
+  const vote = api.transcript.voteTranscriptDetails.useMutation({
     onMutate(variables) {
       utils.transcript.getMyVote.setData(
         { transcriptDetailsId: variables.transcriptDetailsId },

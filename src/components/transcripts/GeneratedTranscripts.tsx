@@ -3,7 +3,7 @@ import TranscriptEditWrapper from "./edits/TranscriptEditWrapper";
 import type { Segment } from "sponsorblock-api";
 import useVideoCaptions from "@/hooks/useVideoCaptions";
 import useSegmentTranscript from "@/hooks/useSegmentTranscript";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import Switch from "../ui/common/Switch";
 import TranscriptLoader from "../ui/loaders/transcripts/TranscriptLoader";
 
@@ -31,7 +31,7 @@ const GeneratedTranscripts = ({
     videoCaptions: captions.data,
     sponsorSegment: segment,
   });
-  const savedTranscriptAnnotations = trpc.transcript.get.useQuery(
+  const savedTranscriptAnnotations = api.transcript.get.useQuery(
     {
       segmentUUID: segment.UUID,
       mode: "generated",

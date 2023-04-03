@@ -1,11 +1,11 @@
 // src/pages/_app.tsx
-import "../styles/globals.css";
+import "@/styles/globals.css";
 import { SessionProvider } from "next-auth/react";
 import { CookiesProvider } from "react-cookie";
 import type { Session } from "next-auth";
 import type { AppType } from "next/app";
 import Router from "next/router";
-import { trpc } from "../utils/trpc";
+import { api } from "@/utils/api";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -75,4 +75,4 @@ const MyApp: AppType<{ session: Session | null }> = ({
   );
 };
 
-export default trpc.withTRPC(MyApp);
+export default api.withTRPC(MyApp);

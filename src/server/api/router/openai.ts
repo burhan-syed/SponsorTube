@@ -1,4 +1,4 @@
-import { router, publicProcedure, protectedProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 import { z } from "zod";
 
 import {
@@ -6,7 +6,7 @@ import {
   getSegmentAnnotationsOpenAICall,
 } from "@/server/db/bots";
 
-export const openAIRouter = router({
+export const openAIRouter = createTRPCRouter({
   hello: publicProcedure
     .input(z.object({ text: z.string().nullish() }).nullish())
     .query(({ input }) => {

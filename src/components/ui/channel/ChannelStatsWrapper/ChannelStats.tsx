@@ -1,8 +1,8 @@
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import React, { useMemo } from "react";
 
 const ChannelStats = ({ channelId }: { channelId: string }) => {
-  const channelStats = trpc.channel.getStats.useQuery({ channelId });
+  const channelStats = api.channel.getStats.useQuery({ channelId });
 
   const numVideosProcessed = useMemo(
     () =>

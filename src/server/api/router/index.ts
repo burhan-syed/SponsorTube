@@ -1,5 +1,5 @@
 // src/server/trpc/router/index.ts
-import { router } from "../trpc";
+import { createTRPCRouter } from "../trpc";
 import { exampleRouter } from "./example";
 import { authRouter } from "./auth";
 import { videoRouter } from "./video";
@@ -7,7 +7,7 @@ import { searchRouter } from "./search";
 import { channelRouter } from "./channel";
 import { transcriptRouter } from "./transcripts";
 import { openAIRouter } from "./openai";
-export const appRouter = router({
+export const appRouter = createTRPCRouter({
   example: exampleRouter,
   auth: authRouter,
   video: videoRouter,

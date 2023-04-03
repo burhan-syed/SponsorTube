@@ -1,8 +1,8 @@
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import ChannelSponsorsPills from "./ChannelSponsorsPills";
 
 const ChannelSponsors = ({ channelId }: { channelId: string }) => {
-  const channelSponsors = trpc.channel.getSponsors.useQuery({ channelId });
+  const channelSponsors = api.channel.getSponsors.useQuery({ channelId });
 
   return (
     <div>

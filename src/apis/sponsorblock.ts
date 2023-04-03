@@ -18,13 +18,15 @@ export const getVideoSegments = async ({
     const segments = await sponsorBlock.getSegments(videoID, categories);
     return segments;
   } catch (err) {
-    console.log("sponsorblock err?", videoID, err);
-    if (err instanceof ResponseError) {
+    //if no segments (404 error) return empty 
+    if (err instanceof ResponseError && err.status === 404) {
       // console.log("segment fetch err", videoID, err)
       switch (err.message) {
         default:
           return [];
       }
+    } else {
+      console.log("sponsorblock err?", videoID, err);
     }
     throw err;
   }

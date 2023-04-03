@@ -1,15 +1,15 @@
 import Header from "@/components/Header";
 import SegmentsPreview from "@/components/ui/SegmentsPreview";
 import { Button } from "@/components/ui/common/Button";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import clsx from "clsx";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
 const RecentsPage = () => {
-  const recentVods = trpc.video.getRecent.useInfiniteQuery(
-    { limit: 20 },
+  const recentVods = api.video.getRecent.useInfiniteQuery(
+    { limit: 20, withSponsors: true },
     { getNextPageParam: (lastPage) => lastPage.nextCursor }
   );
   return (

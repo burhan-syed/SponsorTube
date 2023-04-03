@@ -1,11 +1,12 @@
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/common/Button";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import React from "react";
 
 const SearchPage = () => {
-  const processAll = trpc.video.processAll.useMutation();
-  const updateAll = trpc.channel.summarizeAllChannels.useMutation();
+  const role = api.auth.getUserRole.useQuery();
+  const processAll = api.video.processAll.useMutation();
+  const updateAll = api.channel.summarizeAllChannels.useMutation();
   return (
     <div>
       <Header />

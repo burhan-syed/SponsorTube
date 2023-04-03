@@ -4,7 +4,7 @@ import { useCookies } from "react-cookie";
 import { Category } from "sponsorblock-api";
 import { v4 as uuidv4 } from "uuid";
 import { getVideoSegments } from "../apis/sponsorblock";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 const useSponsorBlock = ({
   videoID,
   categories = ["sponsor"],
@@ -25,7 +25,7 @@ const useSponsorBlock = ({
     }
   }, []);
 
-  const savedSegments = trpc.video.segments.useQuery(
+  const savedSegments = api.video.segments.useQuery(
     { videoID: videoID ?? ""},
     {
       enabled: !!videoID,

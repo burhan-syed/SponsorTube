@@ -1,4 +1,4 @@
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import { useSession } from "next-auth/react";
 import TranscriptEditWrapper from "./edits/TranscriptEditWrapper";
 import type { Segment } from "sponsorblock-api";
@@ -24,7 +24,7 @@ const SavedTranscripts = ({
   seekTo(start: number, end: number): void;
 }) => {
   const { data: sessionData } = useSession();
-  const savedTranscriptAnnotations = trpc.transcript.get.useQuery(
+  const savedTranscriptAnnotations = api.transcript.get.useQuery(
     {
       segmentUUID: segment.UUID,
       mode: userPosts ? "user" : "score",

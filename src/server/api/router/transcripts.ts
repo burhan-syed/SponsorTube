@@ -1,4 +1,4 @@
-import { router, publicProcedure, protectedProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
@@ -12,7 +12,7 @@ import {
 } from "@/server/db/transcripts";
 import { getBotIds } from "@/server/db/bots";
 
-export const transcriptRouter = router({
+export const transcriptRouter = createTRPCRouter({
   get: publicProcedure
     .input(
       z.object({

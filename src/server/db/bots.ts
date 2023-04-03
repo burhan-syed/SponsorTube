@@ -1,7 +1,6 @@
 import { CustomError } from "../common/errors";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { env } from "../../env/server.mjs";
 import {
   OpenAIApi,
   Configuration,
@@ -17,11 +16,11 @@ import type {
   BotQueue,
   Bots,
 } from "@prisma/client";
-import type { Context } from "../trpc/context";
+import type { Context } from "@/server/api/trpc";
 import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo.js";
 
 const configuration = new Configuration({
-  apiKey: env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 const MAX_RETRY = 10;

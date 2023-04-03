@@ -1,5 +1,5 @@
 import useSponsorBlock from "@/hooks/useSponsorBlock";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import clsx from "clsx";
 import React from "react";
 import { CgSpinnerTwoAlt } from "react-icons/cg";
@@ -17,7 +17,7 @@ const SegmentsPreview = ({
   const { segments, savedSegments } = useSponsorBlock({
     videoID: inView ? videoId : "",
   });
-  const sponsors = trpc.video.getSponsors.useQuery(
+  const sponsors = api.video.getSponsors.useQuery(
     { videoId: videoId },
     { enabled: inView }
   );

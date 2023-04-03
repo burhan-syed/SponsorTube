@@ -2,7 +2,7 @@ import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import { getChannel, ytSearchQuery } from "@/apis/youtube";
 import ChannelHeader from "@/components/ui/channel/ChannelHeader";
 import Header from "@/components/Header";
@@ -19,7 +19,7 @@ const ChannelPage: NextPage = () => {
     (Array.isArray(router.query.channelID)
       ? router.query.channelID?.[0]
       : router.query.channelID) ?? "";
-  const channel = trpc.channel.details.useInfiniteQuery(
+  const channel = api.channel.details.useInfiniteQuery(
     { channelID: channelID },
     {
       enabled: !!channelID,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 
 import Dropdown from "../common/Dropdown";
 import { BiBrain, BiChevronDown, BiRefresh } from "react-icons/bi";
@@ -116,9 +116,9 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [waitToFinish, setWaitToFinish] = useState(false);
   const windowWidth = useWindowWidth({ initialWidth: 400 });
-  const utils = trpc.useContext();
+  const utils = api.useContext();
   const { startMonitor, channelStatusQuery } = useMonitorChannel({ channelId });
-  const processChannel = trpc.channel.processChannel.useMutation({
+  const processChannel = api.channel.processChannel.useMutation({
     async onSuccess() {
       await utils.channel.getVideosStatus.invalidate({ channelId });
       startMonitor();
@@ -126,9 +126,9 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
     },
   });
   //keep this loaded for invalidation
-  trpc.channel.getStats.useQuery({ channelId });
+  api.channel.getStats.useQuery({ channelId });
 
-  const updateSponsors = trpc.channel.updateChannelSponsors.useMutation({
+  const updateSponsors = api.channel.updateChannelSponsors.useMutation({
     async onSuccess() {
       await Promise.allSettled([
         utils.channel.getSponsors.invalidate({ channelId }),

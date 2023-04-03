@@ -1,6 +1,6 @@
 // src/pages/api/examples.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/server/db/client";
+import { prisma } from "@/server/db";
 import { processVideo } from "@/server/functions/process";
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const secret = process.env.MY_SECRET_KEY;

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, UseFormProps } from "react-hook-form";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import { z } from "zod";
 import { Button } from "@/components/ui/common/Button";
 import clsx from "clsx";
@@ -58,8 +58,8 @@ const TranscriptEditor = ({
     };
   }, []);
 
-  const utils = trpc.useContext();
-  const saveEdit = trpc.transcript.saveTranscript.useMutation({
+  const utils = api.useContext();
+  const saveEdit = api.transcript.saveTranscript.useMutation({
     async onSuccess() {
       await utils.transcript.get.invalidate({ segmentUUID: segmentUUID });
       setOpen(false);

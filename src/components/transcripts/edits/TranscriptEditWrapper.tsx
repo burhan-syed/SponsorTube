@@ -8,7 +8,6 @@ import TranscriptAnnotator from "./TranscriptAnnotator";
 import Tooltip from "../../ui/common/Tooltip";
 import TranscriptEditor from "./TranscriptEditor";
 import clsx from "clsx";
-import { trpc } from "@/utils/trpc";
 import { Button } from "@/components/ui/common/Button";
 import Selector from "@/components/ui/common/Selector";
 

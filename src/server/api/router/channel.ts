@@ -1,4 +1,4 @@
-import { router, publicProcedure, protectedProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { getChannel } from "../../../apis/youtube";
 import { getVideosContinuation } from "@/server/functions/channel";
@@ -10,7 +10,7 @@ import type C4TabbedHeader from "youtubei.js/dist/src/parser/classes/C4TabbedHea
 import { TRPCError } from "@trpc/server";
 import { summarizeChannelSponsors } from "@/server/db/sponsors";
 
-export const channelRouter = router({
+export const channelRouter = createTRPCRouter({
   hello: publicProcedure
     .input(z.object({ text: z.string().nullish() }).nullish())
     .query(({ input }) => {

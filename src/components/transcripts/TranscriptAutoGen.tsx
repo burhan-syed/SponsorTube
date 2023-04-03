@@ -1,7 +1,8 @@
 import { Button } from "../ui/common/Button";
 import { BiBrain } from "react-icons/bi";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import { Segment } from "sponsorblock-api";
+import useGlobalStore from "@/store/useGlobalStore";
 
 const TranscriptAutoGen = ({
   setTabValue,
@@ -22,9 +23,10 @@ const TranscriptAutoGen = ({
   };
   videoID: string;
 }) => {
-  const utils = trpc.useContext();
+  const utils = api.useContext();
+  const dialogueTrigger = useGlobalStore((store) => store.setDialogueTrigger);
 
-  const getSegments = trpc.openai.getSegmentAnnotations.useMutation({
+  const getSegments = api.openai.getSegmentAnnotations.useMutation({
     async onSuccess() {
       await Promise.all([
         utils.transcript.get.invalidate({
@@ -38,6 +40,11 @@ const TranscriptAutoGen = ({
     },
     async onError(error, variables, context) {
       console.log("error?", error, variables, context);
+      dialogueTrigger({
+        title: "Auto generation Failed",
+        description: error.message,
+        close: "ok",
+      });
       if (error.data?.code === "CONFLICT") {
         await utils.transcript.get.invalidate({
           segmentUUID: segment.UUID,

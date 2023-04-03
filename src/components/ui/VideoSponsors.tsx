@@ -1,4 +1,4 @@
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import { AnnotationTags } from "@prisma/client";
 import React, { useState } from "react";
 import { TAGS } from "../transcripts/edits/TranscriptTags";
@@ -52,7 +52,7 @@ const TextPill = ({
 };
 
 const VideoSponsors = ({ videoId }: { videoId: string }) => {
-  const sponsors = trpc.video.getSponsors.useQuery({ videoId: videoId });
+  const sponsors = api.video.getSponsors.useQuery({ videoId: videoId });
   const [selectedSegment, setSelectedSegment] = useState("");
   const toggleSetSelectedSegment = (s: string) => {
     setSelectedSegment((p) => (p === s ? "" : s));

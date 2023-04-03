@@ -1,9 +1,9 @@
-import { router, publicProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { ytAutoComplete, ytSearchQuery } from "../../../apis/youtube";
 import { YTNodes } from "youtubei.js/agnostic";
 
-export const searchRouter = router({
+export const searchRouter = createTRPCRouter({
   hello: publicProcedure
     .input(z.object({ text: z.string().nullish() }).nullish())
     .query(({ input }) => {

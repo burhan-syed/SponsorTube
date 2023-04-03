@@ -1,3 +1,5 @@
+import { CustomError } from "../common/errors";
+import { inferAsyncReturnType } from "@trpc/server";
 import type {
   AnnotationTags,
   SponsorTimes,
@@ -5,10 +7,7 @@ import type {
   TranscriptDetails,
   Transcripts,
 } from "@prisma/client";
-import { Context } from "../trpc/context";
-import { CustomError } from "../common/errors";
-import { inferAsyncReturnType } from "@trpc/server";
-
+import type { Context } from "@/server/api/trpc";
 
 export const getVideoSponsors = async ({
   videoId,

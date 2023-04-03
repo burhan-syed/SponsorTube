@@ -11,7 +11,7 @@ import Channel, {
   ChannelListContinuation,
 } from "youtubei.js/dist/src/parser/youtube/Channel";
 import type Video from "youtubei.js/dist/src/parser/classes/Video";
-import type { Context } from "../trpc/context";
+import type { Context } from "../api/context";
 import type { GetSegmentAnnotationsType } from "../db/bots";
 import type { C4TabbedHeader } from "youtubei.js/dist/src/parser/nodes";
 import type { ProcessQueue, QueueStatus } from "@prisma/client";

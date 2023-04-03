@@ -4,7 +4,7 @@ import SavedTranscripts from "./SavedTranscripts";
 
 import type { Segment } from "sponsorblock-api";
 import GeneratedTranscripts from "./GeneratedTranscripts";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import { useSession } from "next-auth/react";
 import TabsList from "../ui/common/tabs/TabsList";
 import TranscriptLoader from "../ui/loaders/transcripts/TranscriptLoader";
@@ -23,7 +23,7 @@ const TranscriptTabs = ({
   const { data: sessionData } = useSession();
 
   //load these prior to tab focus
-  const savedTranscriptAnnotations = trpc.transcript.get.useQuery(
+  const savedTranscriptAnnotations = api.transcript.get.useQuery(
     {
       segmentUUID: segment.UUID,
       mode: "score",

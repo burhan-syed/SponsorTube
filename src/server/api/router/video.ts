@@ -1,4 +1,4 @@
-import { router, publicProcedure, protectedProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import {
   getVideoSponsors,
@@ -12,7 +12,7 @@ import {
 } from "@/server/db/videos";
 import { processAllSegments, processVideo } from "@/server/functions/process";
 
-export const videoRouter = router({
+export const videoRouter = createTRPCRouter({
   segments: publicProcedure
     .input(z.object({ videoID: z.string() }))
     .query(async ({ input, ctx }) => {

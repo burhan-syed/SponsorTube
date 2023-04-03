@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { trpc } from "../utils/trpc";
+import { api } from "../utils/api";
 import Header from "../components/Header";
 import VideoInfo from "../components/ui/VideoInfo";
 import VideoEmbed from "../components/ui/VideoEmbed";
@@ -16,7 +16,7 @@ const Home: NextPage = ({}) => {
   const router = useRouter();
   const { v } = router.query;
   const videoID = (Array.isArray(v) ? v?.[0] : v) ?? "";
-  const videoInfo = trpc.video.info.useQuery(
+  const videoInfo = api.video.info.useQuery(
     { videoID },
     {
       enabled: !!videoID,
@@ -26,8 +26,8 @@ const Home: NextPage = ({}) => {
     }
   );
 
-  const utils = trpc.useContext();
-  const processVideo = trpc.video.processVideo.useMutation({
+  const utils = api.useContext();
+  const processVideo = api.video.processVideo.useMutation({
     async onSuccess() {
       await Promise.all([
         utils.transcript.get.invalidate(),

@@ -1,4 +1,4 @@
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import { useSession } from "next-auth/react";
 import React from "react";
 
@@ -10,7 +10,7 @@ const TranscriptQueryKeepAlive = ({
 }) => {
   const { data: sessionData } = useSession();
 
-  const generatedTranscriptAnnotations = trpc.transcript.get.useQuery(
+  const generatedTranscriptAnnotations = api.transcript.get.useQuery(
     {
       segmentUUID: segmentUUID,
       mode: "generated",
@@ -19,7 +19,7 @@ const TranscriptQueryKeepAlive = ({
       enabled: !!segmentUUID,
     }
   );
-  const userTranscriptAnnotations = trpc.transcript.get.useQuery(
+  const userTranscriptAnnotations = api.transcript.get.useQuery(
     {
       segmentUUID: segmentUUID,
       mode: "user",

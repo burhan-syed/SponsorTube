@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
 import { BiTrashAlt } from "react-icons/bi";
 import { useSession } from "next-auth/react";
 import AlertDialogueWrapper from "../ui/dialogue/AlertDialogueWrapper";
@@ -21,8 +21,8 @@ const TranscriptDelete = ({
 }: TranscriptDeleteProps) => {
   const { data: sessionData } = useSession();
 
-  const utils = trpc.useContext();
-  const deleteTranscript = trpc.transcript.delete.useMutation({
+  const utils = api.useContext();
+  const deleteTranscript = api.transcript.delete.useMutation({
     onSuccess() {
       utils.transcript.get.invalidate({ segmentUUID });
     },

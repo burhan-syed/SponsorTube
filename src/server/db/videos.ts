@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import type { Context } from "../trpc/context";
 import { getSegmentsByID } from "@/apis/sponsorblock";
 import { getVideoInfo } from "@/apis/youtube";
 import { TRPCError } from "@trpc/server";
 import { YTNodes } from "youtubei.js/agnostic";
 import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo";
+import type { Context } from "@/server/api/trpc";
 
 export const SaveVideoDetailsSchema = z.object({
   segmentIDs: z.array(z.string()),
