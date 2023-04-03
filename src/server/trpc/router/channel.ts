@@ -1,8 +1,11 @@
-import { router, publicProcedure } from "../trpc";
+import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { getChannel } from "../../../apis/youtube";
 import { getVideosContinuation } from "@/server/functions/channel";
-import { processChannel } from "@/server/functions/process";
+import {
+  processChannel,
+  summarizeAllChannels,
+} from "@/server/functions/process";
 import type C4TabbedHeader from "youtubei.js/dist/src/parser/classes/C4TabbedHeader";
 import { TRPCError } from "@trpc/server";
 import { summarizeChannelSponsors } from "@/server/db/sponsors";
@@ -100,4 +103,7 @@ export const channelRouter = router({
       });
       return channelSponsors;
     }),
+  summarizeAllChannels: protectedProcedure.mutation(async ({ ctx }) => {
+    await summarizeAllChannels({ ctx });
+  }),
 });

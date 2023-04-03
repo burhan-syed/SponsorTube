@@ -18,6 +18,7 @@ import type { ProcessQueue, QueueStatus } from "@prisma/client";
 import type { VideoInfo } from "youtubei.js/dist/src/parser/youtube";
 import { saveVideoDetails } from "../db/videos";
 import { saveTranscript } from "../db/transcripts";
+import { summarizeChannelSponsors } from "../db/sponsors";
 
 const OPENAI_RPM = 20;
 const SECRET = process?.env?.MY_SECRET_KEY ?? "";
@@ -801,6 +802,7 @@ const summarizeChannelCall = async (input: { channelId: string }) => {
   return;
 };
 
+//note: will timeout if ran on serverless
 export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
   const prisma = ctx.prisma;
   const allVodsProcessing = new Set<string>();
@@ -837,7 +839,12 @@ export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
     const vodQueueSet = new Set<string>();
     vodQueue.forEach((v) => vodQueueSet.add(v.videoId ?? ""));
 
-    const vodsToProcess = videos.filter((v) => !vodQueueSet.has(v));
+    const vodsToProcess = videos.filter((v) => {
+      if (vodQueueSet.has(v)) {
+        successedVods.add(v);
+      }
+      return !vodQueueSet.has(v);
+    });
     console.log(
       "SKIPPING",
       vodQueueSet.size,
@@ -928,10 +935,11 @@ export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
       },
     });
 
+    const maxSegments = 35000;
     let skip = 0;
     let done = false;
     try {
-      while (!done && skip < 15000) {
+      while (!done && skip < maxSegments) {
         const sponsorTimes = await prisma.sponsorTimes.groupBy({
           by: ["videoID", "timeSubmitted"],
           orderBy: {
@@ -985,4 +993,52 @@ export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
       console.log("failed vods", failed, failed.size);
     }
   })();
+};
+
+//note: will timeout if ran on serverless
+export const summarizeAllChannels = async ({ ctx }: { ctx: Context }) => {
+  let allErrored: any[] = [];
+  let allSuccess: any[] = [];
+  const take = 10;
+  let cursor: string | undefined;
+  let done = false;
+  while (!done) {
+    const channelsWithSponsors = await ctx.prisma.channels.findMany({
+      where: { hasSponsors: true },
+      take: take + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      orderBy: { id: "asc" },
+    });
+
+    if (channelsWithSponsors.length > take) {
+      const lastChannel = channelsWithSponsors.pop();
+      cursor = lastChannel?.id;
+    } else {
+      done = true;
+    }
+
+    const tryProcessAllChannels = await Promise.allSettled(
+      channelsWithSponsors.map(async (channel) => {
+        await summarizeChannelSponsors({ channelId: channel.id, ctx });
+      })
+    );
+    const errors = tryProcessAllChannels.filter((p) => p.status === "rejected");
+    const success = tryProcessAllChannels.filter(
+      (p) => p.status === "fulfilled"
+    );
+
+    allErrored = [...allErrored, ...errors];
+    allSuccess = [...allSuccess, ...success];
+
+    console.log("DONE PART?", {
+      total: tryProcessAllChannels.length,
+      errored: errors.length,
+      success: success.length,
+    });
+  }
+
+  console.log("DONE ALL?", {
+    errored: allErrored.length,
+    success: allSuccess.length,
+  });
 };
