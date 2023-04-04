@@ -23,7 +23,7 @@ const SegmentsPreview = ({
   );
   if (segments.isLoading || savedSegments.isLoading || sponsors.isLoading) {
     return (
-      <div ref={ref}>
+      <div ref={ref} className={clsx(className)}>
         {/* <>
           {JSON.stringify({
             se: segments.isLoading,
@@ -51,7 +51,7 @@ const SegmentsPreview = ({
     );
   }
   return (
-    <div ref={ref} className={clsx("", className)}>
+    <div ref={ref} className={clsx(className)}>
       {segments.data ? (
         <span>
           {segments.data.length} sponsor segment
