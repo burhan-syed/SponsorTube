@@ -1,4 +1,4 @@
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { adminProcedure, createTRPCRouter, publicProcedure } from "../trpc";
 import { z } from "zod";
 
 export const exampleRouter = createTRPCRouter({
@@ -11,5 +11,8 @@ export const exampleRouter = createTRPCRouter({
     }),
   getAll: publicProcedure.query(({ ctx }) => {
     return ctx.prisma.example.findMany();
+  }),
+  admin: adminProcedure.mutation(() => {
+    console.log("mutate");
   }),
 });

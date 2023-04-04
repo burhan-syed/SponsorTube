@@ -1,4 +1,4 @@
-import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure, adminProcedure } from "../trpc";
 import { z } from "zod";
 import { getChannel } from "../../../apis/youtube";
 import { getVideosContinuation } from "@/server/functions/channel";
@@ -103,7 +103,7 @@ export const channelRouter = createTRPCRouter({
       });
       return channelSponsors;
     }),
-  summarizeAllChannels: protectedProcedure.mutation(async ({ ctx }) => {
+  summarizeAllChannels: adminProcedure.mutation(async ({ ctx }) => {
     await summarizeAllChannels({ ctx });
   }),
 });

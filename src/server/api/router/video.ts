@@ -1,4 +1,4 @@
-import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure, adminProcedure } from "../trpc";
 import { z } from "zod";
 import {
   getVideoSponsors,
@@ -56,7 +56,7 @@ export const videoRouter = createTRPCRouter({
         ctx,
       });
     }),
-  processAll: protectedProcedure.mutation(async ({ ctx }) => {
+  processAll: adminProcedure.mutation(async ({ ctx }) => {
     await processAllSegments({ ctx });
   }),
   getRecent: publicProcedure
