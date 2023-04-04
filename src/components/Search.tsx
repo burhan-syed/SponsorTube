@@ -65,7 +65,7 @@ const Search = ({
     ) => {
       //console.log("term?", newValue, method);
       setSearchTerm(newValue);
-      method === "type" && setAutoCompleteSearchTerm(newValue);
+      method === "type" && newValue.length > 3 && setAutoCompleteSearchTerm(newValue);
     },
     autoFocus: autoFocus,
     onFocus: () => setFocused(true),
@@ -146,6 +146,7 @@ const Search = ({
             onSuggestionsFetchRequested={({ value }) => {
               setSearchTerm(value);
             }}
+            onSuggestionsClearRequested={() => {}}
             onSuggestionSelected={(event, { suggestion }) => {
               event.preventDefault();
               setAutoFocus && setAutoFocus(false);

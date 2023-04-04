@@ -5,6 +5,7 @@ import Auth from "./Auth";
 import clsx from "clsx";
 import { Button } from "./ui/common/Button";
 import { TfiSearch, TfiArrowLeft } from "react-icons/tfi";
+import HeaderAuth from "./auth/HeaderAuth";
 
 const Header = ({
   searchInitialValue = "",
@@ -80,7 +81,7 @@ const Header = ({
             )}
           </>
         )}
-        {!showSearch && <Auth />}
+        {!showSearch && <HeaderAuth />}
       </header>
       <div className="h-12 w-screen sm:h-14"></div>
     </>

@@ -6,7 +6,6 @@ import React from "react";
 
 const SearchPage = () => {
   const session = useSession();
-  const role = api.auth.getUserRole.useQuery();
   const processAll = api.video.processAll.useMutation();
   const updateAll = api.channel.summarizeAllChannels.useMutation();
   const adminTest = api.example.admin.useMutation();

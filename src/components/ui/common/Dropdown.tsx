@@ -7,11 +7,13 @@ const Dropdown = ({
   children,
   MenuItems,
   disabled,
+  modal = true,
   menuOptions = {
     sideOffset: 5,
   },
 }: {
   children: React.ReactElement<any, string | JSXElementConstructor<any>>;
+  modal?: boolean;
   MenuItems?: JSX.Element[];
   disabled?: boolean;
   menuOptions?: DropdownMenu.MenuContentProps;
@@ -20,11 +22,11 @@ const Dropdown = ({
   const [isOpen, setIsOpen] = useState<boolean>();
   return (
     <>
-      <DropdownMenu.Root onOpenChange={(o) => setIsOpen(o)}>
+      <DropdownMenu.Root onOpenChange={(o) => setIsOpen(o)} modal={modal}>
         <DropdownMenu.Trigger disabled={disabled} asChild>
           <button
             ref={containerRef}
-            className="relative flex w-full items-center justify-center rounded-full bg-th-chipBackground px-4 py-2 hover:bg-th-chipBackgroundHover"
+            className="relative flex w-full items-center justify-center rounded-full bg-th-chipBackground hover:bg-th-chipBackgroundHover"
             aria-label="options"
           >
             {cloneElement(children, { isOpen: isOpen })}
@@ -34,7 +36,8 @@ const Dropdown = ({
 
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="fixed top-1/2 left-1/2 z-50 flex w-[80vw] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg bg-th-raisedBackground py-1 shadow md:relative md:top-auto md:left-auto md:w-full md:min-w-[20rem] md:translate-x-0 md:translate-y-0"
+            className="z-50 flex min-w-[20rem] flex-col overflow-hidden rounded-lg bg-th-raisedBackground py-1 shadow "
+            //sm:relative sm:top-auto sm:left-auto sm:w-full sm:translate-y-0 sm:translate-x-0 left-1/2 fixed top-1/2  w-[80vw] -translate-x-1/2 -translate-y-1/2
             {...menuOptions}
           >
             {MenuItems?.map((el, i) => (
@@ -49,9 +52,9 @@ const Dropdown = ({
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
-      {isOpen && (
-        <div className="fixed top-0 left-0 z-50 h-full w-full bg-black/20 backdrop-blur-sm md:pointer-events-none md:invisible"></div>
-      )}
+      {/* {isOpen && (
+        <div className="fixed top-0 left-0 z-50 h-full w-full bg-black/20 backdrop-blur-sm sm:pointer-events-none sm:invisible"></div>
+      )} */}
     </>
   );
 };

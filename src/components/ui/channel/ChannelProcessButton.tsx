@@ -20,7 +20,7 @@ const ChannelProcessButtonChildren = ({
   isLoading: boolean;
 }) => {
   return (
-    <span className="flex flex-none select-none items-center gap-2">
+    <span className="flex flex-none select-none items-center gap-2 px-4 py-2 ">
       <span className="md:hidden">Process Channel Sponsors</span>
       <span className="hidden md:block">Channel Sponsors</span>
 
