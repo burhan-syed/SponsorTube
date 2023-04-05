@@ -10,6 +10,8 @@ import GridVideoView from "@/components/ui/GridVideoView";
 import GridVideoLoader from "@/components/ui/loaders/GridVideoLoader";
 import { Button } from "@/components/ui/common/Button";
 import ChannelStatsWrapper from "@/components/ui/channel/ChannelStatsWrapper";
+import ChannelBannerLoader from "@/components/ui/loaders/channel/ChannelBannerLoader";
+import ChannelHeaderLoader from "@/components/ui/loaders/channel/ChannelHeaderLoader";
 
 import type { NextPage } from "next";
 
@@ -38,29 +40,48 @@ const ChannelPage: NextPage = () => {
       </Head>
       <Header />
       <section>
-        {channel.data?.pages?.[0]?.channelHeader &&
-          channel.data?.pages?.[0]?.channelHeader?.banner?.[0]?.url && (
-            <Image
-              src={channel.data?.pages?.[0]?.channelHeader.banner[0]?.url}
-              height={channel.data?.pages?.[0]?.channelHeader.banner[0].height}
-              width={channel.data?.pages?.[0]?.channelHeader.banner[0].width}
-              alt=""
-              layout="responsive"
-              unoptimized={true}
-            />
-          )}
+        {channel.isLoading ? (
+          <ChannelBannerLoader />
+        ) : (
+          <>
+            {channel.data?.pages?.[0]?.channelHeader &&
+              channel.data?.pages?.[0]?.channelHeader?.banner?.[0]?.url && (
+                <Image
+                  src={channel.data?.pages?.[0]?.channelHeader.banner[0]?.url}
+                  height={
+                    channel.data?.pages?.[0]?.channelHeader.banner[0].height
+                  }
+                  width={
+                    channel.data?.pages?.[0]?.channelHeader.banner[0].width
+                  }
+                  alt=""
+                  layout="responsive"
+                  unoptimized={true}
+                />
+              )}
+          </>
+        )}
+
         <div className="mx-auto px-4 2xl:max-w-[192rem]">
-          <div className="flex flex-col items-center justify-center md:flex-row md:justify-between md:p-6 p-2">
-            {channel.data?.pages?.[0]?.channelHeader && (
-              <ChannelHeader
-                channel={channel.data?.pages?.[0]?.channelHeader}
-                description={channel.data?.pages?.[0]?.metadata?.description}
-                channelId={channelID}
-              />
+          <div className="flex flex-col items-center justify-center p-2 md:flex-row md:justify-between md:p-6">
+            {channel.isLoading ? (
+              <ChannelHeaderLoader />
+            ) : (
+              <>
+                {channel.data?.pages?.[0]?.channelHeader && (
+                  <ChannelHeader
+                    channel={channel.data?.pages?.[0]?.channelHeader}
+                    description={
+                      channel.data?.pages?.[0]?.metadata?.description
+                    }
+                    channelId={channelID}
+                  />
+                )}
+              </>
             )}
           </div>
           <ChannelStatsWrapper channelId={channelID} />
-          <h2 className="hidden invisible">Channel Videos</h2>
+          <h2 className="invisible hidden">Channel Videos</h2>
           <div className="py-1 md:py-3"></div>
           {channel.isLoading ? (
             <GridVideoLoader />
