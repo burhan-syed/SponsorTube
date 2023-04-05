@@ -14,7 +14,7 @@ import {
 import type C4TabbedHeader from "youtubei.js/dist/src/parser/classes/C4TabbedHeader";
 import { TRPCError } from "@trpc/server";
 import { summarizeChannelSponsors } from "@/server/db/sponsors";
-import { InnerTubeVideoToVideoCard } from "@/server/transformers/transformer";
+import { transformInnerTubeVideoToVideoCard } from "@/server/transformers/transformer";
 
 export const channelRouter = createTRPCRouter({
   hello: publicProcedure
@@ -43,7 +43,7 @@ export const channelRouter = createTRPCRouter({
         cursor: input.cursor,
       });
 
-      const transformedVideos = videos.map((v) => InnerTubeVideoToVideoCard(v));
+      const transformedVideos = videos.map((v) => transformInnerTubeVideoToVideoCard(v));
       // const fv = videos?.[0];
       // const lv = videos?.[videos?.length - 1];
       // console.log({

@@ -1,13 +1,15 @@
 import { YTNodes } from "youtubei.js/agnostic";
 import { VideoCardInfo } from "@/types/schemas";
 
-export const InnerTubeVideoToVideoCard = (v: YTNodes.Video) => {
+export const transformInnerTubeVideoToVideoCard = (
+  v: YTNodes.Video | YTNodes.CompactVideo
+) => {
   const vCard: VideoCardInfo = {
     id: v.id,
     title: v.title?.text ?? v.title.runs?.[0]?.text,
     viewCountString: v.short_view_count.text,
     publishedString: v.published.text,
-    shortDescription: v.snippets?.[0]?.text?.text,
+    shortDescription: (v as YTNodes.Video)?.snippets?.[0]?.text?.text,
     thumbnail: v.thumbnails?.[0]?.url
       ? {
           url: v.thumbnails[0].url,

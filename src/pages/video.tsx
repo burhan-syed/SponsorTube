@@ -93,15 +93,15 @@ const Home: NextPage = ({}) => {
               {horizontal === false && (
                 <VideoEmbed
                   className="sticky top-12 z-20 w-full overflow-hidden outline-none sm:relative sm:top-0 sm:rounded-lg"
-                  videoID={videoInfo.data.basic_info.id}
-                  width={videoInfo.data.basic_info.embed?.width}
-                  height={videoInfo.data.basic_info.embed?.height}
+                  videoID={videoInfo?.data.basic_info?.id}
+                  width={videoInfo?.data?.basic_info?.embed?.width}
+                  height={videoInfo?.data?.basic_info?.embed?.height}
                   videoSeek={videoSeek}
                 />
               )}
               <div className="flex flex-none flex-col px-4 sm:px-0 lg:w-1/3">
                 <div className="lg:sticky lg:top-5">
-                  {videoInfo.data.basic_info.embed?.iframe_url &&
+                  {videoInfo?.data?.basic_info?.embed?.iframe_url &&
                     horizontal && (
                       <VideoEmbed
                         className="w-full overflow-hidden outline-none sm:rounded-lg"
@@ -113,29 +113,29 @@ const Home: NextPage = ({}) => {
                     )}
                   <VideoInfo
                     videoId={videoID}
-                    title={videoInfo.data.basic_info.title}
-                    views={videoInfo.data.basic_info.view_count}
-                    likes={videoInfo.data.basic_info.like_count}
-                    description={videoInfo.data.basic_info.short_description}
+                    title={videoInfo?.data?.basic_info?.title}
+                    views={videoInfo?.data?.basic_info?.view_count}
+                    likes={videoInfo?.data?.basic_info?.like_count}
+                    description={videoInfo?.data.basic_info?.short_description}
                     descriptionRuns={
-                      videoInfo.data.basic_info.description?.runs
+                      videoInfo?.data?.basic_info?.description?.runs
                     }
-                    uploadDate={videoInfo.data.basic_info.upload_date}
-                    channelName={videoInfo.data.basic_info.channel.name}
-                    channelID={videoInfo.data.basic_info.channel_id}
+                    uploadDate={videoInfo?.data?.basic_info?.upload_date}
+                    channelName={videoInfo?.data?.basic_info?.channel.name}
+                    channelID={videoInfo?.data?.basic_info?.channel_id}
                     channelSubscribers={
-                      videoInfo.data.basic_info.channel.subscriber_count
+                      videoInfo?.data?.basic_info?.channel.subscriber_count
                     }
                     channelThumbnail={
-                      videoInfo.data.basic_info.channel.thumbnail
+                      videoInfo?.data?.basic_info?.channel.thumbnail
                     }
                     channelIsVerified={
-                      videoInfo.data.basic_info.channel.is_verified
+                      videoInfo?.data?.basic_info?.channel.is_verified
                     }
                     channelIsVerifiedArtist={
-                      videoInfo.data.basic_info.channel.is_verified_artist
+                      videoInfo?.data?.basic_info?.channel?.is_verified_artist
                     }
-                    channelURL={videoInfo.data.basic_info.channel.url}
+                    channelURL={videoInfo?.data?.basic_info?.channel.url}
                   />
                 </div>
               </div>
@@ -148,7 +148,7 @@ const Home: NextPage = ({}) => {
             {/* Display this outside of videoInfoLoader to grab sponsorsegments with videoID*/}
             <SponsorTranscripts
               videoID={videoID}
-              captionTracks={videoInfo.data?.captions.caption_tracks}
+              captionTracks={videoInfo?.data?.captions?.caption_tracks}
               seekTo={seekTo}
             />
           </div>

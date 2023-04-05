@@ -1,4 +1,9 @@
-import { createTRPCRouter, publicProcedure, protectedProcedure, adminProcedure } from "../trpc";
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+  adminProcedure,
+} from "../trpc";
 import { z } from "zod";
 import {
   getVideoSponsors,
@@ -11,6 +16,7 @@ import {
   GetVideoInfoSchema,
 } from "@/server/db/videos";
 import { processAllSegments, processVideo } from "@/server/functions/process";
+import { transformInnerTubeVideoToVideoCard } from "@/server/transformers/transformer";
 
 export const videoRouter = createTRPCRouter({
   segments: publicProcedure
@@ -30,7 +36,14 @@ export const videoRouter = createTRPCRouter({
       return videoSegments;
     }),
   info: publicProcedure.input(GetVideoInfoSchema).query(async ({ input }) => {
-    return await getVideoInfoFormatted({ input });
+    const formattedVideoInfo = await getVideoInfoFormatted({ input });
+    const watch_next = formattedVideoInfo?.watch_next?.map((v) =>
+      transformInnerTubeVideoToVideoCard(v)
+    );
+    return {
+      ...formattedVideoInfo,
+      watch_next,
+    };
   }),
   saveDetails: protectedProcedure
     .input(SaveVideoDetailsSchema)
