@@ -1,5 +1,6 @@
 import { api } from "@/utils/api";
 import ChannelSponsorsPills from "./ChannelSponsorsPills";
+import ChannelSponsorsLoader from "../../loaders/channel/ChannelSponsorsLoader";
 
 const ChannelSponsors = ({ channelId }: { channelId: string }) => {
   const channelSponsors = api.channel.getSponsors.useQuery({ channelId });
@@ -7,7 +8,7 @@ const ChannelSponsors = ({ channelId }: { channelId: string }) => {
   return (
     <div>
       {channelSponsors.isLoading ? (
-        "sloading.."
+        <ChannelSponsorsLoader />
       ) : channelSponsors.data ? (
         <>
           {channelSponsors?.data?.length > 0 ? (
@@ -17,11 +18,11 @@ const ChannelSponsors = ({ channelId }: { channelId: string }) => {
               ]}
             />
           ) : (
-            <>no sponsors</>
+            <ChannelSponsorsLoader noneFound={true} />
           )}
         </>
       ) : (
-        "?"
+        "error loading channel sponsors"
       )}
     </div>
   );
