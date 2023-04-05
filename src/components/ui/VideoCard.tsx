@@ -4,20 +4,18 @@ import Link from "next/link";
 import useIsPressed from "@/hooks/useIsPressed";
 import TouchResponse from "./common/TouchResponse";
 import clsx from "clsx";
-import type CompactVideo from "youtubei.js/dist/src/parser/classes/CompactVideo";
-import type { VideoWithThumbnail } from "../../types";
 import SegmentsPreview from "./SegmentsPreview";
+import { VideoCardInfo } from "@/types/schemas";
 type VideoCardProps = {
-  video: VideoWithThumbnail | CompactVideo;
+  video: VideoCardInfo;
   variant?: "regular" | "compact";
 };
 
 const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
   const { containerRef, isPressed } = useIsPressed();
 
-  const videoThumbnail =
-    (video as VideoWithThumbnail)?.video_thumbnail ?? video.thumbnails?.[0];
-  const authorThumbnail = video.author.thumbnails?.[0]?.url;
+  const videoThumbnail = video.thumbnail;
+  const authorThumbnail = video.author?.thumbnail?.url;
   const ChannelThumbnail = (
     <div
       className={clsx(
@@ -31,8 +29,8 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
         <Image
           src={authorThumbnail}
           alt=""
-          width={video.author.thumbnails?.[0]?.width}
-          height={video.author.thumbnails?.[0]?.height}
+          width={video.author?.thumbnail?.width}
+          height={video.author?.thumbnail?.height}
           unoptimized={true}
         />
       )}
@@ -46,7 +44,7 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
           videoId={video.id}
           className={clsx(
             variant === "compact" ? "" : variant === "regular" && "  sm:my-2  ",
-            "text-semibold inline-flex h-6 cursor-pointer flex-wrap items-center gap-x-1 text-xs sm:gap-x-2 gap-y-1 overflow-auto"
+            "text-semibold inline-flex h-6 cursor-pointer flex-wrap items-center gap-x-1 gap-y-1 overflow-auto text-xs sm:gap-x-2"
           )}
         />
       </a>
@@ -93,7 +91,7 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
         </Link>
 
         <div className="flex w-full gap-2 pr-2">
-          {authorThumbnail && (
+          {authorThumbnail && video.author?.id && (
             <Link href={`/channel/${video.author.id}`}>
               <a
                 className={clsx(
@@ -124,7 +122,7 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
                 )}
               >
                 <Link href={`/video?v=${video.id}`}>
-                  <a>{video.title?.text}</a>
+                  <a>{video.title}</a>
                 </Link>
               </h3>
               {/* {variant === "compact" && (
@@ -139,22 +137,24 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
                       : variant === "compact" && "hidden"
                   )}
                 >
-                  {video.author.name}
+                  {video?.author?.name}
                 </span>
 
-                {video.short_view_count?.text}
+                {video.viewCountString}
                 <span className={`before:content-['_·_']`}>
-                  {video.published?.text}
+                  {video.publishedString}
                 </span>
               </span>
 
-              {variant === "compact" && video.author.id !== "N/A" && (
-                <Link href={`/channel/${video.author.id}`}>
-                  <a className="">{video.author.name}</a>
-                </Link>
-              )}
+              {variant === "compact" &&
+                video?.author?.id &&
+                video.author.id !== "N/A" && (
+                  <Link href={`/channel/${video.author.id}`}>
+                    <a className="">{video.author.name}</a>
+                  </Link>
+                )}
             </div>
-            {video.author.id && video.author.id !== "N/A" && (
+            {video?.author?.id && video.author.id !== "N/A" && (
               <Link href={`/channel/${video.author.id}`}>
                 <a
                   className={clsx(
@@ -170,9 +170,9 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
               </Link>
             )}
 
-            {(video as VideoWithThumbnail)?.snippets?.[0]?.text?.text && (
+            {video.shortDescription && (
               <p className="hidden text-xs sm:block">
-                {(video as VideoWithThumbnail)?.snippets?.[0]?.text?.text}
+                {video.shortDescription}
               </p>
             )}
             {<>{SponsorInfo}</>}

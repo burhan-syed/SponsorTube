@@ -1,4 +1,9 @@
-import { createTRPCRouter, publicProcedure, protectedProcedure, adminProcedure } from "../trpc";
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+  adminProcedure,
+} from "../trpc";
 import { z } from "zod";
 import { getChannel } from "../../../apis/youtube";
 import { getVideosContinuation } from "@/server/functions/channel";
@@ -9,6 +14,7 @@ import {
 import type C4TabbedHeader from "youtubei.js/dist/src/parser/classes/C4TabbedHeader";
 import { TRPCError } from "@trpc/server";
 import { summarizeChannelSponsors } from "@/server/db/sponsors";
+import { InnerTubeVideoToVideoCard } from "@/server/transformers/transformer";
 
 export const channelRouter = createTRPCRouter({
   hello: publicProcedure
@@ -36,6 +42,8 @@ export const channelRouter = createTRPCRouter({
         videosTab,
         cursor: input.cursor,
       });
+
+      const transformedVideos = videos.map((v) => InnerTubeVideoToVideoCard(v));
       // const fv = videos?.[0];
       // const lv = videos?.[videos?.length - 1];
       // console.log({
@@ -50,7 +58,7 @@ export const channelRouter = createTRPCRouter({
       return {
         metadata: { description: channel.metadata.description },
         channelHeader: channel.header as C4TabbedHeader,
-        channelVideos: videos,
+        channelVideos: transformedVideos,
         hasNext: hasNext,
         nextCursor: nextCursor,
       };

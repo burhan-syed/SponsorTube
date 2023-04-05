@@ -6,8 +6,6 @@ import Header from "../components/Header";
 import ChannelCard from "../components/ui/channel/ChannelCard";
 import ListVideoLoader from "@/components/ui/loaders/ListVideoLoader";
 
-import type { VideoWithThumbnail } from "../types";
-
 const SearchPage = () => {
   const router = useRouter();
   const { q } = router.query;
@@ -33,7 +31,7 @@ const SearchPage = () => {
               <ChannelCard key={channel.id} channel={channel} />
             ))}
             {searchResults.data.videos?.map((video, i) => (
-              <VideoCard key={video.id} video={video as VideoWithThumbnail} />
+              <VideoCard key={video.id} video={video} />
             ))}
           </>
         ) : (

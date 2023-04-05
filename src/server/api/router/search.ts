@@ -2,6 +2,7 @@ import { createTRPCRouter, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { ytAutoComplete, ytSearchQuery } from "../../../apis/youtube";
 import { YTNodes } from "youtubei.js/agnostic";
+import { InnerTubeVideoToVideoCard } from "@/server/transformers/transformer";
 
 export const searchRouter = createTRPCRouter({
   hello: publicProcedure
@@ -17,11 +18,9 @@ export const searchRouter = createTRPCRouter({
       const queryResults = await ytSearchQuery({ query: input.searchQuery });
       const queryResultVideos = queryResults?.videos
         ?.filterType(YTNodes.Video)
-        .map((v) => ({
-          ...v,
-          //'thumbnails' property is not appearing on client...? Workaround:
-          video_thumbnail: v.thumbnails?.[0],
-        }));
+        .map((v) => {
+          return InnerTubeVideoToVideoCard(v);
+        });
 
       const queryResultChannels = queryResults?.channels?.filterType(
         YTNodes.Channel
