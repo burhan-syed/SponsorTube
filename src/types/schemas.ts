@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const ChannelCardSchema = z.object({});
+
 
 const ThumbnailSchema = z.object({
   url: z.string(),
@@ -14,6 +14,12 @@ const AuthorSchema = z.object({
   thumbnail: ThumbnailSchema.optional(),
 });
 
+const ChannelCardSchema = AuthorSchema.extend({
+  subscriberCountText: z.string().optional(), 
+  videoCountText: z.string().optional(), 
+  shortDescription: z.string().optional(),
+})
+
 export const VideoCardSchema = z.object({
   id: z.string(),
   thumbnail: ThumbnailSchema.optional(),
@@ -26,4 +32,5 @@ export const VideoCardSchema = z.object({
   shortDescription: z.string().optional(),
 });
 
+export type ChannelCardInfo = z.infer<typeof ChannelCardSchema>;
 export type VideoCardInfo = z.infer<typeof VideoCardSchema>;

@@ -1,5 +1,5 @@
 import { YTNodes } from "youtubei.js/agnostic";
-import { VideoCardInfo } from "@/types/schemas";
+import { ChannelCardInfo, VideoCardInfo } from "@/types/schemas";
 
 export const transformInnerTubeVideoToVideoCard = (
   v: YTNodes.Video | YTNodes.CompactVideo
@@ -30,4 +30,22 @@ export const transformInnerTubeVideoToVideoCard = (
     },
   };
   return vCard;
+};
+
+export const transformInnerTubeChannelToChannelCard = (c: YTNodes.Channel) => {
+  const cCard: ChannelCardInfo = {
+    id: c.id,
+    name: c.author.name,
+    thumbnail: c.author.thumbnails?.[0]?.url
+      ? {
+          url: c.author.thumbnails[0].url,
+          height: c.author.thumbnails[0]?.height,
+          width: c.author.thumbnails[0]?.width,
+        }
+      : undefined,
+    shortDescription: c.description_snippet.text,
+    subscriberCountText: c.subscribers.text,
+    videoCountText: c.videos.text,
+  };
+  return cCard;
 };

@@ -2,7 +2,10 @@ import { createTRPCRouter, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { ytAutoComplete, ytSearchQuery } from "../../../apis/youtube";
 import { YTNodes } from "youtubei.js/agnostic";
-import { transformInnerTubeVideoToVideoCard } from "@/server/transformers/transformer";
+import {
+  transformInnerTubeChannelToChannelCard,
+  transformInnerTubeVideoToVideoCard,
+} from "@/server/transformers/transformer";
 
 export const searchRouter = createTRPCRouter({
   hello: publicProcedure
@@ -22,9 +25,9 @@ export const searchRouter = createTRPCRouter({
           return transformInnerTubeVideoToVideoCard(v);
         });
 
-      const queryResultChannels = queryResults?.channels?.filterType(
-        YTNodes.Channel
-      );
+      const queryResultChannels = queryResults?.channels
+        ?.filterType(YTNodes.Channel)
+        .map((c) => transformInnerTubeChannelToChannelCard(c));
       return {
         videos: queryResultVideos,
         channels: queryResultChannels,
