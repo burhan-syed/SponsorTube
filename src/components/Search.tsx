@@ -65,7 +65,9 @@ const Search = ({
     ) => {
       //console.log("term?", newValue, method);
       setSearchTerm(newValue);
-      method === "type" && newValue.length > 3 && setAutoCompleteSearchTerm(newValue);
+      method === "type" &&
+        newValue.length > 3 &&
+        setAutoCompleteSearchTerm(newValue);
     },
     autoFocus: autoFocus,
     onFocus: () => setFocused(true),
@@ -86,7 +88,7 @@ const Search = ({
     // const parts = AutosuggestHighlightParse(suggestion, matches);
     return (
       <Link href={`/search?q=${encodeURIComponent(suggestion)}`}>
-        <a className="z-10 flex items-center gap-4 border-b p-1 sm:p-2 px-0 sm:border-none">
+        <a className="z-10 flex items-center gap-4 border-b p-1 px-0 sm:border-none sm:p-2">
           <div>
             <TfiSearch className="ml-4 h-4 w-4 flex-none" />
           </div>
@@ -107,9 +109,9 @@ const Search = ({
               setSearchTerm(suggestion);
               setAutoCompleteSearchTerm(suggestion);
             }}
-            className="ml-auto mr-2 aspect-square bg-th-additiveBackground/5 rounded-lg p-2 sm:hidden"
+            className="ml-auto mr-2 aspect-square rounded-lg bg-th-additiveBackground/5 p-2 sm:hidden"
           >
-            <BsBoxArrowInUpLeft/>
+            <BsBoxArrowInUpLeft />
           </button>
         </a>
       </Link>
@@ -149,6 +151,7 @@ const Search = ({
             onSuggestionsClearRequested={() => {}}
             onSuggestionSelected={(event, { suggestion }) => {
               event.preventDefault();
+              setAutoCompleteSearchTerm("");
               setAutoFocus && setAutoFocus(false);
               suggestion &&
                 router.push(`/search?q=${encodeURIComponent(suggestion)}`);
