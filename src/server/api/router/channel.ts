@@ -118,8 +118,16 @@ export const channelRouter = createTRPCRouter({
     }),
 
   getSponsors: publicProcedure
-    .input(z.object({ channelId: z.string() }))
+    .input(
+      z.object({
+        channelId: z.string(),
+        cursor: z.string().nullish(),
+        limit: z.number().min(1).max(25).nullish(),
+      })
+    )
     .query(async ({ input, ctx }) => {
+      const limit = input?.limit ?? 12;
+      const cursor = input.cursor;
       const channelSponsors = await ctx.prisma.sponsors.findMany({
         where: { Video: { channelId: input.channelId } },
         include: {
@@ -134,8 +142,22 @@ export const channelRouter = createTRPCRouter({
             published: "desc",
           },
         },
+        take: limit + 1,
+        cursor: cursor
+          ? {
+              id: cursor,
+            }
+          : undefined,
       });
-      return channelSponsors;
+      let nextCursor: typeof cursor | undefined = undefined;
+      if (channelSponsors.length > limit) {
+        const last = channelSponsors.pop();
+        nextCursor = last?.id;
+      }
+      return {
+        sponsors: channelSponsors,
+        nextCursor,
+      };
     }),
   summarizeAllChannels: adminProcedure.mutation(async ({ ctx }) => {
     await summarizeAllChannels({ ctx });

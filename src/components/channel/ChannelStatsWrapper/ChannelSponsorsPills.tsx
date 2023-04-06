@@ -9,14 +9,24 @@ import clsx from "clsx";
 const ChannelSponsorsPills = ({ sponsors }: { sponsors: string[] }) => {
   const { containerRef, isPressed } = useIsPressed();
   const { containerRef: containerRef2, isPressed: isPressed2 } = useIsPressed();
-
+  const initSponsorsLength = useRef<number>(sponsors.length);
   const [showExpand, setShowExpand] = useState<boolean>();
   const [expand, setExpand] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [atBottom, setAtBottom] = useState(false);
   const listRef = useRef<HTMLUListElement>(null);
   useLayoutEffect(() => {
-    // console.log(listRef?.current?.scrollHeight, listRef.current?.clientHeight);
+    if (
+      sponsors.length > initSponsorsLength.current &&
+      listRef?.current?.scrollTop !== undefined &&
+      listRef.current.scrollHeight
+    ) {
+      listRef.current.scrollTo({
+        top: listRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+
     const checkShowExpand = () => {
       if (
         (listRef?.current?.scrollHeight ?? 0) >
@@ -82,7 +92,7 @@ const ChannelSponsorsPills = ({ sponsors }: { sponsors: string[] }) => {
           })
         }
       >
-        <h2 className="text-base">Identified Sponsors</h2>
+        <h2 className="text-base">Recent Sponsors</h2>
         <TouchResponse
           variant="ring"
           className={"rounded-t-3xl"}
