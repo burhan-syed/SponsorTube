@@ -2,9 +2,9 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import useIsPressed from "@/hooks/useIsPressed";
-import TouchResponse from "./common/TouchResponse";
+import TouchResponse from "@/components/ui/common/TouchResponse";
 import clsx from "clsx";
-import SegmentsPreview from "./SegmentsPreview";
+import SegmentsPreview from "@/components/ui/SegmentsPreview";
 import { VideoCardInfo } from "@/types/schemas";
 type VideoCardProps = {
   video: VideoCardInfo;

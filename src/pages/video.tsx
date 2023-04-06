@@ -1,14 +1,14 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { api } from "../utils/api";
-import Header from "../components/Header";
-import VideoInfo from "../components/ui/VideoInfo";
-import VideoEmbed from "../components/ui/VideoEmbed";
-import SponsorTranscripts from "../components/transcripts/SponsorTranscripts";
+import { api } from "@/utils/api";
+import Header from "@/components/Header";
+import VideoInfo from "@/components/video/VideoInfo";
+import VideoEmbed from "@/components/video/VideoEmbed";
+import SponsorTranscripts from "@/components/transcripts/SponsorTranscripts";
 import type { NextPage } from "next";
 import { useEffect, useState } from "react";
 import VideoPageLoader from "@/components/ui/loaders/VideoPageLoader";
-import GridVideoView from "@/components/ui/GridVideoView";
+import GridVideoView from "@/components/video/GridVideoView";
 import GridVideoLoader from "@/components/ui/loaders/GridVideoLoader";
 import { Button } from "@/components/ui/common/Button";
 

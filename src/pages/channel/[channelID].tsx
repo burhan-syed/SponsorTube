@@ -6,7 +6,7 @@ import { api } from "@/utils/api";
 import { getChannel, ytSearchQuery } from "@/apis/youtube";
 import ChannelHeader from "@/components/channel/ChannelHeader";
 import Header from "@/components/Header";
-import GridVideoView from "@/components/ui/GridVideoView";
+import GridVideoView from "@/components/video/GridVideoView";
 import GridVideoLoader from "@/components/ui/loaders/GridVideoLoader";
 import { Button } from "@/components/ui/common/Button";
 import ChannelStatsWrapper from "@/components/channel/ChannelStatsWrapper";

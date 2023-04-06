@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import clsx from "clsx";
 
 import useIsPressed from "@/hooks/useIsPressed";
-import TouchResponse from "./common/TouchResponse";
+import TouchResponse from "@/components/ui/common/TouchResponse";
 
 interface VideoDescriptionProps {
   views?: number;

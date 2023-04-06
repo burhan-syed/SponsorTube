@@ -1,8 +1,8 @@
 import { api } from "@/utils/api";
 import { AnnotationTags } from "@prisma/client";
 import React, { useState } from "react";
-import { TAGS } from "../transcripts/edits/TranscriptTags";
-import { Button } from "./common/Button";
+import { TAGS } from "@/components/transcripts/edits/TranscriptTags";
+import { Button } from "@/components/ui/common/Button";
 import { VideoSponsors } from "@/server/db/sponsors";
 
 type ArrayElement<ArrayType extends readonly unknown[]> =
@@ -71,7 +71,7 @@ const VideoSponsors = ({ videoId }: { videoId: string }) => {
             <tbody>
               {Object.values(AnnotationTags).map((type) => (
                 <tr
-                  className="border-th border-t border-b border-th-additiveBackground/10 font-bold first:border-t-0 last:border-b-0 [&_th]:w-16 [&_th]:pr-2"
+                  className="border-th border-b border-t border-th-additiveBackground/10 font-bold first:border-t-0 last:border-b-0 [&_th]:w-16 [&_th]:pr-2"
                   key={type}
                 >
                   <th className="select-none  py-2 text-start font-semibold">
