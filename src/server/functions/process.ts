@@ -20,7 +20,7 @@ import { saveVideoDetails } from "../db/videos";
 import { saveTranscript } from "../db/transcripts";
 import { summarizeChannelSponsors } from "../db/sponsors";
 
-const OPENAI_RPM = 20;
+const OPENAI_RPM: number = parseInt(process?.env?.OPENAI_API_RPM ?? "20");
 const SECRET = process?.env?.MY_SECRET_KEY ?? "";
 const SERVER_URL = process.env.SERVER_URL;
 
@@ -807,7 +807,7 @@ export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
   const prisma = ctx.prisma;
   const allVodsProcessing = new Set<string>();
   const successedVods = new Set<string>();
-  const RATELIMIT_PER_MINUTE = 20;
+  const RATELIMIT_PER_MINUTE = OPENAI_RPM ?? 20;
 
   const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));

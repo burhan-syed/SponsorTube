@@ -22,6 +22,7 @@ const server = z.object({
   GITHUB_CLIENT_ID: z.string(),
   GITHUB_CLIENT_SECRET: z.string(),
   OPENAI_API_KEY: z.string(),
+  OPENAI_API_RPM: z.number(),
 });
 
 /**
@@ -48,6 +49,7 @@ const processEnv = {
   GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  OPENAI_API_RPM: process.env.OPENAI_API_RPM,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 
