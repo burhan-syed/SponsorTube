@@ -119,21 +119,16 @@ const ChannelSponsorsPills = ({ sponsors }: { sponsors: string[] }) => {
         >
           {sponsors.map((s) => (
             <li key={s}>
-              <Button
-                onClick={() => console.log(s)}
-                variant={"primary"}
-                size={"small"}
-                className=""
-              >
+              <button className="relative flex items-center justify-center rounded-full border border-transparent px-2 py-1 hover:border-th-chipBackground">
                 <div className={"z-10 flex items-center"}>
                   <span className="">{s}</span>
                 </div>
 
                 <div
-                  className="absolute h-full w-full rounded-full backdrop-blur-md"
+                  className="absolute h-full w-full rounded-full"
                   style={{ backgroundColor: `${TAGS.get("BRAND")}90` }}
                 ></div>
-              </Button>
+              </button>
             </li>
           ))}
         </ul>
