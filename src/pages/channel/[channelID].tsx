@@ -44,16 +44,12 @@ const ChannelPage: NextPage = () => {
           <ChannelBannerLoader />
         ) : (
           <>
-            {channel.data?.pages?.[0]?.channelHeader &&
-              channel.data?.pages?.[0]?.channelHeader?.banner?.[0]?.url && (
+            {channel.data?.pages?.[0]?.channelInfo &&
+              channel.data?.pages?.[0]?.channelInfo?.banner?.url && (
                 <Image
-                  src={channel.data?.pages?.[0]?.channelHeader.banner[0]?.url}
-                  height={
-                    channel.data?.pages?.[0]?.channelHeader.banner[0].height
-                  }
-                  width={
-                    channel.data?.pages?.[0]?.channelHeader.banner[0].width
-                  }
+                  src={channel.data?.pages?.[0]?.channelInfo?.banner?.url}
+                  height={channel.data?.pages?.[0]?.channelInfo.banner.height}
+                  width={channel.data?.pages?.[0]?.channelInfo.banner.width}
                   alt=""
                   layout="responsive"
                   unoptimized={true}
@@ -68,12 +64,9 @@ const ChannelPage: NextPage = () => {
               <ChannelHeaderLoader />
             ) : (
               <>
-                {channel.data?.pages?.[0]?.channelHeader && (
+                {channel.data?.pages?.[0]?.channelInfo && (
                   <ChannelHeader
-                    channel={channel.data?.pages?.[0]?.channelHeader}
-                    description={
-                      channel.data?.pages?.[0]?.metadata?.description
-                    }
+                    channel={channel.data?.pages?.[0]?.channelInfo}
                     channelId={channelID}
                   />
                 )}

@@ -11,10 +11,11 @@ import {
   processChannel,
   summarizeAllChannels,
 } from "@/server/functions/process";
-import type C4TabbedHeader from "youtubei.js/dist/src/parser/classes/C4TabbedHeader";
+import C4TabbedHeader from "youtubei.js/dist/src/parser/classes/C4TabbedHeader";
 import { TRPCError } from "@trpc/server";
 import { summarizeChannelSponsors } from "@/server/db/sponsors";
 import { transformInnerTubeVideoToVideoCard } from "@/server/transformers/transformer";
+import { ChannelHeaderInfo } from "@/types/schemas";
 
 export const channelRouter = createTRPCRouter({
   hello: publicProcedure
@@ -43,7 +44,33 @@ export const channelRouter = createTRPCRouter({
         cursor: input.cursor,
       });
 
-      const transformedVideos = videos.map((v) => transformInnerTubeVideoToVideoCard(v));
+      const transformedVideos = videos.map((v) =>
+        transformInnerTubeVideoToVideoCard(v)
+      );
+      const c4Header = channel.header as C4TabbedHeader;
+      const transformedHeader: ChannelHeaderInfo = {
+        id: c4Header.author.id,
+        name: c4Header.author.name,
+        isVerified: c4Header.author.is_verified ?? undefined,
+        thumbnail: c4Header.author.thumbnails?.[0]?.url
+          ? {
+              url: c4Header.author.thumbnails?.[0]?.url,
+              height: c4Header.author.thumbnails[0]?.height,
+              width: c4Header.author.thumbnails[0]?.width,
+            }
+          : undefined,
+        shortDescription: channel.metadata.description,
+        subscriberCountText: c4Header?.subscribers?.text,
+        videoCountText: c4Header?.videos_count?.text,
+        handle: c4Header.channel_handle?.text,
+        banner: c4Header.banner?.[0]?.url
+          ? {
+              url: c4Header.banner[0].url,
+              height: c4Header.banner[0]?.height,
+              width: c4Header.banner[0]?.width,
+            }
+          : undefined,
+      };
       // const fv = videos?.[0];
       // const lv = videos?.[videos?.length - 1];
       // console.log({
@@ -56,8 +83,7 @@ export const channelRouter = createTRPCRouter({
       // });
 
       return {
-        metadata: { description: channel.metadata.description },
-        channelHeader: channel.header as C4TabbedHeader,
+        channelInfo: transformedHeader,
         channelVideos: transformedVideos,
         hasNext: hasNext,
         nextCursor: nextCursor,
