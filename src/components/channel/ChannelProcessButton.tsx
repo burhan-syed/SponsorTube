@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
+import clsx from "clsx";
 import { api } from "@/utils/api";
+import type { ProcessQueue } from "@prisma/client";
 
-import Dropdown from "../common/Dropdown";
 import { BiBrain, BiChevronDown, BiRefresh } from "react-icons/bi";
+import { BsInfo } from "react-icons/bs";
 import { useWindowWidth } from "@react-hook/window-size/throttled";
 import useMonitorChannel from "@/hooks/useMonitorChannel";
-import clsx from "clsx";
-import ToolTip from "../common/Tooltip";
-import { Button } from "../common/Button";
-import { BsInfo } from "react-icons/bs";
-import { ProcessQueue } from "@prisma/client";
+import Dropdown from "@/components/ui/common/Dropdown";
+import ToolTip from "@/components/ui/common/Tooltip";
+import { Button } from "@/components/ui/common/Button";
 import ChannelStats from "./ChannelStatsWrapper/ChannelStats";
 
 const ChannelProcessButtonChildren = ({

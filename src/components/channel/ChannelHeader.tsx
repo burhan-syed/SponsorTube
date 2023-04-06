@@ -2,7 +2,7 @@ import React from "react";
 import Image from "next/image";
 import ChannelProcessButton from "./ChannelProcessButton";
 import { BsCheck2 } from "react-icons/bs";
-import { ChannelHeaderInfo } from "@/types/schemas";
+import type { ChannelHeaderInfo } from "@/types/schemas";
 
 type ChannelHeaderProps = {
   channel: ChannelHeaderInfo;

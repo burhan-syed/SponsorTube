@@ -1,9 +1,9 @@
 import React from "react";
 import { useRouter } from "next/router";
-import { api } from "../utils/api";
-import VideoCard from "../components/ui/VideoCard";
-import Header from "../components/Header";
-import ChannelCard from "../components/ui/channel/ChannelCard";
+import { api } from "@/utils/api";
+import VideoCard from "@/components/ui/VideoCard";
+import Header from "@/components/Header";
+import ChannelCard from "@/components/channel/ChannelCard";
 import ListVideoLoader from "@/components/ui/loaders/ListVideoLoader";
 
 const SearchPage = () => {

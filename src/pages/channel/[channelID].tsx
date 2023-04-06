@@ -4,12 +4,12 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { api } from "@/utils/api";
 import { getChannel, ytSearchQuery } from "@/apis/youtube";
-import ChannelHeader from "@/components/ui/channel/ChannelHeader";
+import ChannelHeader from "@/components/channel/ChannelHeader";
 import Header from "@/components/Header";
 import GridVideoView from "@/components/ui/GridVideoView";
 import GridVideoLoader from "@/components/ui/loaders/GridVideoLoader";
 import { Button } from "@/components/ui/common/Button";
-import ChannelStatsWrapper from "@/components/ui/channel/ChannelStatsWrapper";
+import ChannelStatsWrapper from "@/components/channel/ChannelStatsWrapper";
 import ChannelBannerLoader from "@/components/ui/loaders/channel/ChannelBannerLoader";
 import ChannelHeaderLoader from "@/components/ui/loaders/channel/ChannelHeaderLoader";
 

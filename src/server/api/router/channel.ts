@@ -30,7 +30,7 @@ export const channelRouter = createTRPCRouter({
     .query(async ({ input }) => {
       //let hasNext = false;
       const channel = await getChannel({ channelID: input.channelID });
-      console.log("channel?", channel);
+      //console.log("channel?", channel);
       if (!channel) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

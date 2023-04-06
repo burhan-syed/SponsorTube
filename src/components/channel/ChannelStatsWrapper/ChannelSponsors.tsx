@@ -1,6 +1,6 @@
 import { api } from "@/utils/api";
 import ChannelSponsorsPills from "./ChannelSponsorsPills";
-import ChannelSponsorsLoader from "../../loaders/channel/ChannelSponsorsLoader";
+import ChannelSponsorsLoader from "@/components/ui/loaders/channel/ChannelSponsorsLoader";
 
 const ChannelSponsors = ({ channelId }: { channelId: string }) => {
   const channelSponsors = api.channel.getSponsors.useQuery({ channelId });

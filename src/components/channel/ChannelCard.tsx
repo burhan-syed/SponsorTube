@@ -1,9 +1,9 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { ChannelCardInfo } from "@/types/schemas";
 import useIsPressed from "@/hooks/useIsPressed";
-import TouchResponse from "../common/TouchResponse";
+import TouchResponse from "@/components/ui/common/TouchResponse";
+import type { ChannelCardInfo } from "@/types/schemas";
 
 type ChannelCardProps = {
   channel: ChannelCardInfo;
