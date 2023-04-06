@@ -71,7 +71,7 @@ export const transcriptRouter = createTRPCRouter({
                 userId: true,
                 score: true,
                 Annotations: true,
-                Votes: {
+                Votes: ctx.session?.user.id ? {
                   where: {
                     TranscriptDetails: {
                       Transcript: {
@@ -80,7 +80,7 @@ export const transcriptRouter = createTRPCRouter({
                     },
                     userId: ctx.session?.user?.id,
                   },
-                },
+                } : false,
               },
             },
           },
@@ -229,6 +229,7 @@ export const transcriptRouter = createTRPCRouter({
     .input(GetUserVoteSchema)
     .query(async ({ input, ctx }) => {
       if (!ctx.session?.user?.id) return { direction: 0 };
+      console.log("vinput?", input)
       const vote = await ctx.prisma.userTranscriptDetailsVotes.findUnique({
         where: {
           userId_transcriptDetailsId: {
@@ -237,6 +238,8 @@ export const transcriptRouter = createTRPCRouter({
           },
         },
       });
+      console.log("vote?", vote)
+
       return { direction: vote?.direction ?? 0 };
     }),
   voteTranscriptDetails: protectedProcedure
