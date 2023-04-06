@@ -22,7 +22,7 @@ const server = z.object({
   GITHUB_CLIENT_ID: z.string(),
   GITHUB_CLIENT_SECRET: z.string(),
   OPENAI_API_KEY: z.string(),
-  OPENAI_API_RPM: z.number(),
+  OPENAI_API_RPM: z.string(),
 });
 
 /**
