@@ -92,11 +92,12 @@ const Home: NextPage = ({}) => {
               )}
               {horizontal === false && (
                 <VideoEmbed
-                  className="sticky top-12 z-20 w-full overflow-hidden outline-none sm:relative sm:top-0 sm:rounded-lg"
+                  className="sticky top-12 z-20 w-full overflow-hidden outline-none "
                   videoID={videoInfo?.data.basic_info?.id}
                   width={videoInfo?.data?.basic_info?.embed?.width}
                   height={videoInfo?.data?.basic_info?.embed?.height}
                   videoSeek={videoSeek}
+                  scaleHeight={true}
                 />
               )}
               <div className="flex flex-none flex-col px-4 sm:px-0 lg:w-1/3">
