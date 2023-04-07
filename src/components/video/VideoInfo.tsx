@@ -29,8 +29,8 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
   return (
     <div className="flex flex-col gap-2 text-th-textPrimary">
       <h1 className="text-xl font-bold">{title}</h1>
-      <div className="flex items-end justify-between">
-        <div className="flex items-center gap-x-2">
+      <div className="flex items-end justify-between flex-wrap">
+        <div className="flex items-center gap-x-2 flex-none">
           <ToolTip
             text={authorName}
             tooltipOptions={{
@@ -87,9 +87,9 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
             </span>
           </div>
         </div>
-        <p className="flex items-center gap-x-2 text-xs font-light pb-0.5 px-0.5">
+        <p className="flex flex-wrap items-center justify-end gap-x-2 text-xs font-light pb-0.5 px-0.5">
           <ToolTip
-            text={`uploaded ${publishedString}`}
+            text={`${publishedString?.toLowerCase()?.includes("streamed") ? "" : "uploaded "}${publishedString}`}
             tooltipOptions={{
               side: "top",
               sideOffset: 15,
