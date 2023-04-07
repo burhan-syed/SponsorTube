@@ -33,7 +33,7 @@ const VideoEmbed = ({
           videoID={videoID}
           height={height}
           width={width}
-          startAt={videoSeek?.[1] ?? 0}
+          videoSeek={videoSeek}
         />
       )}
     </div>

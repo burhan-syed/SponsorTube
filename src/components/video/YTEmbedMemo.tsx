@@ -5,12 +5,12 @@ const YTEmbedMemo = ({
   videoID,
   height,
   width,
-  startAt,
+  videoSeek,
 }: {
   videoID: string;
   height?: number;
   width?: number;
-  startAt?: number;
+  videoSeek?: [number, number, number];
 }) => {
   const playerRef = useRef<YouTubePlayer>();
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
@@ -35,10 +35,10 @@ const YTEmbedMemo = ({
   rendercount++;
   console.log("render?", rendercount);
   useEffect(() => {
-    if (startAt && playerRef.current) {
-      playerRef.current?.seekTo(startAt, true);
+    if (videoSeek?.[0] && playerRef.current) {
+      playerRef.current?.seekTo(videoSeek?.[1], true);
     }
-  }, [startAt, playerRef]);
+  }, [videoSeek, playerRef]);
   return (
     <>
       <YouTube
