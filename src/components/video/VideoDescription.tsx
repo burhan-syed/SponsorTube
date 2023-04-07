@@ -8,9 +8,7 @@ interface VideoDescriptionProps {
   views?: number;
   uploadDate?: string;
   description?: string;
-  descriptionRuns?: {
-    text: string;
-  }[];
+  descriptionRuns?: string[]
 }
 const INITIALDESCRIPTIONRUNS = 2;
 
@@ -44,7 +42,7 @@ const VideoDescription = ({
         }}
         style={{ whiteSpace: "pre-line" }}
       >
-        <span className="font-semibold">
+        {/* <span className="font-semibold">
           {views && (
             <>
               {new Intl.NumberFormat("en-US", {
@@ -54,7 +52,7 @@ const VideoDescription = ({
             </>
           )}
           {uploadDate}
-        </span>
+        </span> */}
         <p className="">
           {descriptionRuns?.slice(0, INITIALDESCRIPTIONRUNS)?.map((run, i) => (
             <>
@@ -67,7 +65,7 @@ const VideoDescription = ({
                     "relative"
                 )}
               >
-                {run.text}
+                {run}
                 {i === INITIALDESCRIPTIONRUNS - 1 &&
                   !expandVideoDescription &&
                   descriptionRuns?.length > INITIALDESCRIPTIONRUNS && (
@@ -82,7 +80,7 @@ const VideoDescription = ({
                 <>
                   {descriptionRuns?.slice(4)?.map((run, i) => (
                     <>
-                      <span key={i}>{run.text}</span>
+                      <span key={i}>{run}</span>
                     </>
                   ))}
                   <br />

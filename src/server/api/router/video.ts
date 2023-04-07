@@ -17,6 +17,7 @@ import {
 } from "@/server/db/videos";
 import { processAllSegments, processVideo } from "@/server/functions/process";
 import { transformInnerTubeVideoToVideoCard } from "@/server/transformers/transformer";
+import { VideoDetailsInfo } from "@/types/schemas";
 
 export const videoRouter = createTRPCRouter({
   segments: publicProcedure
@@ -37,13 +38,54 @@ export const videoRouter = createTRPCRouter({
     }),
   info: publicProcedure.input(GetVideoInfoSchema).query(async ({ input }) => {
     const formattedVideoInfo = await getVideoInfoFormatted({ input });
-    const watch_next = formattedVideoInfo?.watch_next?.map((v) =>
-      transformInnerTubeVideoToVideoCard(v)
-    );
-    return {
-      ...formattedVideoInfo,
-      watch_next,
+    const transformedVideoInfo: VideoDetailsInfo = {
+      id: formattedVideoInfo?.basic_info?.id ?? input.videoID,
+      title: formattedVideoInfo?.basic_info.title,
+      viewCount: formattedVideoInfo?.basic_info.view_count,
+      likeCount: formattedVideoInfo?.basic_info.like_count,
+      shortDescription: formattedVideoInfo?.basic_info.short_description,
+      description: formattedVideoInfo?.basic_info.description?.runs
+        ? {
+            runs: formattedVideoInfo?.basic_info.description?.runs.map(
+              (r) => r.text
+            ),
+          }
+        : undefined,
+      publishedString: formattedVideoInfo?.basic_info.upload_date,
+      captions: formattedVideoInfo?.captions.caption_tracks?.map((c) => ({
+        url: c.base_url,
+        languageCode: c.language_code,
+      })),
+      embed: formattedVideoInfo?.basic_info.embed?.iframe_url
+        ? {
+            url: formattedVideoInfo.basic_info.embed.iframe_url,
+            height: formattedVideoInfo.basic_info.embed.height,
+            width: formattedVideoInfo.basic_info.embed.width,
+          }
+        : undefined,
+      author: {
+        id:
+          formattedVideoInfo?.basic_info.channel.id ??
+          formattedVideoInfo?.basic_info.channel_id ??
+          "",
+        name: formattedVideoInfo?.basic_info.channel.name ?? "",
+        isVerified: formattedVideoInfo?.basic_info.channel.is_verified,
+        isVerifiedArtist:
+          formattedVideoInfo?.basic_info.channel.is_verified_artist,
+        thumbnail: formattedVideoInfo?.basic_info.channel.thumbnail
+          ? {
+              url: formattedVideoInfo.basic_info.channel.thumbnail,
+            }
+          : undefined,
+        url: formattedVideoInfo?.basic_info.channel.url,
+        subscriberCountText:
+          formattedVideoInfo?.basic_info.channel.subscriber_count,
+      },
+      watchNextVideos: formattedVideoInfo?.watch_next?.map((v) =>
+        transformInnerTubeVideoToVideoCard(v)
+      ),
     };
+    return transformedVideoInfo;
   }),
   saveDetails: protectedProcedure
     .input(SaveVideoDetailsSchema)

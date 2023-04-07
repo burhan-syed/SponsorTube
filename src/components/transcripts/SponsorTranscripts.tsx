@@ -7,8 +7,8 @@ import type { Segment } from "sponsorblock-api";
 type SponsorTranscriptsProps = {
   videoID: string;
   captionTracks?: {
-    base_url: string;
-    language_code: string;
+    url: string;
+    languageCode: string;
   }[];
   seekTo(start: number, end: number): void;
 };
@@ -22,7 +22,7 @@ const SponsorTranscripts = ({
   const engCaptions = useMemo(
     () =>
       captionTracks?.filter(
-        (t) => t.language_code === "en" || t.language_code === "en-US"
+        (t) => t.languageCode === "en" || t.languageCode === "en-US"
       ),
     [captionTracks]
   );
@@ -39,7 +39,7 @@ const SponsorTranscripts = ({
               key={segment.UUID}
               videoID={videoID}
               segment={segment as unknown as Segment}
-              captionsURL={engCaptions?.[0]?.base_url ?? ""}
+              captionsURL={engCaptions?.[0]?.url ?? ""}
               seekTo={seekTo}
             />
           ))}
@@ -51,7 +51,7 @@ const SponsorTranscripts = ({
                 key={segment.UUID}
                 videoID={videoID}
                 segment={segment}
-                captionsURL={engCaptions?.[0]?.base_url ?? ""}
+                captionsURL={engCaptions?.[0]?.url ?? ""}
                 seekTo={seekTo}
               />
             ))}
@@ -63,7 +63,7 @@ const SponsorTranscripts = ({
               key={segment.UUID}
               videoID={videoID}
               segment={segment}
-              captionsURL={engCaptions?.[0]?.base_url ?? ""}
+              captionsURL={engCaptions?.[0]?.url ?? ""}
               seekTo={seekTo}
             />
           ))}

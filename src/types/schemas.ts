@@ -6,11 +6,14 @@ const ThumbnailSchema = z.object({
   width: z.number().optional(),
 });
 
+const CaptionsSchema = z.object({ url: z.string(), languageCode: z.string() });
+
 const AuthorSchema = z.object({
   id: z.string(),
   name: z.string(),
   thumbnail: ThumbnailSchema.optional(),
   isVerified: z.boolean().default(false).optional(),
+  isVerifiedArtist: z.boolean().default(false).optional(),
 });
 
 const ChannelCardSchema = AuthorSchema.extend({
@@ -31,6 +34,29 @@ const VideoCardSchema = z.object({
   shortDescription: z.string().optional(),
 });
 
+const VideoDetailsSchema = VideoCardSchema.extend({
+  embed: z
+    .object({
+      url: z.string(),
+      width: z.number(),
+      height: z.number(),
+    })
+    .optional(),
+  likeCount: z.number().optional(),
+  likeCountString: z.string().optional(),
+  description: z
+    .object({
+      runs: z.array(z.string()).optional(),
+    })
+    .optional(),
+  author: AuthorSchema.extend({
+    subscriberCountText: z.string().optional(),
+    url: z.string().optional(),
+  }),
+  captions: z.array(CaptionsSchema).optional(),
+  watchNextVideos: z.array(VideoCardSchema).optional(),
+});
+
 const ChannelHeaderSchema = ChannelCardSchema.extend({
   banner: ThumbnailSchema.optional(),
   handle: z.string().optional(),
@@ -39,3 +65,4 @@ const ChannelHeaderSchema = ChannelCardSchema.extend({
 export type ChannelCardInfo = z.infer<typeof ChannelCardSchema>;
 export type VideoCardInfo = z.infer<typeof VideoCardSchema>;
 export type ChannelHeaderInfo = z.infer<typeof ChannelHeaderSchema>;
+export type VideoDetailsInfo = z.infer<typeof VideoDetailsSchema>;
