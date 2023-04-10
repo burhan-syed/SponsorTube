@@ -59,16 +59,26 @@ const AutoAnnotateAll = ({
   });
 
   useEffect(() => {
-    if (
-      processVideo.status === "error" &&
-      videoStatusQuery.status === "success"
-    ) {
-      utils.transcript.get.invalidate(),
+    const invalidate = async () => {
+      await Promise.all([
+        utils.transcript.get.invalidate(),
         utils.video.getSponsors.invalidate({
           videoId: videoId ?? "",
-        });
+        }),
+      ]);
+    };
+    if (
+      (processVideo.status === "error" || processVideo.status === "idle") &&
+      videoStatusQuery.status === "success"
+    ) {
+      invalidate();
     }
   }, [processVideo.status, videoStatusQuery.status]);
+  useEffect(() => {
+    if (videoStatusQuery.data?.status === "pending") {
+      startMonitor();
+    }
+  }, [videoStatusQuery.status]);
 
   const loading =
     processVideo.isLoading ||
@@ -92,6 +102,12 @@ const AutoAnnotateAll = ({
               ? ` on ${videoStatusQuery.data.lastUpdated?.toDateString()}`
               : ""}
           </span>
+        ) : videoStatusQuery.data?.status === "pending" ? (
+          videoStatusQuery.data.timeInitialized ? (
+            `started ${videoStatusQuery.data.timeInitialized.toLocaleString()}`
+          ) : (
+            ""
+          )
         ) : (
           ""
         )
