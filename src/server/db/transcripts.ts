@@ -206,7 +206,6 @@ export const saveAnnotationsAndTranscript = async ({
     const cError = new CustomError({
       message,
       expose: true,
-      type: "",
     });
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -220,7 +219,6 @@ export const saveAnnotationsAndTranscript = async ({
       const cError = new CustomError({
         message,
         expose: true,
-        type: "",
       });
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -242,7 +240,6 @@ export const saveAnnotationsAndTranscript = async ({
     const cError = new CustomError({
       message,
       expose: true,
-      type: "",
     });
     throw new TRPCError({
       code: "BAD_REQUEST",

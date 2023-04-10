@@ -53,7 +53,7 @@ export const getBotIds = async ({ prisma }: { prisma: PrismaClient }) => {
   const bots = await prisma?.bots.findMany();
   if (!bots) {
     const message = "No Bots Found";
-    const cError = new CustomError({ message, type: "" });
+    const cError = new CustomError({ message });
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: message,
@@ -95,7 +95,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
 
   if (!bots?.[0]) {
     const message = "No Bots Found";
-    const cError = new CustomError({ message, type: "" });
+    const cError = new CustomError({ message });
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: message,
