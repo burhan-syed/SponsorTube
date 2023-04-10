@@ -103,13 +103,13 @@ export const videoRouter = createTRPCRouter({
       return await getVideoSponsors({ videoId: input.videoId, ctx });
     }),
   processVideo: publicProcedure
-    .input(z.object({ videoID: z.string() }))
+    .input(z.object({ videoId: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      console.log("test:", input.videoID);
-      await processVideo({
-        videoId: input.videoID,
+      const processResult = await processVideo({
+        videoId: input.videoId,
         ctx,
       });
+      return processResult;
     }),
   processAll: adminProcedure.mutation(async ({ ctx }) => {
     await processAllSegments({ ctx });

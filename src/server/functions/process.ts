@@ -53,45 +53,84 @@ export const processVideo = async ({
   }
 
   if (!channelId && !preVidInfo?.basic_info?.channel?.id) {
-    throw new Error(`missing channel id for video ${videoId}`);
+    throw new TRPCError({
+      code: "PARSE_ERROR",
+      cause: new CustomError({
+        message: "Unable to get channel information",
+        expose: true,
+      }),
+    });
   }
-
-  const processQueue = await ctx.prisma.processQueue.upsert({
-    where: {
-      channelId_videoId_type: {
-        channelId: (channelId ?? preVidInfo?.basic_info?.channel?.id) as string,
-        videoId,
-        type: "video",
+  const processQueue = (await ctx.prisma.$transaction(async (tx) => {
+    const prevQueue = await tx.processQueue.findUnique({
+      where: {
+        channelId_videoId_type: {
+          channelId: (channelId ??
+            preVidInfo?.basic_info?.channel?.id) as string,
+          videoId,
+          type: "video",
+        },
       },
-    },
-    create: {
-      status: "pending",
-      videoId: videoId,
-      channelId: (channelId ?? preVidInfo?.basic_info?.channel?.id) as string,
-      parentProcessId: queueId,
-      type: "video",
-      timeInitialized: new Date(),
-    },
-    update: {
-      status: "pending",
-      parentProcessId: queueId,
-      timeInitialized: new Date(),
-    },
-  });
+    });
+    if (
+      prevQueue &&
+      (prevQueue.status === "pending" || prevQueue?.status === "completed")
+    ) {
+      return { status: prevQueue.status };
+    }
+    const processQueue = await ctx.prisma.processQueue.upsert({
+      where: prevQueue?.id
+        ? { id: prevQueue.id }
+        : {
+            channelId_videoId_type: {
+              channelId: (channelId ??
+                preVidInfo?.basic_info?.channel?.id) as string,
+              videoId,
+              type: "video",
+            },
+          },
+      create: {
+        status: "pending",
+        videoId: videoId,
+        channelId: (channelId ?? preVidInfo?.basic_info?.channel?.id) as string,
+        parentProcessId: queueId,
+        type: "video",
+        timeInitialized: new Date(),
+      },
+      update: {
+        status: "pending",
+        parentProcessId: queueId,
+        timeInitialized: new Date(),
+      },
+    });
+    return processQueue;
+  })) as ProcessQueue;
+
+  //no id when returned with status as partial or completed
+  if (!processQueue?.id) {
+    throw new TRPCError({
+      code: "PRECONDITION_FAILED",
+      cause: new CustomError({
+        expose: true,
+        message: `Video is already ${
+          processQueue.status === "pending" ? "processing" : "processed"
+        }.`,
+        type: processQueue.status === "pending" ? "BOT_PENDING" : undefined,
+      }),
+    });
+  }
 
   const completeQueue = async (
     processQueue: ProcessQueue,
     status?: QueueStatus
   ) => {
-    const completeVideoProcess = ctx.prisma.processQueue.update({
+    const completeVideoProcess = await ctx.prisma.processQueue.update({
       where: { id: processQueue.id },
       data: {
         status: status ? status : "partial",
         lastUpdated: new Date(),
       },
     });
-    //don't count number of pending child processes to complete parent process, it's not reliable
-    await completeVideoProcess;
   };
 
   try {
@@ -308,10 +347,20 @@ export const processVideo = async ({
       //   errored,
       // });
       await completeQueue(processQueue, errored ? "error" : "completed");
+      let errormessages = errors
+        .filter((e) => e instanceof TRPCError && e.cause instanceof CustomError)
+        .map((e: TRPCError) => e.cause?.message);
+      return { errors: errormessages };
     }
   } catch (err) {
     await completeQueue(processQueue, "error");
-    throw err;
+    if (err instanceof TRPCError) {
+      throw err;
+    }
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      cause: new CustomError({ message: "Something went wrong", expose: true }),
+    });
   }
 };
 
