@@ -24,6 +24,8 @@ type ButtonProps = ButtonBaseProps &
   (ButtonAsAnchorProps | ButtonAsButtonProps) & {
     requireSession?: { required: boolean; reason?: string };
     dummyButton?: boolean;
+    loading?: boolean;
+    loadingText?: boolean;
   };
 
 const buttonClasses = cva(
@@ -56,8 +58,8 @@ const buttonClasses = cva(
       disabled: {
         true: "pointer-events-none opacity-50",
       },
-      loading: {
-        true: "text-transparent", //
+      hideText: {
+        true: "text-transparent",
       },
     },
     compoundVariants: [
@@ -115,6 +117,7 @@ export const Button = ({
   round,
   disabled,
   loading,
+  loadingText,
   dummyButton,
   requireSession = { required: false },
   ...props
@@ -124,7 +127,7 @@ export const Button = ({
     size,
     round,
     disabled,
-    loading,
+    hideText: loading && !loadingText,
     className: props.className,
   });
   const { data: sessionData } = useSession();
@@ -184,14 +187,7 @@ export const Button = ({
         }
       }}
     >
-      {children}
-
-      <TouchResponse
-        variant="ring"
-        className={"rounded-full"}
-        isPressed={!disabled && isPressed}
-      />
-      {loading && (
+      {loading && !loadingText ? (
         <mark
           className={clsx(
             "absolute bg-transparent",
@@ -200,7 +196,17 @@ export const Button = ({
         >
           <CgSpinnerTwoAlt className="animate-spin" />
         </mark>
+      ) : (
+        loading && <CgSpinnerTwoAlt className="animate-spin" />
       )}
+
+      {children}
+
+      <TouchResponse
+        variant="ring"
+        className={"rounded-full"}
+        isPressed={!disabled && isPressed}
+      />
     </button>
   );
 };

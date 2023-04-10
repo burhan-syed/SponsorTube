@@ -111,6 +111,14 @@ export const videoRouter = createTRPCRouter({
       });
       return processResult;
     }),
+  getVideoStatus: publicProcedure
+    .input(z.object({ videoId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const processStatus = await ctx.prisma.processQueue.findFirst({
+        where: { videoId: input.videoId, type: "video" },
+      });
+      return processStatus;
+    }),
   processAll: adminProcedure.mutation(async ({ ctx }) => {
     await processAllSegments({ ctx });
   }),
