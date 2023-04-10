@@ -8,7 +8,7 @@ interface VideoDescriptionProps {
   views?: number;
   uploadDate?: string;
   description?: string;
-  descriptionRuns?: string[]
+  descriptionRuns?: string[];
 }
 const INITIALDESCRIPTIONRUNS = 2;
 
@@ -28,7 +28,7 @@ const VideoDescription = ({
       <div
         ref={containerRef}
         className={clsx(
-          "rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-3 text-xs group",
+          "group rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-3 text-xs",
           descriptionRuns &&
             descriptionRuns?.length > INITIALDESCRIPTIONRUNS &&
             !expandVideoDescription &&
@@ -74,39 +74,41 @@ const VideoDescription = ({
               </span>
             </>
           ))}
-          {descriptionRuns && descriptionRuns?.length > INITIALDESCRIPTIONRUNS && (
-            <>
-              {expandVideoDescription ? (
-                <>
-                  {descriptionRuns?.slice(4)?.map((run, i) => (
-                    <>
-                      <span key={i}>{run}</span>
-                    </>
-                  ))}
-                  <br />
+          {descriptionRuns &&
+            descriptionRuns?.length > INITIALDESCRIPTIONRUNS && (
+              <>
+                {expandVideoDescription ? (
+                  <>
+                    {descriptionRuns?.slice(4)?.map((run, i) => (
+                      <>
+                        <span key={i}>{run}</span>
+                      </>
+                    ))}
+                    <br />
+                    <button
+                      className="mt-4 font-bold hover:font-extrabold"
+                      onClick={() => {
+                        setExpandVideoDescription(false);
+                        // containerRef?.current.scrollIntoView({
+                        //   behavior: "smooth",
+                        //   block: "center",
+                        // });
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                    >
+                      Show less
+                    </button>
+                  </>
+                ) : (
                   <button
-                    className="mt-4 font-bold hover:font-extrabold"
-                    onClick={() => {
-                      setExpandVideoDescription(false);
-                      containerRef?.current.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center",
-                      });
-                    }}
+                    className="font-bold hover:font-extrabold"
+                    onClick={() => setExpandVideoDescription(true)}
                   >
-                    Show less
+                    Show more
                   </button>
-                </>
-              ) : (
-                <button
-                  className="font-bold hover:font-extrabold"
-                  onClick={() => setExpandVideoDescription(true)}
-                >
-                  Show more
-                </button>
-              )}
-            </>
-          )}
+                )}
+              </>
+            )}
         </p>
       </div>
       <TouchResponse

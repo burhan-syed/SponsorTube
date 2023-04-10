@@ -84,6 +84,7 @@ export const transcriptRouter = createTRPCRouter({
               },
             },
           },
+          take: 1
         });
         return aiGenAnnotations;
       } else if (input.mode === "user") {

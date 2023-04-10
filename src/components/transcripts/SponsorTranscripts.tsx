@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import useSponsorBlock from "../../hooks/useSponsorBlock";
 import SegmentTranscript from "./SegmentTranscript";
-import SegmentsGroupLoader from "../ui/loaders/SegmentsGroupLoader";
+import SegmentsGroupLoader from "../ui/loaders/transcripts/SegmentsGroupLoader";
 import type { Segment } from "sponsorblock-api";
 
 type SponsorTranscriptsProps = {
@@ -69,7 +69,18 @@ const SponsorTranscripts = ({
           ))}
         </>
       ) : (
-        "no sponsors"
+        <p className="w-full text-center text-sm font-semibold leading-relaxed lg:leading-loose">
+          We found no sponsor segments for this video.
+          <br />
+          Submit any missing segments with{" "}
+          <a
+            className="text-th-callToAction hover:underline"
+            href="https://sponsor.ajay.app/"
+          >
+            SponsorBlock
+          </a>{" "}
+          and check back later.
+        </p>
       )}
     </>
   );

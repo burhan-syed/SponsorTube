@@ -87,7 +87,7 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
             </span>
           </div>
         </div>
-        <p className="flex flex-wrap items-center justify-end gap-x-2 text-xs font-light pb-0.5 px-0.5">
+        <p className="flex flex-wrap items-center justify-end gap-x-2 text-xs font-light pb-0.5 px-0.5 ml-auto">
           <ToolTip
             text={`${publishedString?.toLowerCase()?.includes("streamed") ? "" : "uploaded "}${publishedString}`}
             tooltipOptions={{
@@ -132,7 +132,7 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
           )}
         </p>
       </div>
-      <div className="order-1">
+      <div className="order-1 md:order-2">
         {description && (
           <VideoDescription
             views={viewCount}
@@ -141,7 +141,7 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
           />
         )}
       </div>
-      <div className="order-2">
+      <div className="order-2 md:order-1">
         <VideoSponsors videoId={videoId} />
       </div>
     </div>

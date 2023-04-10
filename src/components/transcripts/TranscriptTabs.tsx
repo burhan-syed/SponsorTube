@@ -8,7 +8,10 @@ import { api } from "@/utils/api";
 import { useSession } from "next-auth/react";
 import TabsList from "../ui/common/tabs/TabsList";
 import TranscriptLoader from "../ui/loaders/transcripts/TranscriptLoader";
-import TranscriptQueryKeepAlive from "./TranscriptQueryKeepAlive";
+import useTranscriptQuery from "@/hooks/useTranscriptQuery";
+
+type tabValues = "saved" | "user" | "generated";
+
 const TranscriptTabs = ({
   videoID,
   segment,
@@ -20,26 +23,32 @@ const TranscriptTabs = ({
   captionsURL: string;
   seekTo(start: number, end: number): void;
 }) => {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, status } = useSession();
+  const { savedTranscriptAnnotations } = useTranscriptQuery({
+    segmentUUID: segment.UUID,
+  });
 
-  //load these prior to tab focus
-  const savedTranscriptAnnotations = api.transcript.get.useQuery(
-    {
-      segmentUUID: segment.UUID,
-      mode: "score",
-    },
-    {
-      enabled: !!segment.UUID,
-    }
-  );
   const [isNavDisabled, setIsNavDisabled] = useState(false);
   const [tabValue, setTabValue] = useState<string>("");
-  type tabValues = "saved" | "user" | "generated";
-  const tabsList = [
-    { value: "saved" },
-    { value: "user", disabled: !sessionData },
-    { value: "generated" },
-  ] as { value: tabValues; disabled?: boolean }[];
+  const [tabsList, setTabList] = useState<
+    { value: tabValues; disabled?: boolean; label?: string }[]
+  >(() => [{ value: "generated", label: "auto" }]);
+  useEffect(() => {
+    if (status === "authenticated") {
+      setTabList((tl) => {
+        if (!tl.some((tab) => tab.value === "user")) {
+          return [...tl, { value: "user" }];
+        }
+        return tl;
+      });
+    }
+  }, [status]);
+
+  // const tabsList = [
+  //   { value: "saved" },
+  //   { value: "user", disabled: !sessionData },
+  //   { value: "generated" },
+  // ] as { value: tabValues; disabled?: boolean }[];
 
   useEffect(() => {
     if (
@@ -47,7 +56,13 @@ const TranscriptTabs = ({
       (savedTranscriptAnnotations?.data?.length ?? 0 > 0) &&
       !tabValue
     ) {
-      setTabValue("saved");
+      setTabList((tl) => {
+        if (!tl.some((tab) => tab.value === "saved")) {
+          return [...tl, { value: "saved", label: "Top" }];
+        }
+        return tl;
+      });
+      !tabValue && setTabValue("saved");
     } else if (savedTranscriptAnnotations.isFetched && !tabValue) {
       setTabValue("generated");
     }
@@ -59,6 +74,14 @@ const TranscriptTabs = ({
     savedTranscriptAnnotations.data,
     tabValue,
   ]);
+
+  if (savedTranscriptAnnotations.isInitialLoading || status === "loading") {
+    return (
+      <div className="flex min-h-[30rem] flex-col rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA">
+        <TranscriptLoader />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -85,7 +108,7 @@ const TranscriptTabs = ({
             </div>
           </div>
         </div>
-        <div className="border-t border-t-th-textSecondary sm:order-1 sm:border-t-0 sm:border-r sm:border-r-th-textSecondary">
+        <div className="border-t border-t-th-textSecondary sm:order-1 sm:border-r sm:border-t-0 sm:border-r-th-textSecondary">
           {savedTranscriptAnnotations.isInitialLoading || !tabValue ? (
             <div className="flex min-h-[30rem] flex-col">
               <TranscriptLoader />
@@ -124,7 +147,6 @@ const TranscriptTabs = ({
           )}
         </div>
       </TabsPrimitives.Root>
-      <TranscriptQueryKeepAlive segmentUUID={segment.UUID} />
     </>
   );
 };

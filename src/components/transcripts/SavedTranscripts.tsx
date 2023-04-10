@@ -74,7 +74,11 @@ const SavedTranscripts = ({
               ))}
             </>
           ) : (
-            <>no saved transcripts</>
+            <p className="flex w-full h-full items-center justify-center flex-grow">
+              {userPosts
+                ? "found no submitted segments"
+                : "no saved segments found"}
+            </p>
           )}
         </>
       ) : (

@@ -46,7 +46,7 @@ const GeneratedTranscripts = ({
     <>
       {sponsorSegmentTranscripts.isLoading ||
       savedTranscriptAnnotations.isLoading ? (
-        <TranscriptLoader/>
+        <TranscriptLoader />
       ) : (savedTranscriptAnnotations?.data?.length ?? 0) > 0 ? (
         <>
           {savedTranscriptAnnotations.data?.map(

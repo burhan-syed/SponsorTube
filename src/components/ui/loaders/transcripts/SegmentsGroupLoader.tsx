@@ -1,10 +1,11 @@
 import React from "react";
+import TranscriptTabsLoader from "./TranscriptTabsLoader";
 
 const SegmentsGroupLoader = () => {
   return (
     <div className="flex flex-col gap-2">
-      {[...new Array(3)].map((i) => (
-        <div key={i} className={"skeleton-box h-32 w-full rounded-lg"}></div>
+      {[...new Array(1)].map((i) => (
+        <TranscriptTabsLoader key={i} />
       ))}
     </div>
   );

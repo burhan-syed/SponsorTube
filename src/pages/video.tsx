@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import VideoPageLoader from "@/components/ui/loaders/VideoPageLoader";
 import GridVideoView from "@/components/video/GridVideoView";
 import GridVideoLoader from "@/components/ui/loaders/GridVideoLoader";
-import { Button } from "@/components/ui/common/Button";
+import AutoAnnotateAll from "@/components/transcripts/AutoAnnotateAll";
 
 const Home: NextPage = ({}) => {
   const router = useRouter();
@@ -25,18 +25,6 @@ const Home: NextPage = ({}) => {
       staleTime: Infinity,
     }
   );
-
-  const utils = api.useContext();
-  const processVideo = api.video.processVideo.useMutation({
-    async onSuccess() {
-      await Promise.all([
-        utils.transcript.get.invalidate(),
-        utils.video.getSponsors.invalidate({
-          videoId: videoID,
-        }),
-      ]);
-    },
-  });
 
   const [videoSeek, setVideoSeek] = useState<[number, number, number]>([
     0, 0, 0,
@@ -67,19 +55,6 @@ const Home: NextPage = ({}) => {
       </Head>
       <Header />
       <div className="relative sm:p-4">
-        {/* {videoInfo?.data?.basic_info?.id && (
-          <Button
-            disabled={processVideo.isLoading}
-            loading={processVideo.isLoading}
-            onClick={() =>
-              processVideo.mutate({
-                videoID: videoInfo?.data?.basic_info?.id as string,
-              })
-            }
-          >
-            Process Video
-          </Button>
-        )} */}
         <div className="flex flex-col gap-2 lg:flex-row">
           {videoInfo.isLoading ? (
             <>
@@ -101,7 +76,7 @@ const Home: NextPage = ({}) => {
                 />
               )}
               <div className="flex flex-none flex-col px-4 sm:px-0 lg:w-1/3">
-                <div className="lg:sticky lg:top-5">
+                <div className="lg:sticky lg:top-14">
                   {videoInfo?.data?.embed?.url && horizontal && (
                     <VideoEmbed
                       className="w-full overflow-hidden outline-none sm:rounded-lg"
@@ -121,6 +96,10 @@ const Home: NextPage = ({}) => {
 
           <div className="flex w-full flex-col gap-2 px-4 sm:px-0">
             {/* Display this outside of videoInfoLoader to grab sponsorsegments with videoID*/}
+            <AutoAnnotateAll
+              videoId={videoInfo.data?.id}
+              isLoading={videoInfo.isLoading}
+            />
             <SponsorTranscripts
               videoID={videoID}
               captionTracks={videoInfo?.data?.captions}

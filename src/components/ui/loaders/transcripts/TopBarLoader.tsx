@@ -12,7 +12,7 @@ const TopBarLoader = () => {
 
       <div className="skeleton-box h-9 w-9 rounded-full"></div>
       <div className="skeleton-box h-9 w-9 rounded-full"></div>
-      <div className="skeleton-box h-9 w-9 rounded-full"></div>
+      {/* <div className="skeleton-box h-9 w-9 rounded-full"></div> */}
     </div>
   );
 };

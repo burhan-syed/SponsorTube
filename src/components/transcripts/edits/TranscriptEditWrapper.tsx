@@ -168,7 +168,7 @@ const TranscriptEditWrapper = ({
           </Toggle>
         </Tooltip>
 
-        <Tooltip text={editToggled || annotateToggled ? "" : "auto generate"}>
+        {/* <Tooltip text={editToggled || annotateToggled ? "" : "auto generate"}>
           <TranscriptAutoGen
             transcript={transcript}
             segment={segment}
@@ -177,7 +177,7 @@ const TranscriptEditWrapper = ({
             setTabValue={setTabValue}
             videoID={videoID}
           />
-        </Tooltip>
+        </Tooltip> */}
       </div>
       {!editToggled && (
         <div
