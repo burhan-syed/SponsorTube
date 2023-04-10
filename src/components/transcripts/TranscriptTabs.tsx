@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 import TabsList from "../ui/common/tabs/TabsList";
 import TranscriptLoader from "../ui/loaders/transcripts/TranscriptLoader";
 import useTranscriptQuery from "@/hooks/useTranscriptQuery";
+import TranscriptTabsLoader from "../ui/loaders/transcripts/TranscriptTabsLoader";
 
 type tabValues = "saved" | "user" | "generated";
 
@@ -75,12 +76,12 @@ const TranscriptTabs = ({
     tabValue,
   ]);
 
-  if (savedTranscriptAnnotations.isInitialLoading || status === "loading") {
-    return (
-      <div className="flex min-h-[30rem] flex-col rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA">
-        <TranscriptLoader />
-      </div>
-    );
+  if (
+    savedTranscriptAnnotations.isInitialLoading ||
+    status === "loading" ||
+    !tabValue
+  ) {
+    return <TranscriptTabsLoader />;
   }
 
   return (
