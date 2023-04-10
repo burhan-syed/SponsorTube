@@ -69,6 +69,7 @@ export type Context = inferAsyncReturnType<typeof createTRPCContext>;
 import { inferAsyncReturnType, initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { CustomError } from "../common/errors";
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -77,6 +78,10 @@ const t = initTRPC.context<Context>().create({
       ...shape,
       data: {
         ...shape.data,
+        customError:
+          error.cause instanceof CustomError && error.cause.expose
+            ? error.cause.toString()
+            : null,
         zodError:
           error.cause instanceof ZodError ? error.cause.flatten() : null,
       },
@@ -132,7 +137,10 @@ export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
 
 const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user || ctx.session.user.role !== "ADMIN") {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "admin privilege required" });
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "admin privilege required",
+    });
   }
   return next({
     ctx: {
