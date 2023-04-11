@@ -369,9 +369,10 @@ model Sponsors {
   TranscriptDetails TranscriptDetails? @relation(fields: [transcriptDetailsId], references: [id])
   SponsorType       SponsorTypes?      @relation(fields: [type], references: [id])
 
-  @@unique([videoId, brand])
+  @@unique([videoId, brand, product])
   @@index([videoId])
   @@index([brand])
+  @@index([product])
   @@index([transcriptDetailsId])
   @@index([type])
 }

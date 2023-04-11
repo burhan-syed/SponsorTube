@@ -2,6 +2,7 @@ import { CustomError } from "../common/errors";
 import { inferAsyncReturnType } from "@trpc/server";
 import type {
   AnnotationTags,
+  PrismaClient,
   SponsorTimes,
   TranscriptAnnotations,
   TranscriptDetails,
@@ -25,10 +26,12 @@ export const getVideoSponsors = async ({
     },
     include: {
       Transcripts: {
+        where: { score: { gte: 1 } },
         orderBy: { score: "desc" },
         take: 5,
         include: {
           TranscriptDetails: {
+            where: { score: { gte: 1 } },
             orderBy: { score: "desc" },
             take: 5,
             include: { Annotations: true },
@@ -38,64 +41,80 @@ export const getVideoSponsors = async ({
     },
   });
 
-  const flatPerSegmentSorted = segments.map((s) =>
-    [...s.Transcripts.map((t) => t.TranscriptDetails)]
-      .flat()
-      .flat()
-      .sort((a, b) => b.score - a.score)
+  //console.log("found?", JSON.stringify(segments, null, 2));
+
+  const flatPerSegmentSorted = segments.map(
+    (s) =>
+      [...s.Transcripts.map((t) => t.TranscriptDetails)]
+        .flat()
+        .flat()
+        .sort((a, b) =>
+          b.score - a.score === 0
+            ? b.created.getTime() - a.created.getTime()
+            : b.score - a.score
+        ) //only the first transcript details for any transcript is evaluated. If tied in score take the latest
   );
 
-  const annotationinfos = new Map<
-    string,
-    {
-      brand: string;
-      product?: string;
-      offer?: string;
-      transcriptDetailsId: string;
-    }
-  >();
+  //console.log("sorted?", JSON.stringify(flatPerSegmentSorted, null, 2));
 
+  // const annotationinfos = new Map<
+  //   string,
+  //   {
+  //     brand: string;
+  //     product?: string;
+  //     offer?: string;
+  //     transcriptDetailsId: string;
+  //   }
+  // >();
+
+  //
+  const brands = new Map<string, string[]>();
   const products = new Map<string, string[]>();
   const offers = new Map<string, string[]>();
   const urls = new Map<string, string[]>();
   const codes = new Map<string, string[]>();
-
   flatPerSegmentSorted.map((td) =>
+    //only take the top scoring+latest transcriptdetails per segment
     td?.[0]?.Annotations.forEach((annotation) => {
-      const transcriptId = td?.[0]?.id;
-      if (transcriptId) {
+      const transcriptDetailsId = td?.[0]?.id;
+      if (transcriptDetailsId) {
         switch (annotation.tag) {
           case "BRAND":
-            annotationinfos.set(annotation.text.toUpperCase(), {
-              brand: annotation.text,
-              transcriptDetailsId: transcriptId,
-            });
+            // annotationinfos.set(annotation.text.toUpperCase(), {
+            //   brand: annotation.text,
+            //   transcriptDetailsId: transcriptDetailsId,
+            // });
+            const b = brands.get(transcriptDetailsId);
+            brands.set(
+              transcriptDetailsId,
+              b ? [...b, annotation.text] : [annotation.text]
+            );
             break;
           case "PRODUCT":
-            const p = products.get(transcriptId);
+            const p = products.get(transcriptDetailsId);
             products.set(
-              transcriptId,
+              transcriptDetailsId,
               p ? [...p, annotation.text] : [annotation.text]
             );
             break;
           case "OFFER":
-            const o = offers.get(transcriptId);
+            const o = offers.get(transcriptDetailsId);
             offers.set(
-              transcriptId,
+              transcriptDetailsId,
               o ? [...o, annotation.text] : [annotation.text]
             );
             break;
           case "URL":
-            const u = urls.get(transcriptId);
+            const u = urls.get(transcriptDetailsId);
             urls.set(
-              transcriptId,
+              transcriptDetailsId,
               u ? [...u, annotation.text] : [annotation.text]
             );
             break;
           case "CODE":
-            const c = codes.get(transcriptId);
+            const c = codes.get(transcriptDetailsId);
             codes.set(
-              transcriptId,
+              transcriptDetailsId,
               c ? [...c, annotation.text] : [annotation.text]
             );
             break;
@@ -106,26 +125,64 @@ export const getVideoSponsors = async ({
     })
   );
 
-  return [...annotationinfos.entries()].map((v) => ({
-    videoId: videoId,
-    transcriptDetailsId: v[1].transcriptDetailsId,
-    brand: v[1].brand,
-    product: products.get(v[1].transcriptDetailsId)?.[0],
-    offer: offers.get(v[1].transcriptDetailsId)?.[0],
-    url: urls.get(v[1].transcriptDetailsId)?.[0],
-    code: codes.get(v[1].transcriptDetailsId)?.[0],
-  }));
+  //only the first brand/product/offer/url/code is taken per transcript
+  const rawmap = [...brands.entries()]
+    .filter((b) => b[1]?.[0])
+    .map((b) => ({
+      videoId: videoId,
+      transcriptDetailsId: b[0],
+      brand: b[1][0] ?? "",
+      product: products.get(b[0])?.[0],
+      offer: offers.get(b[0])?.[0],
+      url: urls.get(b[0])?.[0],
+      code: codes.get(b[0])?.[0],
+    }));
+  const filtermap = rawmap
+    //filter brands with no info if its already accounted for
+    .filter(
+      (a) =>
+        !(!(a.product || a.offer || a.url || a.code) &&
+        rawmap.some(
+          (r) =>
+            r.brand === a.brand && (r.product || r.offer || r.url || r.code)
+        ))
+    );
+
+  // const old = [...annotationinfos.entries()].map((v) => ({
+  //   videoId: videoId,
+  //   transcriptDetailsId: v[1].transcriptDetailsId,
+  //   brand: v[1].brand,
+  //   product: products.get(v[1].transcriptDetailsId)?.[0],
+  //   offer: offers.get(v[1].transcriptDetailsId)?.[0],
+  //   url: urls.get(v[1].transcriptDetailsId)?.[0],
+  //   code: codes.get(v[1].transcriptDetailsId)?.[0],
+  // }));
+
+  // console.log("?", {
+  //   brands,
+  //   products,
+  //   offers,
+  //   urls,
+  //   codes,
+  //   filtermap,
+  // });
+
+  return filtermap;
 };
 export type VideoSponsors = inferAsyncReturnType<typeof getVideoSponsors>;
 
 export const updateVideoSponsorsFromDB = async ({
   videoId,
   ctx,
+  suppliedVideoSponsors,
 }: {
   videoId: string;
   ctx: Context;
+  suppliedVideoSponsors?: VideoSponsors;
 }) => {
-  const videoSponsors = await getVideoSponsors({ videoId, ctx });
+  const videoSponsors = suppliedVideoSponsors
+    ? suppliedVideoSponsors
+    : await getVideoSponsors({ videoId, ctx });
 
   await ctx.prisma.$transaction([
     ctx.prisma.sponsors.deleteMany({
@@ -137,6 +194,58 @@ export const updateVideoSponsorsFromDB = async ({
     }),
   ]);
   return videoSponsors;
+};
+
+export const compareAndUpdateVideoSponsors = async ({
+  videoId,
+  prisma,
+}: {
+  videoId: string;
+  prisma: PrismaClient;
+}) => {
+  const [videoSponsors, savedSponsors] = await Promise.all([
+    getVideoSponsors({ videoId: videoId, ctx: { prisma, session: null } }),
+    prisma.sponsors.findMany({ where: { videoId } }),
+  ]);
+
+  const isDifferent =
+    !savedSponsors.some((s) => s.locked) &&
+    videoSponsors?.length > 0 &&
+    (savedSponsors.length !== videoSponsors.length ||
+      //check for any video sponsors not in the saved sponsors
+      videoSponsors.some((v) => {
+        return !savedSponsors.some((s) => {
+          //string copy these objects ignoring id, and locked
+          const sCopy: { [x: string]: any } = { ...s, id: "", locked: false };
+          const vCopy: { [x: string]: any } = { ...v, id: "", locked: false };
+          //cleanup null/undefined values for string compare
+          Object.keys(sCopy).forEach(
+            (key) => !!!sCopy[key] && delete sCopy[key]
+          );
+          Object.keys(vCopy).forEach(
+            (key) => !!!vCopy[key] && delete vCopy[key]
+          );
+
+          console.log(
+            "compare?",
+            JSON.stringify(vCopy, null, 2),
+            JSON.stringify(sCopy, null, 2),
+            JSON.stringify(sCopy) === JSON.stringify(vCopy)
+          );
+          return JSON.stringify(sCopy) === JSON.stringify(vCopy);
+        });
+      }));
+
+  if (isDifferent) {
+    console.log("isdifferent", videoSponsors, savedSponsors);
+    updateVideoSponsorsFromDB({
+      videoId,
+      ctx: { prisma, session: null },
+      suppliedVideoSponsors: videoSponsors,
+    });
+  } else {
+    console.log("isnotdifferent", videoSponsors, savedSponsors);
+  }
 };
 
 export const summarizeChannelSponsors = async ({
@@ -226,9 +335,14 @@ export const summarizeChannelSponsors = async ({
       orderBy: { published: "desc" },
     });
 
+    //TODO: chunk these to limit db connections
     const videoSponsors = Promise.allSettled(
       channelVideosWithSponsors.map(
-        async (v) => await updateVideoSponsorsFromDB({ videoId: v.id, ctx })
+        async (v) =>
+          await compareAndUpdateVideoSponsors({
+            videoId: v.id,
+            prisma: ctx.prisma,
+          })
       )
     );
 

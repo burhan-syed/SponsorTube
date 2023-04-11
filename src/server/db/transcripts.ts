@@ -318,6 +318,7 @@ export const saveAnnotationsAndTranscript = async ({
         },
         update: {
           score: 1,
+          created: new Date(),
           Annotations: {
             createMany: { data: input.annotations },
           },

@@ -6,6 +6,7 @@ import {
 } from "../trpc";
 import { z } from "zod";
 import {
+  compareAndUpdateVideoSponsors,
   getVideoSponsors,
   updateVideoSponsorsFromDB,
 } from "@/server/db/sponsors";
@@ -161,5 +162,13 @@ export const videoRouter = createTRPCRouter({
         vods,
         nextCursor,
       };
+    }),
+  updateVideoSponsors: publicProcedure
+    .input(z.object({ videoId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      await compareAndUpdateVideoSponsors({
+        videoId: input.videoId,
+        prisma: ctx.prisma,
+      });
     }),
 });
