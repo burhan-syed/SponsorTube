@@ -6,6 +6,7 @@ import useSegmentTranscript from "@/hooks/useSegmentTranscript";
 import { api } from "@/utils/api";
 import Switch from "../ui/common/Switch";
 import TranscriptLoader from "../ui/loaders/transcripts/TranscriptLoader";
+import TranscriptTopBar from "./TranscriptTopBar";
 
 const GeneratedTranscripts = ({
   segment,
@@ -121,7 +122,26 @@ const GeneratedTranscripts = ({
           />
         </>
       ) : (
-        <>missing transcript data</>
+        <div className="flex flex-grow flex-col">
+          <TranscriptTopBar
+            seekTo={seekTo}
+            videoID={videoID}
+            segmentUUID={segment.UUID}
+            transcript={{
+              startTime: segment.startTime,
+              endTime: segment.endTime,
+            }}
+          />
+          <p className="flex h-full w-full flex-grow items-center justify-center">
+            <span>
+              missing transcript data
+              <br />
+              <span className="text-th-textSecondary">
+                segment {segment.UUID}
+              </span>
+            </span>
+          </p>
+        </div>
       )}
     </>
   );
