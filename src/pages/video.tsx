@@ -91,7 +91,15 @@ const Home: NextPage = ({}) => {
               </div>
             </>
           ) : (
-            (videoInfo.error || true) && "something went wrong"
+            <div className="flex flex-none flex-col gap-2 lg:w-1/3">
+              <div className="skeleton-box aspect-video w-full rounded-lg"></div>
+              <p>
+                unable to find video information <br />
+                <span className="text-th-textSecondary">
+                  video id: {videoID}
+                </span>
+              </p>
+            </div>
           )}
 
           <div className="flex w-full flex-col gap-2 px-4 sm:px-0">
