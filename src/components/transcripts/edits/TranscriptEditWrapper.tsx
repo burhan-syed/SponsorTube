@@ -1,35 +1,14 @@
 import React, { useEffect, useState } from "react";
 
-import Toggle from "../../ui/common/Toggle";
-import { MdEditNote } from "react-icons/md";
-import { BsInputCursorText, BsPlay } from "react-icons/bs";
-import { BiBrain } from "react-icons/bi";
 import TranscriptAnnotator from "./TranscriptAnnotator";
-import Tooltip from "../../ui/common/Tooltip";
 import TranscriptEditor from "./TranscriptEditor";
-import clsx from "clsx";
-import { Button } from "@/components/ui/common/Button";
-import Selector from "@/components/ui/common/Selector";
+import TranscriptTopBar from "../TranscriptTopBar";
 
-import { TAGS } from "./TranscriptTags";
-import TranscriptVote from "../TranscriptVote";
-import { secondsToHMS } from "@/utils";
-import { useSession } from "next-auth/react";
-import TranscriptDelete from "../TranscriptDelete";
-import TranscriptAutoGen from "../TranscriptAutoGen";
+import clsx from "clsx";
 
 import type { AnnotationTags, TranscriptAnnotations } from "@prisma/client";
 import type { Segment } from "sponsorblock-api";
-
-type Transcript = {
-  text: string;
-  annotations?: TranscriptAnnotations[];
-  id?: string;
-  transcriptDetailsId?: string;
-  annotaterId?: string;
-  startTime?: number | null;
-  endTime?: number | null;
-};
+import type { Transcript } from "@/types";
 interface TranscriptEditWrapperProps {
   segment: Segment;
   videoID: string;
@@ -49,7 +28,6 @@ const TranscriptEditWrapper = ({
   initialVoteDirection,
   setIsNavDisabled,
 }: TranscriptEditWrapperProps) => {
-  const { data: sessionData } = useSession();
   const [editToggled, setEditToggled] = useState(false);
   const [annotateToggled, setAnnotateToggled] = useState(false);
   const [tag, setTag] = React.useState<AnnotationTags>("BRAND");
@@ -66,119 +44,18 @@ const TranscriptEditWrapper = ({
 
   return (
     <div className="flex flex-grow flex-col">
-      <div
-        className="flex items-start justify-end gap-1 rounded-tl-lg bg-th-baseBackground px-1 py-1 sm:translate-x-0 sm:flex-row sm:justify-start sm:gap-2 sm:px-2 sm:py-0.5"
-        //-translate-x-1/2
-      >
-        {transcript.id && transcript.transcriptDetailsId && (
-          <div
-            className={clsx(
-              annotateToggled || editToggled ? "hidden sm:flex" : "flex",
-              "items-start gap-1 sm:gap-2"
-            )}
-          >
-            <TranscriptVote
-              videoId={videoID}
-              initialDirection={initialVoteDirection}
-              transcriptDetailsId={transcript.transcriptDetailsId}
-              transcriptId={transcript.id}
-              disabled={annotateToggled || editToggled}
-            />
-          </div>
-        )}
-
-        {sessionData &&
-          ((sessionData.user?.id &&
-            sessionData.user?.id === transcript.annotaterId) ||
-            transcript.annotaterId === "_openaicurie") && (
-            <TranscriptDelete
-              segmentUUID={segment.UUID}
-              transcriptId={transcript.id}
-              transcriptDetailsId={transcript.transcriptDetailsId}
-            />
-          )}
-
-        {typeof transcript?.startTime === "number" &&
-          typeof transcript?.endTime === "number" && (
-            <div className="flex items-center gap-0.5 sm:gap-2">
-              <Button
-                round
-                onClick={() =>
-                  seekTo(
-                    transcript.startTime as number,
-                    transcript.endTime as number
-                  )
-                }
-              >
-                <BsPlay className="h-4 w-4 flex-none" />
-              </Button>
-              <span className="flex items-center gap-0.5  text-xs text-th-textSecondary sm:gap-1">
-                {secondsToHMS(transcript.startTime)}
-                <span>-</span>
-                {secondsToHMS(transcript.endTime)}
-              </span>
-            </div>
-          )}
-
-        <div className="mx-auto"></div>
-        {annotateToggled && (
-          // <div
-          //   //comments for rotated version
-          //   className="relative  sm:h-auto" //h-32
-          // >
-          <div
-            className="h-9 w-32"
-            //pointer-events-none absolute  top-0 h-9 w-32 origin-top-left rotate-[270deg] sm:pointer-events-auto sm:block sm:rotate-0
-          >
-            {/* <div className="pointer-events-auto h-full w-full -translate-x-full sm:translate-x-0 "> */}
-            <Selector
-              selectItems={Array.from(TAGS.keys()).map((t) => ({
-                value: t,
-              }))}
-              valuePlaceholder="select.."
-              initialValueIndex={0}
-              handler={(v: AnnotationTags) => setTag(v)}
-            />
-            {/* </div> */}
-          </div>
-          // </div>
-        )}
-        <div className={clsx(annotateToggled && "hidden")}>
-          <Tooltip text={annotateToggled ? "" : "edit text"}>
-            <Toggle
-              disabled={annotateToggled}
-              className={clsx(
-                annotateToggled && "pointer-events-none opacity-50"
-              )}
-              pressed={editToggled}
-              onPressedChange={(p) => setEditToggled(p)}
-            >
-              <BsInputCursorText />
-            </Toggle>
-          </Tooltip>
-        </div>
-        <Tooltip text={editToggled ? "" : "annotate"}>
-          <Toggle
-            disabled={editToggled}
-            pressed={annotateToggled}
-            onPressedChange={(p) => setAnnotateToggled(p)}
-            className={clsx(editToggled && "pointer-events-none opacity-50")}
-          >
-            <MdEditNote />
-          </Toggle>
-        </Tooltip>
-
-        {/* <Tooltip text={editToggled || annotateToggled ? "" : "auto generate"}>
-          <TranscriptAutoGen
-            transcript={transcript}
-            segment={segment}
-            editingToggled={editToggled || annotateToggled}
-            setIsNavDisabled={setIsNavDisabled}
-            setTabValue={setTabValue}
-            videoID={videoID}
-          />
-        </Tooltip> */}
-      </div>
+      <TranscriptTopBar
+        segmentUUID={segment.UUID}
+        transcript={transcript}
+        videoID={videoID}
+        initialVoteDirection={initialVoteDirection}
+        annotateToggled={annotateToggled}
+        setAnnotateToggled={setAnnotateToggled}
+        editToggled={editToggled}
+        setEditToggled={setEditToggled}
+        seekTo={seekTo}
+        setTag={setTag}
+      />
       {!editToggled && (
         <div
           className={clsx(

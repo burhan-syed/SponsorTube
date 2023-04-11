@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import TranscriptEditWrapper from "./edits/TranscriptEditWrapper";
 import type { Segment } from "sponsorblock-api";
 import TranscriptLoader from "../ui/loaders/transcripts/TranscriptLoader";
+import TranscriptTopBar from "./TranscriptTopBar";
 
 // import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 // import  {type appRouter } from "@/server/trpc/router";
@@ -74,11 +75,22 @@ const SavedTranscripts = ({
               ))}
             </>
           ) : (
-            <p className="flex w-full h-full items-center justify-center flex-grow">
-              {userPosts
-                ? "found no submitted segments"
-                : "no saved segments found"}
-            </p>
+            <div className="flex flex-col flex-grow">
+              <TranscriptTopBar
+                seekTo={seekTo}
+                videoID={videoID}
+                segmentUUID={segment.UUID}
+                transcript={{
+                  startTime: segment.startTime,
+                  endTime: segment.endTime,
+                }}
+              />
+              <p className="flex h-full w-full flex-grow items-center justify-center">
+                {userPosts
+                  ? "found no submitted segments"
+                  : "no saved segments found"}
+              </p>
+            </div>
           )}
         </>
       ) : (
