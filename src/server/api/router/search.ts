@@ -21,7 +21,11 @@ export const searchRouter = createTRPCRouter({
       const queryResults = await ytSearchQuery({ query: input.searchQuery });
       const queryResultVideos = queryResults?.videos
         ?.filterType(YTNodes.Video)
-        .map((v) => {
+        ?.filter(
+          (value, index, self) =>
+            index === self.findIndex((t) => t.id === value.id)
+        )
+        ?.map((v) => {
           return transformInnerTubeVideoToVideoCard(v);
         });
 
