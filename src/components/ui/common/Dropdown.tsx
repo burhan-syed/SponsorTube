@@ -29,7 +29,10 @@ const Dropdown = ({
             className="relative flex w-full items-center justify-center rounded-full bg-th-chipBackground hover:bg-th-chipBackgroundHover"
             aria-label="options"
           >
-            {cloneElement(children, { isOpen: isOpen })}
+            {cloneElement(children, {
+              //lowercase to appease ReactDOM errors
+              isopen: isOpen,
+            })}
             <TouchResponse isPressed={isPressed} className="rounded-full" />
           </button>
         </DropdownMenu.Trigger>

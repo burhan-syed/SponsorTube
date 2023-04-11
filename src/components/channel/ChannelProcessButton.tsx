@@ -13,10 +13,10 @@ import { Button } from "@/components/ui/common/Button";
 import ChannelStats from "./ChannelStatsWrapper/ChannelStats";
 
 const ChannelProcessButtonChildren = ({
-  isOpen,
+  isopen,
   isLoading,
 }: {
-  isOpen?: boolean;
+  isopen?: boolean;
   isLoading: boolean;
 }) => {
   return (
@@ -33,7 +33,7 @@ const ChannelProcessButtonChildren = ({
           <BiChevronDown
             className={clsx(
               "h-5 w-5 flex-none transition-transform ease-in-out",
-              isOpen ? "rotate-180" : ""
+              isopen ? "rotate-180" : ""
             )}
           />
         )}

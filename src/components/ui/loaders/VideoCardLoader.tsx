@@ -96,7 +96,7 @@ const VideoCardLoader = ({
 
             {variant === "regular" && (
               <div className="my-2 hidden flex-col gap-1 pr-2 sm:flex">
-                {[...new Array(3)].map((i) => (
+                {[...new Array(3)].map((a,i) => (
                   <div
                     key={i}
                     className="skeleton-box h-3 w-full rounded-lg last:w-3/4"

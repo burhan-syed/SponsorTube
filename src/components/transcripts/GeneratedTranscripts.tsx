@@ -47,12 +47,13 @@ const GeneratedTranscripts = ({
       {sponsorSegmentTranscripts.isLoading ||
       savedTranscriptAnnotations.isLoading ? (
         <TranscriptLoader />
-      ) : (savedTranscriptAnnotations?.data?.length ?? 0) > 0 ? (
+      ) : (savedTranscriptAnnotations?.data?.length ?? 0) > 0 &&
+        sponsorSegmentTranscripts.data ? (
         <>
           {savedTranscriptAnnotations.data?.map(
             (savedTranscriptAnnotations) => (
               <>
-                {sponsorSegmentTranscripts.data && (
+                {sponsorSegmentTranscripts.data && ( //appeasing TS
                   <>
                     <TranscriptEditWrapper
                       key={`${segment.UUID}_${savedTranscriptAnnotations.id}`}
