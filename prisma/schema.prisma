@@ -363,7 +363,7 @@ model Sponsors {
   type                BigInt?
   offer               String?
   locked              Boolean @default(false)
-
+  date                DateTime?
   Votes             UserSponsorVotes[]
   Video             Videos             @relation(fields: [videoId], references: [id])
   TranscriptDetails TranscriptDetails? @relation(fields: [transcriptDetailsId], references: [id])

@@ -28,6 +28,7 @@ export const getVideoSponsors = async ({
       offer: true,
       code: true,
       url: true,
+      date: true,
     },
   });
   return sponsors;
@@ -40,29 +41,35 @@ export const getLiveVideoSponsors = async ({
   videoId: string;
   ctx: Context;
 }) => {
-  const segments = await ctx.prisma.sponsorTimes.findMany({
-    where: {
-      videoID: videoId,
-      Transcripts: {
-        some: { TranscriptDetails: { some: { score: { gte: 1 } } } },
+  const [segments, videoInfo] = await Promise.all([
+    ctx.prisma.sponsorTimes.findMany({
+      where: {
+        videoID: videoId,
+        Transcripts: {
+          some: { TranscriptDetails: { some: { score: { gte: 1 } } } },
+        },
       },
-    },
-    include: {
-      Transcripts: {
-        where: { score: { gte: 1 } },
-        orderBy: { score: "desc" },
-        take: 5,
-        include: {
-          TranscriptDetails: {
-            where: { score: { gte: 1 } },
-            orderBy: { score: "desc" },
-            take: 5,
-            include: { Annotations: true },
+      include: {
+        Transcripts: {
+          where: { score: { gte: 1 } },
+          orderBy: { score: "desc" },
+          take: 5,
+          include: {
+            TranscriptDetails: {
+              where: { score: { gte: 1 } },
+              orderBy: { score: "desc" },
+              take: 5,
+              include: { Annotations: true },
+            },
           },
         },
       },
-    },
-  });
+    }),
+    ctx.prisma.videos.findFirst({
+      where: { id: videoId },
+      select: { published: true },
+    }),
+  ]);
 
   //console.log("found?", JSON.stringify(segments, null, 2));
 
@@ -159,6 +166,7 @@ export const getLiveVideoSponsors = async ({
       offer: offers.get(b[0])?.[0],
       url: urls.get(b[0])?.[0],
       code: codes.get(b[0])?.[0],
+      date: videoInfo?.published ? videoInfo?.published : undefined
     }));
   const filtermap = rawmap
     //filter brands with no info if its already accounted for
