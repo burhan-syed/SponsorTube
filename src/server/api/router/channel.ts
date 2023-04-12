@@ -16,6 +16,7 @@ import { TRPCError } from "@trpc/server";
 import { summarizeChannelSponsors } from "@/server/db/sponsors";
 import { transformInnerTubeVideoToVideoCard } from "@/server/transformers/transformer";
 import { ChannelHeaderInfo } from "@/types/schemas";
+import { CustomError } from "@/server/common/errors";
 
 export const channelRouter = createTRPCRouter({
   hello: publicProcedure
@@ -97,7 +98,10 @@ export const channelRouter = createTRPCRouter({
   updateChannelSponsors: publicProcedure
     .input(z.object({ channelId: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      await summarizeChannelSponsors({ channelId: input.channelId, ctx });
+      const summarizeResult = await summarizeChannelSponsors({ channelId: input.channelId, ctx });
+      if(summarizeResult instanceof CustomError){
+        throw new TRPCError({code: "TOO_MANY_REQUESTS", cause: summarizeResult})
+      }
     }),
   getStats: publicProcedure
     .input(z.object({ channelId: z.string() }))

@@ -11,6 +11,8 @@ import Dropdown from "@/components/ui/common/Dropdown";
 import ToolTip from "@/components/ui/common/Tooltip";
 import { Button } from "@/components/ui/common/Button";
 import ChannelStats from "./ChannelStatsWrapper/ChannelStats";
+import useGlobalStore from "@/store/useGlobalStore";
+import { CustomError } from "@/server/common/errors";
 
 const ChannelProcessButtonChildren = ({
   isopen,
@@ -117,6 +119,7 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
   const [waitToFinish, setWaitToFinish] = useState(false);
   const windowWidth = useWindowWidth({ initialWidth: 400 });
   const utils = api.useContext();
+  const dialogueTrigger = useGlobalStore((store) => store.setDialogueTrigger);
   const { startMonitor, channelStatusQuery } = useMonitorChannel({ channelId });
   const processChannel = api.channel.processChannel.useMutation({
     async onSuccess() {
@@ -134,6 +137,18 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
         utils.channel.getSponsors.invalidate({ channelId }),
         utils.channel.getStats.invalidate({ channelId }),
       ]);
+    },
+    onError(error, variables, context) {
+      if (error.data?.customError) {
+        const cError = new CustomError({ fromstring: error.data.customError });
+        if (cError.message) {
+          dialogueTrigger({
+            title: "error",
+            description: cError.message,
+            close: "ok",
+          });
+        }
+      }
     },
   });
   useEffect(() => {
@@ -213,7 +228,7 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
             }}
           >
             <BiRefresh className="h-5 w-5 flex-none -scale-x-100 " />
-            <span>Check for Updates</span>
+            <span>Sync Sponsors</span>
           </button>,
         ]}
         menuOptions={{
