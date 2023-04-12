@@ -1,9 +1,9 @@
 import { api } from "@/utils/api";
-import { AnnotationTags } from "@prisma/client";
+import { AnnotationTags, Sponsors } from "@prisma/client";
 import React, { useState } from "react";
 import { TAGS } from "@/components/transcripts/edits/TranscriptTags";
 import { Button } from "@/components/ui/common/Button";
-import { VideoSponsors } from "@/server/db/sponsors";
+// import { VideoSponsors } from "@/server/db/sponsors";
 
 type ArrayElement<ArrayType extends readonly unknown[]> =
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
@@ -13,9 +13,9 @@ const TextPill = ({
   type,
   toggleSetSelectedSegment,
 }: {
-  sp: ArrayElement<VideoSponsors>; //Sponsors;
+  sp: Partial<Sponsors>; //ArrayElement<VideoSponsors>; //
   type: AnnotationTags;
-  toggleSetSelectedSegment(s: string): void;
+  toggleSetSelectedSegment(s?: string): void;
 }) => {
   const text =
     type === "BRAND"
@@ -54,8 +54,8 @@ const TextPill = ({
 const VideoSponsors = ({ videoId }: { videoId: string }) => {
   const sponsors = api.video.getSponsors.useQuery({ videoId: videoId });
   const [selectedSegment, setSelectedSegment] = useState("");
-  const toggleSetSelectedSegment = (s: string) => {
-    setSelectedSegment((p) => (p === s ? "" : s));
+  const toggleSetSelectedSegment = (s?: string) => {
+    s && setSelectedSegment((p) => (p === s ? "" : s));
   };
   //console.log("vod sponsors?", sponsors.data);
   return (

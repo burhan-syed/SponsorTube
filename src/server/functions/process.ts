@@ -18,7 +18,10 @@ import type { ProcessQueue, QueueStatus } from "@prisma/client";
 import type { VideoInfo } from "youtubei.js/dist/src/parser/youtube";
 import { saveVideoDetails } from "../db/videos";
 import { saveTranscript } from "../db/transcripts";
-import { summarizeChannelSponsors } from "../db/sponsors";
+import {
+  compareAndUpdateVideoSponsors,
+  summarizeChannelSponsors,
+} from "../db/sponsors";
 
 const OPENAI_RPM: number = parseInt(process?.env?.OPENAI_API_RPM ?? "20");
 const SECRET = process?.env?.MY_SECRET_KEY ?? "";
@@ -338,7 +341,13 @@ export const processVideo = async ({
         })
       );
       const errors = checkIfErrored(calls);
-
+      if (!errored) {
+        try {
+          await compareAndUpdateVideoSponsors({ videoId, prisma: ctx.prisma });
+        } catch (err) {
+          console.error("error updating sponsors");
+        }
+      }
       // console.log("done processing video segments", {
       //   videoId,
       //   segmentTranscriptsLength: segmentTranscripts.length,
@@ -511,6 +520,10 @@ export const processChannelVideoTranscriptAnnotations = async ({
             transcriptId: t.id,
           },
           stopAt,
+        });
+        await compareAndUpdateVideoSponsors({
+          videoId: t.SponsorSegment.videoID,
+          prisma: ctx.prisma,
         });
       } catch (err) {
         if (

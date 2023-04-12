@@ -47,7 +47,7 @@ const AutoAnnotateAll = ({
         if (parse.type === "BOT_PENDING") {
           console.log("START?");
           startMonitor();
-        } else {
+        } else if(parse.message) {
           dialogueTrigger({
             title: "errors",
             description: parse.message,

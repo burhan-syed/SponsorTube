@@ -1,16 +1,39 @@
 import { CustomError } from "../common/errors";
 import { inferAsyncReturnType } from "@trpc/server";
-import type {
+import {
   AnnotationTags,
   PrismaClient,
   SponsorTimes,
   TranscriptAnnotations,
   TranscriptDetails,
   Transcripts,
+  Videos,
 } from "@prisma/client";
 import type { Context } from "@/server/api/trpc";
 
 export const getVideoSponsors = async ({
+  videoId,
+  prisma,
+}: {
+  videoId: string;
+  prisma: PrismaClient;
+}) => {
+  const sponsors = await prisma.sponsors.findMany({
+    where: { videoId },
+    select: {
+      videoId: true,
+      transcriptDetailsId: true,
+      brand: true,
+      product: true,
+      offer: true,
+      code: true,
+      url: true,
+    },
+  });
+  return sponsors;
+};
+
+export const getLiveVideoSponsors = async ({
   videoId,
   ctx,
 }: {
@@ -141,11 +164,13 @@ export const getVideoSponsors = async ({
     //filter brands with no info if its already accounted for
     .filter(
       (a) =>
-        !(!(a.product || a.offer || a.url || a.code) &&
-        rawmap.some(
-          (r) =>
-            r.brand === a.brand && (r.product || r.offer || r.url || r.code)
-        ))
+        !(
+          !(a.product || a.offer || a.url || a.code) &&
+          rawmap.some(
+            (r) =>
+              r.brand === a.brand && (r.product || r.offer || r.url || r.code)
+          )
+        )
     );
 
   // const old = [...annotationinfos.entries()].map((v) => ({
@@ -169,7 +194,7 @@ export const getVideoSponsors = async ({
 
   return filtermap;
 };
-export type VideoSponsors = inferAsyncReturnType<typeof getVideoSponsors>;
+export type VideoSponsors = inferAsyncReturnType<typeof getLiveVideoSponsors>;
 
 export const updateVideoSponsorsFromDB = async ({
   videoId,
@@ -182,7 +207,7 @@ export const updateVideoSponsorsFromDB = async ({
 }) => {
   const videoSponsors = suppliedVideoSponsors
     ? suppliedVideoSponsors
-    : await getVideoSponsors({ videoId, ctx });
+    : await getLiveVideoSponsors({ videoId, ctx });
 
   await ctx.prisma.$transaction([
     ctx.prisma.sponsors.deleteMany({
@@ -204,7 +229,7 @@ export const compareAndUpdateVideoSponsors = async ({
   prisma: PrismaClient;
 }) => {
   const [videoSponsors, savedSponsors] = await Promise.all([
-    getVideoSponsors({ videoId: videoId, ctx: { prisma, session: null } }),
+    getLiveVideoSponsors({ videoId: videoId, ctx: { prisma, session: null } }),
     prisma.sponsors.findMany({ where: { videoId } }),
   ]);
 
@@ -226,25 +251,25 @@ export const compareAndUpdateVideoSponsors = async ({
             (key) => !!!vCopy[key] && delete vCopy[key]
           );
 
-          console.log(
-            "compare?",
-            JSON.stringify(vCopy, null, 2),
-            JSON.stringify(sCopy, null, 2),
-            JSON.stringify(sCopy) === JSON.stringify(vCopy)
-          );
+          // console.log(
+          //   "compare?",
+          //   JSON.stringify(vCopy, null, 2),
+          //   JSON.stringify(sCopy, null, 2),
+          //   JSON.stringify(sCopy) === JSON.stringify(vCopy)
+          // );
           return JSON.stringify(sCopy) === JSON.stringify(vCopy);
         });
       }));
 
   if (isDifferent) {
-    console.log("isdifferent", videoSponsors, savedSponsors);
+    console.log("isdifferent", videoId);
     updateVideoSponsorsFromDB({
       videoId,
       ctx: { prisma, session: null },
       suppliedVideoSponsors: videoSponsors,
     });
   } else {
-    console.log("isnotdifferent", videoSponsors, savedSponsors);
+    console.log("isnotdifferent", videoId);
   }
 };
 
@@ -255,6 +280,7 @@ export const summarizeChannelSponsors = async ({
   channelId: string;
   ctx: Context;
 }) => {
+  const perfStart = performance.now();
   const now = new Date();
   console.log("SUMMARIZE CHANNEL", channelId);
   const summarizeChannelProcess = await ctx.prisma.$transaction(async (tx) => {
@@ -271,22 +297,24 @@ export const summarizeChannelSponsors = async ({
       const cError = new CustomError({
         message: "channel sponsor summary pending",
         type: "BOT_PENDING",
+        expose: true,
+      });
+      return cError;
+    } else if (
+      pChannelSummary &&
+      pChannelSummary?.lastUpdated &&
+      pChannelSummary.status !== "error" &&
+      !(
+        pChannelSummary.lastUpdated.getTime() + 1000 * 60 * 60 * 1 <
+        now.getTime()
+      )
+    ) {
+      const cError = new CustomError({
+        message: `Channel sponsor summarized within the last hour. Try later.`,
+        expose: true,
       });
       return cError;
     }
-    // else if (
-    //   pChannelSummary &&
-    //   pChannelSummary?.lastUpdated &&
-    //   pChannelSummary.status !== "error" &&
-    //   pChannelSummary.lastUpdated.getTime() + 1000 * 60 * 60 * 12 <
-    //     now.getTime()
-    // ) {
-    //   const cError = new CustomError({
-    //     message: `channel sponsor summarized in last 12 hours at ${pChannelSummary.lastUpdated}`,
-    //     expose: true,
-    //   });
-    //   return cError;
-    // }
     return await tx.processQueue.upsert({
       where: {
         channelId_videoId_type: {
@@ -308,8 +336,9 @@ export const summarizeChannelSponsors = async ({
       },
     });
   });
-  if (summarizeChannelProcess instanceof CustomError)
+  if (summarizeChannelProcess instanceof CustomError) {
     return summarizeChannelProcess;
+  }
 
   //await ctx.prisma.processQueue.upsert({where: {channelId_videoId_type: {channelId, videoId: "", type: "channel_summary"}}})
   try {
@@ -335,17 +364,11 @@ export const summarizeChannelSponsors = async ({
       orderBy: { published: "desc" },
     });
 
-    //TODO: chunk these to limit db connections
-    const videoSponsors = Promise.allSettled(
-      channelVideosWithSponsors.map(
-        async (v) =>
-          await compareAndUpdateVideoSponsors({
-            videoId: v.id,
-            prisma: ctx.prisma,
-          })
-      )
-    );
-
+    const updateChannelVideoSponsors = updateAllChannelVideoSponsorSummaries({
+      channelId,
+      prisma: ctx.prisma,
+      allVideoAndSegmentData: channelVideosWithSponsors,
+    });
     let totalSponsorSegments = 0;
     let totalSponsorTime = 0;
     for (let i = 0; i < channelVideosWithSponsors.length - 1; i++) {
@@ -383,7 +406,7 @@ export const summarizeChannelSponsors = async ({
         },
       });
 
-      await videoSponsors;
+      await updateChannelVideoSponsors;
     } else {
       throw new Error("Missing last video published date");
     }
@@ -398,6 +421,75 @@ export const summarizeChannelSponsors = async ({
       where: { id: summarizeChannelProcess.id },
       data: { status: "error", lastUpdated: now },
     });
+  }
+  console.log("END?", performance.now() - perfStart);
+};
+
+export const updateAllChannelVideoSponsorSummaries = async ({
+  channelId,
+  prisma,
+  allVideoAndSegmentData,
+}: {
+  channelId: string;
+  prisma: PrismaClient;
+  allVideoAndSegmentData?: (Videos & {
+    SponsorSegments: {
+      UUID: string;
+      startTime: number;
+      endTime: number;
+    }[];
+  })[];
+}) => {
+  let start = true;
+  const take = 20;
+  let cursor: string | undefined;
+
+  while (cursor || start) {
+    start = false;
+    let startIndex = 0;
+    let endIndex = 0;
+    if (allVideoAndSegmentData) {
+      startIndex = cursor
+        ? allVideoAndSegmentData.findIndex((a) => a.id === cursor)
+        : 0;
+      endIndex = startIndex + take + 1;
+    }
+    const channelVideosWithSponsors = allVideoAndSegmentData
+      ? allVideoAndSegmentData.slice(startIndex, endIndex)
+      : await prisma.videos.findMany({
+          where: {
+            Channel: { id: channelId },
+            SponsorSegments: { some: { UUID: { not: undefined } } },
+          },
+          include: {
+            SponsorSegments: {
+              select: {
+                UUID: true,
+                startTime: true,
+                endTime: true,
+              },
+            },
+          },
+          orderBy: { published: "desc" },
+          take: take + 1,
+          cursor: cursor ? { id: cursor } : undefined,
+        });
+    if (channelVideosWithSponsors.length > take) {
+      let last = channelVideosWithSponsors.pop();
+      cursor = last?.id;
+    } else {
+      cursor = undefined;
+    }
+
+    const videoSponsors = await Promise.allSettled(
+      channelVideosWithSponsors.map(
+        async (v) =>
+          await compareAndUpdateVideoSponsors({
+            videoId: v.id,
+            prisma: prisma,
+          })
+      )
+    );
   }
 };
 

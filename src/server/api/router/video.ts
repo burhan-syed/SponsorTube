@@ -101,7 +101,7 @@ export const videoRouter = createTRPCRouter({
   getSponsors: publicProcedure
     .input(z.object({ videoId: z.string() }))
     .query(async ({ input, ctx }) => {
-      return await getVideoSponsors({ videoId: input.videoId, ctx });
+      return await getVideoSponsors({ videoId: input.videoId, prisma: ctx.prisma });
     }),
   processVideo: publicProcedure
     .input(z.object({ videoId: z.string() }))
