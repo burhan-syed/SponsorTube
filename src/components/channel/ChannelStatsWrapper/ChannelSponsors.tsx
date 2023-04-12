@@ -10,7 +10,6 @@ const ChannelSponsors = ({ channelId }: { channelId: string }) => {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
-
   return (
     <div>
       {channelSponsors.isLoading ? (
@@ -28,18 +27,20 @@ const ChannelSponsors = ({ channelId }: { channelId: string }) => {
                   ),
                 ]}
               />
-              <div className="flex w-full items-center justify-center py-2">
-                <Button
-                  className="w-full"
-                  variant={"transparent"}
-                  size={"small"}
-                  loading={channelSponsors.isFetching}
-                  disabled={channelSponsors.isFetching}
-                  onClick={() => channelSponsors.fetchNextPage()}
-                >
-                  load more sponsors
-                </Button>
-              </div>
+              {channelSponsors.hasNextPage && (
+                <div className="flex w-full items-center justify-center py-2">
+                  <Button
+                    className="w-full"
+                    variant={"transparent"}
+                    size={"small"}
+                    loading={channelSponsors.isFetching}
+                    disabled={channelSponsors.isFetching}
+                    onClick={() => channelSponsors.fetchNextPage()}
+                  >
+                    load more sponsors
+                  </Button>
+                </div>
+              )}
             </>
           ) : (
             <ChannelSponsorsLoader noneFound={true} />

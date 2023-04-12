@@ -98,9 +98,15 @@ export const channelRouter = createTRPCRouter({
   updateChannelSponsors: publicProcedure
     .input(z.object({ channelId: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      const summarizeResult = await summarizeChannelSponsors({ channelId: input.channelId, ctx });
-      if(summarizeResult instanceof CustomError){
-        throw new TRPCError({code: "TOO_MANY_REQUESTS", cause: summarizeResult})
+      const summarizeResult = await summarizeChannelSponsors({
+        channelId: input.channelId,
+        ctx,
+      });
+      if (summarizeResult instanceof CustomError) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          cause: summarizeResult,
+        });
       }
     }),
   getStats: publicProcedure
@@ -125,41 +131,27 @@ export const channelRouter = createTRPCRouter({
     .input(
       z.object({
         channelId: z.string(),
-        cursor: z.string().nullish(),
+        cursor: z.number().nullish(),
         limit: z.number().min(1).max(25).nullish(),
       })
     )
     .query(async ({ input, ctx }) => {
       const limit = input?.limit ?? 12;
       const cursor = input.cursor;
-      const channelSponsors = await ctx.prisma.sponsors.findMany({
+      const groupedSponsors = await ctx.prisma.sponsors.groupBy({
+        by: ["brand", "date"],
         where: { Video: { channelId: input.channelId } },
-        include: {
-          Video: {
-            select: {
-              published: true,
-            },
-          },
-        },
-        orderBy: {
-          Video: {
-            published: "desc",
-          },
-        },
+        orderBy: { date: "desc" },
+        skip: cursor ? cursor : undefined,
         take: limit + 1,
-        cursor: cursor
-          ? {
-              id: cursor,
-            }
-          : undefined,
       });
       let nextCursor: typeof cursor | undefined = undefined;
-      if (channelSponsors.length > limit) {
-        const last = channelSponsors.pop();
-        nextCursor = last?.id;
+      if (groupedSponsors.length > limit) {
+        const last = groupedSponsors.pop();
+        nextCursor = (cursor ?? 0) + limit;
       }
       return {
-        sponsors: channelSponsors,
+        sponsors: groupedSponsors,
         nextCursor,
       };
     }),
