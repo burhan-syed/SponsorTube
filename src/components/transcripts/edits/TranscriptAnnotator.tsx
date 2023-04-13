@@ -233,8 +233,8 @@ const TranscriptAnnotator = ({
                     )
                   }
                   variant={"primary"}
-                  size={"small"}
-                  className="group"
+                  size={"adaptive"}
+                  className="group px-4 py-1 text-xs sm:py-1"
                 >
                   <div
                     className={clsx(
@@ -257,7 +257,6 @@ const TranscriptAnnotator = ({
             ))}
           {editable && (
             <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
-             
               <TranscriptAnnotationSubmit
                 videoID={videoID}
                 transcript={transcript}
