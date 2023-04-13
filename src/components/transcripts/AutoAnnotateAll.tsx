@@ -7,6 +7,7 @@ import useGlobalStore from "@/store/useGlobalStore";
 import { CustomError } from "@/server/common/errors";
 import useMonitorVideo from "@/hooks/useMonitorVideo";
 import ToolTip from "../ui/common/Tooltip";
+import useSponsorBlock from "@/hooks/useSponsorBlock";
 
 const AutoAnnotateAll = ({
   videoId,
@@ -16,6 +17,7 @@ const AutoAnnotateAll = ({
   isLoading: boolean;
 }) => {
   const dialogueTrigger = useGlobalStore((store) => store.setDialogueTrigger);
+  const { segments, savedSegments } = useSponsorBlock({ videoID: videoId });
   const utils = api.useContext();
   const { startMonitor, videoStatusQuery } = useMonitorVideo({
     videoId: videoId ?? "",
@@ -85,6 +87,7 @@ const AutoAnnotateAll = ({
     videoStatusQuery.isLoading ||
     videoStatusQuery.data?.status === "pending";
   const disabled =
+    (!((segments.data?.length ?? 0) > 0 || (savedSegments.data?.length ?? 0) > 0)) ||
     processVideo.isLoading ||
     videoStatusQuery.isLoading ||
     isLoading ||
