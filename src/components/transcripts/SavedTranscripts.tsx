@@ -73,9 +73,16 @@ const SavedTranscripts = ({
                   />
                 </>
               ))}
+              <div className="flex flex-wrap items-center justify-between gap-x-2 rounded-b-lg bg-th-baseBackground px-2 text-xs text-th-textSecondary">
+                <span>
+                  {`These annotations were manually submitted${
+                    userPosts ? " by you." : ""
+                  }`}
+                </span>
+              </div>
             </>
           ) : (
-            <div className="flex flex-col flex-grow">
+            <div className="flex flex-grow flex-col">
               <TranscriptTopBar
                 seekTo={seekTo}
                 videoID={videoID}

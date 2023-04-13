@@ -18,7 +18,7 @@ const Switch = ({
   return (
     <>
       {label && (
-        <label className={"select-none"} htmlFor={htmlFor}>
+        <label className={"select-none pr-1"} htmlFor={htmlFor}>
           {label}
         </label>
       )}

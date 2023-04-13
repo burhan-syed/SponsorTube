@@ -45,10 +45,9 @@ const GeneratedTranscripts = ({
   const [displayOriginal, setDisplayOriginal] = useState(false);
   return (
     <>
-      {
-      !captions.isError &&
+      {!captions.isError &&
       (sponsorSegmentTranscripts.isLoading ||
-      savedTranscriptAnnotations.isLoading) ? (
+        savedTranscriptAnnotations.isLoading) ? (
         <TranscriptLoader />
       ) : (savedTranscriptAnnotations?.data?.length ?? 0) > 0 &&
         sponsorSegmentTranscripts.data ? (
@@ -87,19 +86,32 @@ const GeneratedTranscripts = ({
                           ?.Votes?.[0]?.direction ?? 0
                       }
                     />
-                    {savedTranscriptAnnotations.text &&
-                      savedTranscriptAnnotations.text !==
+
+                    <div className="flex flex-wrap items-center justify-between gap-x-2 rounded-b-lg bg-th-baseBackground px-2 text-xs text-th-textSecondary">
+                      {savedTranscriptAnnotations?.TranscriptDetails?.[0]
+                        ?.Annotations?.length ?? 0 > 0 ? (
+                        <span>
+                          These annotations were automatically applied
+                        </span>
+                      ) : (
+                        <span>This transcript was automatically generated</span>
+                      )}
+                      {savedTranscriptAnnotations.text !==
                         sponsorSegmentTranscripts.data.transcript && (
-                        <div className="flex items-center text-xs text-th-textSecondary">
+                        <div className="flex items-center">
+                          <span className="mr-2">
+                            This transcript was modified{" "}
+                          </span>
                           <Switch
                             setOnCheckedChange={setDisplayOriginal}
                             checked={displayOriginal}
-                            label="Display original transcript"
+                            label="Display original"
                             htmlFor={`display_original_switch_${segment.UUID}`}
                             disabled={isNavDisabled}
                           />
                         </div>
                       )}
+                    </div>
                   </>
                 )}
               </>
@@ -122,6 +134,9 @@ const GeneratedTranscripts = ({
             setIsNavDisabled={setIsNavDisabled}
             seekTo={seekTo}
           />
+          <div className="flex flex-wrap items-center justify-between gap-x-2 rounded-b-lg bg-th-baseBackground px-2 text-xs text-th-textSecondary">
+            <span>This transcript was automatically generated</span>
+          </div>
         </>
       ) : (
         <div className="flex flex-grow flex-col">
@@ -136,19 +151,37 @@ const GeneratedTranscripts = ({
           />
           <p className="flex h-full w-full flex-grow items-center justify-center p-2">
             <span>
-              missing transcript data
+              {segment.UUID && segment.startTime === 0 && segment.endTime === 0
+                ? "Full video is sponsored"
+                : "missing transcript data"}
+
               <br />
               {!captionsURL && (
                 <>
-                  no captions found <br />
+                  no english captions found <br />
                 </>
               )}
               <span className="text-th-textSecondary">video {videoID}</span>
               <br />
-              <span className="text-th-textSecondary break-all">
+              <a
+                href={`https://sb.ltn.fi/uuid/${segment.UUID}`}
+                target="_blank"
+                rel="noreferrer"
+                className="break-all text-th-textSecondary hover:underline"
+              >
                 segment {segment.UUID}
-              </span>
+              </a>
               <br />
+              {captionsURL && (
+                <a
+                  href={captionsURL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="break-all text-th-textSecondary hover:underline"
+                >
+                  captions link
+                </a>
+              )}
             </span>
           </p>
         </div>
