@@ -10,6 +10,7 @@ import VerifiedBadge from "../ui/VerifiedBadge";
 import { FiThumbsUp } from "react-icons/fi";
 import { IoMdEye } from "react-icons/io";
 import ToolTip from "../ui/common/Tooltip";
+import AutoAnnotateAll from "@/components/transcripts/AutoAnnotateAll";
 
 type VideoInfoProps = {
   videoId: string;
@@ -143,6 +144,9 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
             </ToolTip>
           )}
         </p>
+      </div>
+      <div className="">
+        <AutoAnnotateAll videoId={videoId} isLoading={false} />
       </div>
       <div className="order-1 md:order-2">
         {description && (

@@ -104,10 +104,15 @@ const Home: NextPage = ({}) => {
 
           <div className="flex w-full flex-col gap-2 px-4 sm:px-0">
             {/* Display this outside of videoInfoLoader to grab sponsorsegments with videoID*/}
-            <AutoAnnotateAll
-              videoId={videoInfo.data?.id}
-              isLoading={videoInfo.isLoading}
-            />
+            {/* <div className="hidden lg:block">
+              <AutoAnnotateAll
+                videoId={videoInfo.data?.id}
+                isLoading={videoInfo.isLoading}
+              />
+            </div> */}
+            <h2 className="text-center font-extrabold md:text-left md:text-lg lg:text-th-textSecondary">
+              Sponsored Segment Transcripts
+            </h2>
             <SponsorTranscripts
               videoID={videoID}
               captionTracks={videoInfo?.data?.captions}

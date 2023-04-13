@@ -25,6 +25,7 @@ const VideoPageLoader = () => {
         </div>
       </div>
       <div className="flex w-full flex-none flex-col gap-y-2 px-4 sm:px-0 ">
+        <div className="skeleton-box w-full h-9 rounded-full"></div>
         <div
           id={"video_info_placeholder"}
           className={"skeleton-box h-20 w-full rounded-lg "}
