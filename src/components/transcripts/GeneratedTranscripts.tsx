@@ -45,8 +45,10 @@ const GeneratedTranscripts = ({
   const [displayOriginal, setDisplayOriginal] = useState(false);
   return (
     <>
-      {sponsorSegmentTranscripts.isLoading ||
-      savedTranscriptAnnotations.isLoading ? (
+      {
+      !captions.isError &&
+      (sponsorSegmentTranscripts.isLoading ||
+      savedTranscriptAnnotations.isLoading) ? (
         <TranscriptLoader />
       ) : (savedTranscriptAnnotations?.data?.length ?? 0) > 0 &&
         sponsorSegmentTranscripts.data ? (
@@ -132,13 +134,21 @@ const GeneratedTranscripts = ({
               endTime: segment.endTime,
             }}
           />
-          <p className="flex h-full w-full flex-grow items-center justify-center">
+          <p className="flex h-full w-full flex-grow items-center justify-center p-2">
             <span>
               missing transcript data
               <br />
-              <span className="text-th-textSecondary">
+              {!captionsURL && (
+                <>
+                  no captions found <br />
+                </>
+              )}
+              <span className="text-th-textSecondary">video {videoID}</span>
+              <br />
+              <span className="text-th-textSecondary break-all">
                 segment {segment.UUID}
               </span>
+              <br />
             </span>
           </p>
         </div>

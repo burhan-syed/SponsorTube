@@ -1,5 +1,5 @@
 import { getVideoSegments } from "@/apis/sponsorblock";
-import { getXMLCaptions } from "./captions";
+import { getXMLCaptions } from "../common/captions";
 import { getTranscriptsInTime } from "./transcripts";
 import { getBotIds, getSegmentAnnotationsOpenAICall } from "../db/bots";
 import { getChannel, getVideoInfo } from "@/apis/youtube";

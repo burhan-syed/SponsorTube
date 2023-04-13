@@ -14,16 +14,16 @@ const useSegmentTranscript = ({
   sponsorSegment?: Segment;
 }) => {
   const [sponsorSegmentTranscripts, setSponsorSegmentTranscripts] = useState<{
-    isLoading: boolean; 
-    isError: boolean; 
+    isLoading: boolean;
+    isError: boolean;
     data?: {
       UUID: string;
       transcript: string;
       runs?: (string | null)[];
       transcriptStart: number;
       transcriptEnd: number;
-    }
-  }>({isLoading: true, isError: false});
+    };
+  }>({ isLoading: true, isError: false });
 
   useEffect(() => {
     if (videoCaptions && sponsorSegment) {
@@ -38,8 +38,8 @@ const useSegmentTranscript = ({
               startTimeMS: sponsorSegment.startTime,
               endTimeMS: sponsorSegment.endTime,
             },
-          })
-        }
+          }),
+        },
       }));
     }
   }, [videoCaptions, sponsorSegment]);

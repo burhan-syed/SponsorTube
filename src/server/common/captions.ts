@@ -4,7 +4,9 @@ import he from 'he';
 export const getXMLCaptions = async (
   url: string
 ): Promise<{ text: string; start: number; dur: number }[]> => {
-  //console.log("captions?", url)
+  if(!url){
+    throw new Error("no url provided")
+  }
   const XMLdata = await fetch(url).then((response) => response.text());
   //console.log("raw?", XMLdata)
   const parser = new XMLParser({
