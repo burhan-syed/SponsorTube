@@ -29,8 +29,8 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
   return (
     <div className="flex flex-col gap-2 text-th-textPrimary">
       <h1 className="text-xl font-bold">{title}</h1>
-      <div className="flex items-end justify-between flex-wrap">
-        <div className="flex items-center gap-x-2 flex-none">
+      <div className="flex flex-wrap items-end justify-between">
+        <div className="flex flex-none items-center gap-x-2">
           <ToolTip
             text={authorName}
             tooltipOptions={{
@@ -39,25 +39,27 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
             }}
           >
             <Link href={`/channel/${authorId}`}>
-              <a
-                className={clsx(
-                  !authorThumbnail?.url && "bg-th-chipBackgroundHover",
-                  "relative h-10 w-10 overflow-hidden rounded-full"
-                )}
-              >
-                {authorThumbnail?.url ? (
-                  <Image
-                    src={authorThumbnail.url}
-                    unoptimized={true}
-                    alt={""}
-                    width={40}
-                    height={40}
-                  ></Image>
-                ) : (
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase">
-                    {authorName.substring(0, 2)}
-                  </span>
-                )}
+              <a>
+                <div
+                  className={clsx(
+                    !authorThumbnail?.url && "bg-th-chipBackgroundHover",
+                    "relative h-10 w-10 flex-none overflow-hidden rounded-full "
+                  )}
+                >
+                  {authorThumbnail?.url ? (
+                    <Image
+                      src={authorThumbnail.url}
+                      unoptimized={true}
+                      alt={""}
+                      width={40}
+                      height={40}
+                    ></Image>
+                  ) : (
+                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase">
+                      {authorName.substring(0, 2)}
+                    </span>
+                  )}
+                </div>
               </a>
             </Link>
           </ToolTip>
@@ -87,9 +89,13 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
             </span>
           </div>
         </div>
-        <p className="flex flex-wrap items-center justify-end gap-x-2 text-xs font-light pb-0.5 px-0.5 ml-auto">
+        <p className="ml-auto flex flex-wrap items-center justify-end gap-x-2 px-0.5 pb-0.5 text-xs font-light">
           <ToolTip
-            text={`${publishedString?.toLowerCase()?.includes("streamed") ? "" : "uploaded "}${publishedString}`}
+            text={`${
+              publishedString?.toLowerCase()?.includes("streamed")
+                ? ""
+                : "uploaded "
+            }${publishedString}`}
             tooltipOptions={{
               side: "top",
               sideOffset: 15,
