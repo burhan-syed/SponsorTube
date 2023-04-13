@@ -34,18 +34,27 @@ const SponsorTranscripts = ({
         </>
       ) : savedSegments.data && savedSegments?.data?.length > 0 ? (
         <>
-          {savedSegments.data.map((segment) => (
-            <SegmentTranscript
-              key={segment.UUID}
-              videoID={videoID}
-              segment={segment as unknown as Segment}
-              captionsURL={engCaptions?.[0]?.url ?? ""}
-              seekTo={seekTo}
-            />
-          ))}
+          {savedSegments.data
+            // filter 0-0 second segments (whole video sponsors)
+            .filter(
+              (segment) => !(segment.startTime === 0 && segment.endTime === 0)
+            )
+            .map((segment) => (
+              <SegmentTranscript
+                key={segment.UUID}
+                videoID={videoID}
+                segment={segment as unknown as Segment}
+                captionsURL={engCaptions?.[0]?.url ?? ""}
+                seekTo={seekTo}
+              />
+            ))}
           {/* account for unsaved segments */}
           {segments.data
-            ?.filter((s) => !savedSegments.data.find((p) => p.UUID === s.UUID))
+            ?.filter(
+              (s) =>
+                !savedSegments.data.find((p) => p.UUID === s.UUID) &&
+                !(s.startTime === 0 && s.endTime === 0)
+            )
             .map((segment) => (
               <SegmentTranscript
                 key={segment.UUID}
@@ -58,18 +67,22 @@ const SponsorTranscripts = ({
         </>
       ) : segments.data && segments.data.length > 0 ? (
         <>
-          {segments.data.map((segment) => (
-            <SegmentTranscript
-              key={segment.UUID}
-              videoID={videoID}
-              segment={segment}
-              captionsURL={engCaptions?.[0]?.url ?? ""}
-              seekTo={seekTo}
-            />
-          ))}
+          {segments.data
+            .filter(
+              (segment) => !(segment.startTime === 0 && segment.endTime === 0)
+            )
+            .map((segment) => (
+              <SegmentTranscript
+                key={segment.UUID}
+                videoID={videoID}
+                segment={segment}
+                captionsURL={engCaptions?.[0]?.url ?? ""}
+                seekTo={seekTo}
+              />
+            ))}
         </>
       ) : (
-        <div className="flex w-full items-center justify-center rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-3 text-center text-sm font-semibold leading-relaxed lg:leading-loose flex-grow">
+        <div className="flex w-full flex-grow items-center justify-center rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-3 text-center text-sm font-semibold leading-relaxed lg:leading-loose">
           <p>
             We found no sponsor segments for this video.
             <br />
@@ -84,6 +97,28 @@ const SponsorTranscripts = ({
           </p>
         </div>
       )}
+      {/* {(savedSegments.data?.some(
+        (segments) => segments.endTime === 0 && segments.startTime === 0
+      ) ||
+        segments.data?.some(
+          (segments) => segments.startTime === 0 && segments.endTime === 0
+        )) && (
+        <div className="flex w-full items-center justify-center rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-3 text-center text-xs leading-relaxed lg:leading-loose">
+          <p>
+            Full video marked as sponsor.
+            <br />
+            View{" "}
+            <a
+              className="text-th-callToAction hover:underline"
+              href={`https://sb.ltn.fi/video/${videoID}/`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              SponsorBlock DB
+            </a>
+          </p>
+        </div>
+      )} */}
     </>
   );
 };
