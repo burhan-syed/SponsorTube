@@ -69,18 +69,20 @@ const SponsorTranscripts = ({
           ))}
         </>
       ) : (
-        <p className="w-full text-center text-sm font-semibold leading-relaxed lg:leading-loose">
-          We found no sponsor segments for this video.
-          <br />
-          Submit any missing segments with{" "}
-          <a
-            className="text-th-callToAction hover:underline"
-            href="https://sponsor.ajay.app/"
-          >
-            SponsorBlock
-          </a>{" "}
-          and check back later.
-        </p>
+        <div className="flex w-full items-center justify-center rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-3 text-center text-sm font-semibold leading-relaxed lg:leading-loose flex-grow">
+          <p>
+            We found no sponsor segments for this video.
+            <br />
+            Submit any missing segments with{" "}
+            <a
+              className="text-th-callToAction hover:underline"
+              href="https://sponsor.ajay.app/"
+            >
+              SponsorBlock
+            </a>{" "}
+            and check back later.
+          </p>
+        </div>
       )}
     </>
   );

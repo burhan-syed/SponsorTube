@@ -24,7 +24,7 @@ const AutoAnnotateAll = ({
   });
   const processVideo = api.video.processVideo.useMutation({
     async onSuccess(data, variables, context) {
-      console.log("success?", data);
+      //console.log("success?", data);
       if (data?.errors?.length ?? 0 > 0) {
         dialogueTrigger({
           title: "errors",
@@ -45,9 +45,8 @@ const AutoAnnotateAll = ({
     onError(error, variables, context) {
       if (error.data?.customError) {
         const parse = new CustomError({ fromstring: error.data?.customError });
-        console.log("parsed?", parse);
+        //console.log("parsed?", parse);
         if (parse.type === "BOT_PENDING") {
-          console.log("START?");
           startMonitor();
         } else if(parse.message) {
           dialogueTrigger({
