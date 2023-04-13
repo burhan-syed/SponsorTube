@@ -28,7 +28,13 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
   } = info.author;
   return (
     <div className="flex flex-col gap-2 text-th-textPrimary">
-      <h1 className="text-xl font-bold">{title}</h1>
+      <a
+        href={`https://youtube.com/watch?v=${videoId}`}
+        target="_blank"
+        rel={"noreferrer"}
+      >
+        <h1 className="text-xl font-bold">{title}</h1>
+      </a>
       <div className="flex flex-wrap items-end justify-between">
         <div className="flex flex-none items-center gap-x-2">
           <ToolTip
