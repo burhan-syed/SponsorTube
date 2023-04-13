@@ -50,6 +50,7 @@ const buttonClasses = cva(
         small: "text-xs  h-7",
         medium: "text-sm h-9",
         large: "text-md  h-12",
+        adaptive: ""
       },
       round: {
         true: "",
