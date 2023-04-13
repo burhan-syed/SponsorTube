@@ -44,7 +44,7 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
           videoId={video.id}
           className={clsx(
             variant === "compact" ? "" : variant === "regular" && "  sm:my-2  ",
-            "text-semibold inline-flex h-6 cursor-pointer flex-wrap items-center gap-x-1 gap-y-1 overflow-auto text-xs sm:gap-x-2"
+            "text-semibold inline-flex h-6 cursor-pointer flex-wrap items-center gap-x-1 gap-y-1 overflow-y-auto overflow-x-hidden text-xs sm:gap-x-2"
           )}
         />
       </a>
