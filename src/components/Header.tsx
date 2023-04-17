@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { Button } from "./ui/common/Button";
 import { TfiSearch, TfiArrowLeft } from "react-icons/tfi";
 import HeaderAuth from "./auth/HeaderAuth";
+import Image from "next/image";
 
 const Header = ({
   searchInitialValue = "",
@@ -39,7 +40,18 @@ const Header = ({
           </Button>
         ) : (
           <Link href={"/"}>
-            <a>Home</a>
+            <a className="h-1/2 flex items-center gap-x-1 font-bold">
+              <div className="h-full aspect-square">
+              <Image
+                src={"/SponsorTube.svg"}
+                width={128}
+                height={128}
+                layout="responsive"
+                className=""
+              />
+              </div>
+              SponsorTube
+            </a>
           </Link>
         )}
         {!showSearch && !searchInitialValue && (
