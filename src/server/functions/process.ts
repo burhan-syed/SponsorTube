@@ -77,7 +77,7 @@ export const processVideo = async ({
     });
     if (
       prevQueue &&
-      (prevQueue.status === "pending")// || prevQueue?.status === "completed")
+      prevQueue.status === "pending" // || prevQueue?.status === "completed")
     ) {
       return { status: prevQueue.status };
     }
@@ -149,13 +149,18 @@ export const processVideo = async ({
       videoInfoResult.status === "fulfilled"
         ? videoInfoResult.value
         : undefined;
-    const segments =
+    let segments =
       segmentsResult.status === "fulfilled" ? segmentsResult.value : undefined;
 
     if (!videoInfo) {
       await completeQueue(processQueue, "error");
       return;
     }
+    segments = segments?.filter((s) =>
+      videoInfo.basic_info.duration
+        ? s.startTime < videoInfo.basic_info.duration
+        : true
+    );
 
     const englishCaptionTracks = videoInfo?.captions?.caption_tracks?.filter(
       (t) => t.language_code === "en" || t.language_code === "en-US"

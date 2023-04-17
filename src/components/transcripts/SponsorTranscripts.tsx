@@ -11,12 +11,14 @@ type SponsorTranscriptsProps = {
     languageCode: string;
   }[];
   seekTo(start: number, end: number): void;
+  videoDuration?: number;
 };
 
 const SponsorTranscripts = ({
   videoID,
   captionTracks,
   seekTo,
+  videoDuration,
 }: SponsorTranscriptsProps) => {
   const { segments, savedSegments } = useSponsorBlock({ videoID });
   const engCaptions = useMemo(
@@ -26,30 +28,40 @@ const SponsorTranscripts = ({
       ),
     [captionTracks]
   );
+
+  // filter 0-0 second segments (whole video sponsors) or segments not in video time
+  const filteredSavedSegments =
+    savedSegments?.data?.filter(
+      (segment) =>
+        !(segment.startTime === 0 && segment.endTime === 0) &&
+        (videoDuration ? segment.endTime <= videoDuration : true)
+    ) ?? [];
+  const filteredSegments =
+    segments?.data?.filter(
+      (segment) =>
+        !(segment.startTime === 0 && segment.endTime === 0) &&
+        (videoDuration ? segment.endTime <= videoDuration : true)
+    ) ?? [];
+
   return (
     <>
-      {savedSegments.isLoading ? (
+      {savedSegments.isLoading || videoDuration === 0 ? (
         <>
           <SegmentsGroupLoader />
         </>
-      ) : savedSegments.data && savedSegments?.data?.length > 0 ? (
+      ) : savedSegments.data && filteredSavedSegments.length > 0 ? (
         <>
-          {savedSegments.data
-            // filter 0-0 second segments (whole video sponsors)
-            .filter(
-              (segment) => !(segment.startTime === 0 && segment.endTime === 0)
-            )
-            .map((segment) => (
-              <SegmentTranscript
-                key={segment.UUID}
-                videoID={videoID}
-                segment={segment as unknown as Segment}
-                captionsURL={engCaptions?.[0]?.url ?? ""}
-                seekTo={seekTo}
-              />
-            ))}
+          {filteredSavedSegments.map((segment) => (
+            <SegmentTranscript
+              key={segment.UUID}
+              videoID={videoID}
+              segment={segment as unknown as Segment}
+              captionsURL={engCaptions?.[0]?.url ?? ""}
+              seekTo={seekTo}
+            />
+          ))}
           {/* account for unsaved segments */}
-          {segments.data
+          {filteredSegments
             ?.filter(
               (s) =>
                 !savedSegments.data.find((p) => p.UUID === s.UUID) &&
@@ -65,21 +77,17 @@ const SponsorTranscripts = ({
               />
             ))}
         </>
-      ) : segments.data && segments.data.length > 0 ? (
+      ) : segments.data && filteredSegments.length > 0 ? (
         <>
-          {segments.data
-            .filter(
-              (segment) => !(segment.startTime === 0 && segment.endTime === 0)
-            )
-            .map((segment) => (
-              <SegmentTranscript
-                key={segment.UUID}
-                videoID={videoID}
-                segment={segment}
-                captionsURL={engCaptions?.[0]?.url ?? ""}
-                seekTo={seekTo}
-              />
-            ))}
+          {filteredSegments.map((segment) => (
+            <SegmentTranscript
+              key={segment.UUID}
+              videoID={videoID}
+              segment={segment}
+              captionsURL={engCaptions?.[0]?.url ?? ""}
+              seekTo={seekTo}
+            />
+          ))}
         </>
       ) : (
         <div className="flex w-full flex-grow items-center justify-center rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-3 text-center text-sm font-semibold leading-relaxed lg:leading-loose">
@@ -94,6 +102,25 @@ const SponsorTranscripts = ({
               SponsorBlock
             </a>{" "}
             and check back later.
+            <br />
+            {(savedSegments.data?.length ?? 0 > filteredSavedSegments.length) ||
+            (segments.data?.length ?? 0 > filteredSegments.length) ? (
+              <>
+                {"Some segments were hidden for invalid times. "}
+                <br />
+                View{" "}
+                <a
+                  className="text-th-callToAction hover:underline"
+                  href={`https://sb.ltn.fi/video/${videoID}/`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  SponsorBlock DB
+                </a>
+              </>
+            ) : (
+              ""
+            )}
           </p>
         </div>
       )}

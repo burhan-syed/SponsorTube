@@ -63,20 +63,25 @@ export const saveVideoDetails = async ({
       });
     }
 
-    const segmentsCreateData = segmentInfos?.map((segment) => ({
-      UUID: segment.UUID,
-      category: segment.category,
-      startTime: segment.startTime,
-      endTime: segment.endTime,
-      votes: segment.votes,
-      locked: !!segment.locked,
-      userID: segment.userID,
-      timeSubmitted: new Date(segment.timeSubmitted),
-      views: segment.views,
-      hidden: !!segment.hidden,
-      shadowHidden: !!segment.shadowHidden,
-    }));
-
+    const segmentsCreateData = segmentInfos
+      ?.filter((segment) =>
+        videoInfo?.basic_info?.duration
+          ? segment.startTime < videoInfo?.basic_info?.duration
+          : true
+      )
+      ?.map((segment) => ({
+        UUID: segment.UUID,
+        category: segment.category,
+        startTime: segment.startTime,
+        endTime: segment.endTime,
+        votes: segment.votes,
+        locked: !!segment.locked,
+        userID: segment.userID,
+        timeSubmitted: new Date(segment.timeSubmitted),
+        views: segment.views,
+        hidden: !!segment.hidden,
+        shadowHidden: !!segment.shadowHidden,
+      }));
     let videoChannelIsMarkedWithSponsors = false;
 
     try {

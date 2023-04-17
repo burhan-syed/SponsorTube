@@ -85,6 +85,7 @@ export const videoRouter = createTRPCRouter({
       watchNextVideos: formattedVideoInfo?.watch_next?.map((v) =>
         transformInnerTubeVideoToVideoCard(v)
       ),
+      duration: formattedVideoInfo?.basic_info.duration,
     };
     return transformedVideoInfo;
   }),

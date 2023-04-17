@@ -115,12 +115,14 @@ const Home: NextPage = ({}) => {
             </h2>
             <SponsorTranscripts
               videoID={videoID}
+              videoDuration={
+                videoInfo?.isLoading ? 0 : videoInfo.data?.duration
+              }
               captionTracks={videoInfo?.data?.captions}
               seekTo={seekTo}
             />
           </div>
         </div>
-
         <div className="px-4 py-4 sm:px-0">
           {videoInfo.isLoading ? (
             <GridVideoLoader />

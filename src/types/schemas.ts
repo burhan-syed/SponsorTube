@@ -55,6 +55,7 @@ const VideoDetailsSchema = VideoCardSchema.extend({
   }),
   captions: z.array(CaptionsSchema).optional(),
   watchNextVideos: z.array(VideoCardSchema).optional(),
+  duration: z.number().optional(),
 });
 
 const ChannelHeaderSchema = ChannelCardSchema.extend({
