@@ -91,7 +91,7 @@ const AutoAnnotateAll = ({
     videoStatusQuery.isLoading ||
     isLoading ||
     !videoId ||
-    videoStatusQuery.data?.status === "completed" ||
+    //videoStatusQuery.data?.status === "completed" ||
     videoStatusQuery.data?.status === "pending";
   return (
     <ToolTip

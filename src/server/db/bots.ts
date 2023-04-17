@@ -134,7 +134,14 @@ export const getSegmentAnnotationsOpenAICall = async ({
     },
   });
 
-  if (queue?.status === "completed" || queue?.status === "pending") {
+  if (
+    queue?.status === "pending" &&
+    //ignore when 'stuck', pending more than 5 minutes from now
+    !(
+      queue.timeInitialized &&
+      queue.timeInitialized.getTime() < new Date().getTime() - 5 * 60 * 1000
+    )
+  ) {
     const cError = new CustomError({
       message: "Request pending",
       type: "BOT_PENDING",
@@ -146,19 +153,6 @@ export const getSegmentAnnotationsOpenAICall = async ({
       cause: cError,
     });
   }
-  // const previousAnnotations = await prisma?.transcriptDetails.findMany({
-  //   where: {
-  //     userId: bot.id,
-  //     Transcript: { textHash: textHash, segmentUUID: input.segment.UUID },
-  //   },
-  // });
-
-  // if (previousAnnotations && previousAnnotations.length > 0) {
-  //   throw new TRPCError({
-  //     message: "Segment already analyzed",
-  //     code: "BAD_REQUEST",
-  //   });
-  // }
 
   const botQueue = await ctx.prisma.botQueue.upsert({
     where: {
@@ -426,7 +420,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
             return data;
           });
       };
-
+ 
       if ((responseData as CreateCompletionResponse)?.choices?.[0]?.text) {
         return formatText(
           (responseData as CreateCompletionResponse).choices?.[0]?.text

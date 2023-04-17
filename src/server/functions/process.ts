@@ -77,7 +77,7 @@ export const processVideo = async ({
     });
     if (
       prevQueue &&
-      (prevQueue.status === "pending" || prevQueue?.status === "completed")
+      (prevQueue.status === "pending")// || prevQueue?.status === "completed")
     ) {
       return { status: prevQueue.status };
     }
