@@ -346,13 +346,6 @@ export const processVideo = async ({
         })
       );
       const errors = checkIfErrored(calls);
-      if (!errored) {
-        try {
-          await compareAndUpdateVideoSponsors({ videoId, prisma: ctx.prisma });
-        } catch (err) {
-          console.error("error updating sponsors");
-        }
-      }
       // console.log("done processing video segments", {
       //   videoId,
       //   segmentTranscriptsLength: segmentTranscripts.length,
@@ -369,11 +362,29 @@ export const processVideo = async ({
   } catch (err) {
     await completeQueue(processQueue, "error");
     if (err instanceof TRPCError) {
+      if (err.cause instanceof CustomError) {
+        err.cause.level = "COMPLETE";
+      } else {
+        let newErr = new TRPCError({
+          message: err.message,
+          code: err.code,
+          cause: new CustomError({
+            message: "Something went wrong",
+            expose: true,
+            level: "COMPLETE",
+          }),
+        });
+        throw newErr;
+      }
       throw err;
     }
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      cause: new CustomError({ message: "Something went wrong", expose: true }),
+      cause: new CustomError({
+        message: "Something went wrong",
+        expose: true,
+        level: "COMPLETE",
+      }),
     });
   }
 };
@@ -874,7 +885,7 @@ export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
   const prisma = ctx.prisma;
   const allVodsProcessing = new Set<string>();
   const successedVods = new Set<string>();
-  const RATELIMIT_PER_MINUTE = OPENAI_RPM ?? 20;
+  const RATELIMIT_PER_MINUTE = 60;//OPENAI_RPM ?? 20;
 
   const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
@@ -900,7 +911,7 @@ export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
       where: {
         type: "video",
         videoId: { in: videos },
-        status: { in: ["completed", "partial", "pending"] },
+        status: { in: ["partial", "pending"] }, //"completed",
       },
     });
     const vodQueueSet = new Set<string>();
@@ -926,28 +937,6 @@ export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
         try {
           console.log("process", videoId);
           const videoInfo = await getVideoInfo({ videoID: videoId });
-          await prisma.processQueue.upsert({
-            where: {
-              channelId_videoId_type: {
-                channelId: videoInfo?.basic_info.channel?.id ?? "",
-                videoId,
-                type: "video",
-              },
-            },
-            create: {
-              status: "pending",
-              videoId: videoId,
-              channelId: videoInfo?.basic_info.channel?.id ?? "",
-              parentProcessId,
-              type: "video",
-              timeInitialized: new Date(),
-            },
-            update: {
-              status: "pending",
-              parentProcessId,
-              timeInitialized: new Date(),
-            },
-          });
           await processVideo({
             videoId,
             botId,
@@ -965,10 +954,10 @@ export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
           ) {
             console.log("video err", err);
             errored = true;
+            await completeVideoQueue(videoId, errored);
           }
         } finally {
           successedVods.add(videoId);
-          await completeVideoQueue(videoId, errored);
         }
       })
     );
@@ -1002,7 +991,7 @@ export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
       },
     });
 
-    const maxSegments = 35000;
+    const maxSegments = 50000;
     let skip = 0;
     let done = false;
     try {
