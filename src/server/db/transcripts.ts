@@ -206,6 +206,7 @@ export const saveAnnotationsAndTranscript = async ({
     const cError = new CustomError({
       message,
       expose: true,
+      level: "COMPLETE",
     });
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -213,20 +214,24 @@ export const saveAnnotationsAndTranscript = async ({
       cause: cError,
     });
   }
-  input.annotations.forEach((annotation) => {
-    if (checkAnnotationBadWords(annotation.text)) {
-      const message = "Invalid annotations. Check for Profanity.";
-      const cError = new CustomError({
-        message,
-        expose: true,
-      });
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message,
-        cause: cError,
-      });
-    }
-  });
+
+  const isBot = await isUserABot({ ctx });
+  if (!isBot) {
+    input.annotations.forEach((annotation) => {
+      if (checkAnnotationBadWords(annotation.text)) {
+        const message = "Invalid annotations. Check for Profanity.";
+        const cError = new CustomError({
+          message,
+          expose: true,
+        });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message,
+          cause: cError,
+        });
+      }
+    });
+  }
 
   const saveVideo = saveVideoDetails({
     input: { segmentIDs: [input.segment.UUID], videoId: input.videoId },
@@ -234,12 +239,15 @@ export const saveAnnotationsAndTranscript = async ({
     inputVideoInfo,
   });
 
-  const cleaned = filterTranscriptBadWords(input.transcript);
+  const cleaned = isBot
+    ? input.transcript
+    : filterTranscriptBadWords(input.transcript);
   if (!cleaned) {
     const message = "Invalid transcript. Check for profanity.";
     const cError = new CustomError({
       message,
       expose: true,
+      level: "COMPLETE",
     });
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -254,6 +262,7 @@ export const saveAnnotationsAndTranscript = async ({
     annotations: input.annotations,
     textHash,
     segmentUUID: input.segment.UUID,
+    isUserBot: isBot,
   });
 
   try {
@@ -267,7 +276,7 @@ export const saveAnnotationsAndTranscript = async ({
     if (
       error instanceof TRPCError &&
       error.code === "PRECONDITION_FAILED" &&
-      (await isUserABot({ ctx }))
+      isBot
     ) {
       await saveVideo;
     } else {
@@ -522,13 +531,16 @@ async function findDuplicateAnnotations({
   annotations,
   textHash,
   segmentUUID,
+  isUserBot,
 }: {
   ctx: Context;
   annotations: AnnotationsType;
   textHash: string;
   segmentUUID: string;
+  isUserBot?: boolean;
 }) {
-  const isBot = await isUserABot({ ctx });
+  const isBot =
+    typeof isUserABot === "boolean" ? isUserABot : await isUserABot({ ctx });
 
   const duplicates = await ctx.prisma.$transaction(
     annotations.map((a) =>
@@ -612,7 +624,11 @@ async function findCompleteMatchingTranscriptDetailsAndVote({
           });
         }
 
-        const message = `These annotations were previously submitted. An upvote was placed on the previous annotations.`;
+        const message = `These annotations were previously submitted.${
+          pVote.direction !== 1
+            ? " An upvote was placed on the previous annotations."
+            : ""
+        }`;
         const cError = new CustomError({ message, expose: true });
         throw new TRPCError({
           message,
