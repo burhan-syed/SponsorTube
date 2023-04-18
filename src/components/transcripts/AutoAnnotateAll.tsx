@@ -16,6 +16,7 @@ const AutoAnnotateAll = ({
   videoId?: string;
   isLoading: boolean;
 }) => {
+  const [disable, setDisable] = useState(false);
   const dialogueTrigger = useGlobalStore((store) => store.setDialogueTrigger);
   const { segments, savedSegments } = useSponsorBlock({ videoID: videoId });
   const utils = api.useContext();
@@ -25,9 +26,10 @@ const AutoAnnotateAll = ({
   const processVideo = api.video.processVideo.useMutation({
     async onSuccess(data, variables, context) {
       //console.log("success?", data);
+      setDisable(true);
       if (data?.errors?.length ?? 0 > 0) {
         dialogueTrigger({
-          title: "errors",
+          title: "The following errors were logged for one or more segments",
           description: data?.errors?.join("\n") ?? "",
           close: "ok",
         });
@@ -48,7 +50,7 @@ const AutoAnnotateAll = ({
         //console.log("parsed?", parse);
         if (parse.type === "BOT_PENDING") {
           startMonitor();
-        } else if(parse.message) {
+        } else if (parse.message) {
           dialogueTrigger({
             title: "errors",
             description: parse.message,
@@ -86,7 +88,10 @@ const AutoAnnotateAll = ({
     videoStatusQuery.isLoading ||
     videoStatusQuery.data?.status === "pending";
   const disabled =
-    (!((segments.data?.length ?? 0) > 0 || (savedSegments.data?.length ?? 0) > 0)) ||
+    disable ||
+    !(
+      (segments.data?.length ?? 0) > 0 || (savedSegments.data?.length ?? 0) > 0
+    ) ||
     processVideo.isLoading ||
     videoStatusQuery.isLoading ||
     isLoading ||
@@ -110,6 +115,11 @@ const AutoAnnotateAll = ({
           ) : (
             ""
           )
+        ) : !(
+            (segments.data?.length ?? 0) > 0 ||
+            (savedSegments.data?.length ?? 0) > 0
+          ) ? (
+          "no segments found to annotate"
         ) : (
           ""
         )

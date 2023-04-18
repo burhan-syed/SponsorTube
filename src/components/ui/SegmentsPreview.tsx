@@ -19,9 +19,14 @@ const SegmentsPreview = ({
   });
   const sponsors = api.video.getSponsors.useQuery(
     { videoId: videoId },
-    { enabled: inView }
+    { enabled: inView, refetchOnWindowFocus: true }
   );
-  if (segments.isLoading || savedSegments.isLoading || sponsors.isLoading || sponsors.isRefetching) {
+  if (
+    segments.isLoading ||
+    savedSegments.isLoading ||
+    sponsors.isLoading ||
+    sponsors.isRefetching
+  ) {
     return (
       <div ref={ref} className={clsx(className)}>
         {/* <>
@@ -31,7 +36,7 @@ const SegmentsPreview = ({
             spo: sponsors.isLoading,
           })}
         </> */}
-        <CgSpinnerTwoAlt className="mt-1 h-3 w-3 flex-none animate-spin sm:my-1" />
+        <CgSpinnerTwoAlt className="h-3 w-3 flex-none animate-spin" />
       </div>
     );
   }

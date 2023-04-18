@@ -8,6 +8,7 @@ const ChannelSponsors = ({ channelId }: { channelId: string }) => {
     { channelId },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
+      refetchOnWindowFocus: true
     }
   );
   return (
