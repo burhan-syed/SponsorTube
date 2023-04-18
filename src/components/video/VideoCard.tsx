@@ -6,6 +6,7 @@ import TouchResponse from "@/components/ui/common/TouchResponse";
 import clsx from "clsx";
 import SegmentsPreview from "@/components/ui/SegmentsPreview";
 import { VideoCardInfo } from "@/types/schemas";
+import { useRouter } from "next/router";
 type VideoCardProps = {
   video: VideoCardInfo;
   variant?: "regular" | "compact";
@@ -13,13 +14,13 @@ type VideoCardProps = {
 
 const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
   const { containerRef, isPressed } = useIsPressed();
-
+  const router = useRouter();
   const videoThumbnail = video.thumbnail;
   const authorThumbnail = video.author?.thumbnail?.url;
   const ChannelThumbnail = (
     <div
       className={clsx(
-        "flex-none overflow-hidden rounded-full",
+        "relative flex-none overflow-hidden rounded-full",
         variant === "regular"
           ? "h-10 w-10 sm:h-6 sm:w-6"
           : variant === "compact" && "h-6 w-6"
@@ -31,6 +32,7 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
           alt=""
           width={video.author?.thumbnail?.width}
           height={video.author?.thumbnail?.height}
+          layout={"fill"}
           unoptimized={true}
         />
       )}
@@ -43,7 +45,7 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
         <SegmentsPreview
           videoId={video.id}
           className={clsx(
-            variant === "compact" ? "" : variant === "regular" && "  sm:my-2  ",
+            variant === "compact" ? "" : variant === "regular" && " sm:my-2 ",
             "text-semibold inline-flex h-6 cursor-pointer flex-wrap items-center gap-x-1 gap-y-1 overflow-y-auto overflow-x-hidden text-xs sm:gap-x-2"
           )}
         />
@@ -60,11 +62,13 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
     >
       <div
         ref={containerRef}
-        // onClick={() => router.push(`/video?v=${video.id}`)}
+        onClick={(e) => {
+          router.push(`/video?v=${video.id}`);
+        }}
         className={clsx(
           "flex items-start gap-2 rounded-lg  text-xs text-th-textSecondary ",
           variant === "regular"
-            ? "flex-col py-2 sm:flex-row sm:p-2"
+            ? "flex-col sm:flex-row sm:p-2"
             : variant === "compact" && "flex-row p-2 sm:flex-col"
         )}
       >
@@ -94,6 +98,9 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
           {authorThumbnail && video.author?.id && (
             <Link href={`/channel/${video.author.id}`}>
               <a
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
                 className={clsx(
                   variant === "regular"
                     ? "block px-2 sm:hidden sm:px-0"
@@ -141,8 +148,21 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
                 </span>
 
                 {video.viewCountString}
-                <span className={`before:content-['_·_']`}>
-                  {video.publishedString}
+                <span
+                  className={
+                    video.viewCountString &&
+                    (video.publishedDate || video.publishedString)
+                      ? `before:content-['_·_']`
+                      : ""
+                  }
+                >
+                  {video.publishedString
+                    ? video.publishedString
+                    : video.publishedDate
+                    ? video.publishedDate?.toLocaleDateString(undefined, {
+                        dateStyle: "long",
+                      })
+                    : ""}
                 </span>
               </span>
 
@@ -150,13 +170,23 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
                 video?.author?.id &&
                 video.author.id !== "N/A" && (
                   <Link href={`/channel/${video.author.id}`}>
-                    <a className="">{video.author.name}</a>
+                    <a
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                      className=""
+                    >
+                      {video.author.name}
+                    </a>
                   </Link>
                 )}
             </div>
             {video?.author?.id && video.author.id !== "N/A" && (
               <Link href={`/channel/${video.author.id}`}>
                 <a
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
                   className={clsx(
                     "items-center gap-2",
                     variant === "regular"
@@ -180,7 +210,13 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
         </div>
       </div>
 
-      <TouchResponse className="rounded-xl" isPressed={isPressed} />
+      <TouchResponse
+        className={clsx(
+          variant === "compact" && "rounded-xl",
+          variant === "regular" && "sm:rounded-xl"
+        )}
+        isPressed={isPressed}
+      />
     </div>
   );
 };

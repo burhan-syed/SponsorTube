@@ -16,16 +16,17 @@ const ChannelCard = ({ channel }: ChannelCardProps) => {
     <Link href={`/channel/${channel.id}`}>
       <a
         ref={containerRef}
-        className="relative flex items-center rounded-lg text-xs text-th-textSecondary hover:cursor-pointer"
+        className="relative flex items-center p-2 text-xs text-th-textSecondary hover:cursor-pointer sm:rounded-xl"
       >
-        <div className="flex aspect-video w-1/2 flex-none items-center justify-center overflow-hidden rounded-2xl sm:w-80">
-          <div className="h-24 w-24 overflow-hidden rounded-full sm:h-32 sm:w-32">
+        <div className="flex aspect-video w-1/2 flex-none items-center justify-center sm:w-80 ">
+          <div className="relative h-24 w-24 overflow-hidden rounded-full sm:h-32 sm:w-32 ">
             {thumbnail?.url && (
               <Image
                 src={`https:${thumbnail?.url}`}
                 alt=""
                 width={thumbnail?.width}
                 height={thumbnail?.height}
+                layout="responsive"
                 unoptimized={true}
               />
             )}
@@ -46,7 +47,7 @@ const ChannelCard = ({ channel }: ChannelCardProps) => {
           <p>{channel.shortDescription}</p>
         </div>
 
-        <TouchResponse isPressed={isPressed} className="rounded-xl" />
+        <TouchResponse isPressed={isPressed} className="sm:rounded-xl" />
       </a>
     </Link>
   );
