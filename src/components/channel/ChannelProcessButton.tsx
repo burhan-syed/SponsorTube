@@ -22,9 +22,9 @@ const ChannelProcessButtonChildren = ({
   isLoading: boolean;
 }) => {
   return (
-    <span className="flex flex-none select-none items-center gap-2 px-4 py-2 ">
+    <span className="flex flex-none select-none items-center gap-2 px-4 py-2">
       <span className="md:hidden">Process Channel Sponsors</span>
-      <span className="hidden md:block">Channel Sponsors</span>
+      <span className="hidden md:block">Process Sponsors</span>
 
       <>
         {isLoading ? (
@@ -204,41 +204,43 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
   ]);
 
   return (
-    <div className="flex w-full gap-2 md:w-auto">
-      <Dropdown
-        disabled={isLoading}
-        MenuItems={[
-          <button
-            disabled={isLoading}
-            className="flex items-center justify-between px-4 md:justify-start md:gap-2 md:px-4"
-            key="button1"
-            onClick={() => {
-              processChannel.mutate({ channelID: channelId });
-            }}
-          >
-            <BiBrain className="h-5 w-5 flex-none" />
-            <span>Process Recent Videos</span>
-          </button>,
-          <button
-            disabled={isLoading}
-            className="flex items-center justify-between px-4 md:justify-start md:gap-2  md:px-4 "
-            key="button2"
-            onClick={() => {
-              updateSponsors.mutate({ channelId: channelId });
-            }}
-          >
-            <BiRefresh className="h-5 w-5 flex-none -scale-x-100 " />
-            <span>Sync Sponsors</span>
-          </button>,
-        ]}
-        menuOptions={{
-          sideOffset: 5,
-          side: "bottom",
-          align: windowWidth > 768 ? "end" : "center",
-        }}
-      >
-        <ChannelProcessButtonChildren isLoading={isLoading} />
-      </Dropdown>
+    <div className="flex w-full gap-2 md:w-auto flex-none">
+      <div className="w-full">
+        <Dropdown
+          disabled={isLoading}
+          MenuItems={[
+            <button
+              disabled={isLoading}
+              className="flex items-center justify-between px-4 md:justify-start md:gap-2 md:px-4"
+              key="button1"
+              onClick={() => {
+                processChannel.mutate({ channelID: channelId });
+              }}
+            >
+              <BiBrain className="h-5 w-5 flex-none" />
+              <span>Process Recent Videos</span>
+            </button>,
+            <button
+              disabled={isLoading}
+              className="flex items-center justify-between px-4 md:justify-start md:gap-2  md:px-4 "
+              key="button2"
+              onClick={() => {
+                updateSponsors.mutate({ channelId: channelId });
+              }}
+            >
+              <BiRefresh className="h-5 w-5 flex-none -scale-x-100 " />
+              <span>Sync Sponsors</span>
+            </button>,
+          ]}
+          menuOptions={{
+            sideOffset: 5,
+            side: "bottom",
+            align: windowWidth > 768 ? "end" : "center",
+          }}
+        >
+          <ChannelProcessButtonChildren isLoading={isLoading} />
+        </Dropdown>
+      </div>
 
       <ChannelStatusToolTip
         channelId={channelId}
