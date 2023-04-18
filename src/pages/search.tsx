@@ -22,7 +22,7 @@ const SearchPage = () => {
   return (
     <div>
       <Header searchInitialValue={searchQuery} />
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-2">
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-2">
         {searchResults.isLoading ? (
           <ListVideoLoader />
         ) : searchResults?.data ? (
@@ -37,7 +37,7 @@ const SearchPage = () => {
         ) : (
           "something went wrong"
         )}
-      </div>
+      </section>
     </div>
   );
 };
