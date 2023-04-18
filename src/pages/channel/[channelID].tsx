@@ -58,7 +58,7 @@ const ChannelPage: NextPage = () => {
           </>
         )}
 
-        <div className="mx-auto px-4 2xl:max-w-[192rem]">
+        <div className="mx-auto px-4 md:px-[calc(10vw)] 2xl:max-w-[192rem]">
           <div className="flex flex-col items-center justify-center p-2 md:flex-row md:justify-between md:p-6">
             {channel.isLoading ? (
               <ChannelHeaderLoader />
@@ -80,7 +80,12 @@ const ChannelPage: NextPage = () => {
             <GridVideoLoader />
           ) : (
             flatVideos &&
-            flatVideos.length > 0 && <GridVideoView videos={flatVideos} />
+            flatVideos.length > 0 && (
+              <GridVideoView
+                videos={flatVideos}
+                showLoading={channel.isFetchingNextPage ? 30 : 0}
+              />
+            )
           )}
           {channel.hasNextPage && (
             <div className="w-full items-center justify-center p-4 text-center">
@@ -90,7 +95,7 @@ const ChannelPage: NextPage = () => {
                 className=""
                 onClick={() => channel.fetchNextPage()}
               >
-                more
+                load more
               </Button>
             </div>
           )}

@@ -54,8 +54,8 @@ const Home: NextPage = ({}) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
-      <div className="relative sm:p-4">
-        <div className="flex flex-col gap-2 lg:flex-row">
+      <section className="relative mx-auto sm:px-4 md:px-[calc(5vw)] 2xl:max-w-[192rem]">
+        <div className="flex flex-col gap-2 lg:gap-4 lg:flex-row">
           {videoInfo.isLoading ? (
             <>
               <VideoPageLoader />
@@ -123,17 +123,17 @@ const Home: NextPage = ({}) => {
             />
           </div>
         </div>
-        <div className="px-4 py-4 sm:px-0">
-          {videoInfo.isLoading ? (
-            <GridVideoLoader />
-          ) : (
-            videoInfo.data?.watchNextVideos &&
-            (videoInfo.data.watchNextVideos?.length ?? 0) > 0 && (
-              <GridVideoView videos={videoInfo.data.watchNextVideos} />
-            )
-          )}
-        </div>
-      </div>
+      </section>
+      <section className="relative mx-auto my-2 lg:my-4 px-2 md:px-[calc(5vw-8px)] 2xl:max-w-[192rem]">
+        {videoInfo.isLoading ? (
+          <GridVideoLoader />
+        ) : (
+          videoInfo.data?.watchNextVideos &&
+          (videoInfo.data.watchNextVideos?.length ?? 0) > 0 && (
+            <GridVideoView videos={videoInfo.data.watchNextVideos} />
+          )
+        )}
+      </section>
     </>
   );
 };
