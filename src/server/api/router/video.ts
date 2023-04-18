@@ -102,7 +102,10 @@ export const videoRouter = createTRPCRouter({
   getSponsors: publicProcedure
     .input(z.object({ videoId: z.string() }))
     .query(async ({ input, ctx }) => {
-      return await getVideoSponsors({ videoId: input.videoId, prisma: ctx.prisma });
+      return await getVideoSponsors({
+        videoId: input.videoId,
+        prisma: ctx.prisma,
+      });
     }),
   processVideo: publicProcedure
     .input(z.object({ videoId: z.string() }))
@@ -110,6 +113,10 @@ export const videoRouter = createTRPCRouter({
       const processResult = await processVideo({
         videoId: input.videoId,
         ctx,
+      });
+      await compareAndUpdateVideoSponsors({
+        videoId: input.videoId,
+        prisma: ctx.prisma,
       });
       return processResult;
     }),
@@ -128,7 +135,7 @@ export const videoRouter = createTRPCRouter({
     .input(
       z.object({
         withSponsors: z.boolean().nullish(),
-        limit: z.number().min(1).max(25).nullish(),
+        limit: z.number().min(1).max(50).nullish(),
         cursor: z.string().nullish(),
       })
     )
@@ -143,9 +150,11 @@ export const videoRouter = createTRPCRouter({
         },
         where: input.withSponsors
           ? {
-              ProcessQueue: {
+              Sponsors: {
                 some: {
-                  status: "completed",
+                  id: {
+                    not: undefined,
+                  },
                 },
               },
             }
