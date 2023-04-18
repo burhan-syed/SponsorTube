@@ -885,7 +885,7 @@ export const processAllSegments = async ({ ctx }: { ctx: Context }) => {
   const prisma = ctx.prisma;
   const allVodsProcessing = new Set<string>();
   const successedVods = new Set<string>();
-  const RATELIMIT_PER_MINUTE = 60;//OPENAI_RPM ?? 20;
+  const RATELIMIT_PER_MINUTE = 60; //OPENAI_RPM ?? 20;
 
   const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
@@ -1075,7 +1075,32 @@ export const summarizeAllChannels = async ({ ctx }: { ctx: Context }) => {
 
     const tryProcessAllChannels = await Promise.allSettled(
       channelsWithSponsors.map(async (channel) => {
-        await summarizeChannelSponsors({ channelId: channel.id, ctx });
+        await Promise.allSettled([
+          summarizeChannelSponsors({ channelId: channel.id, ctx }),
+          (async () => {
+            if (!channel.thumbnail) {
+              const channelInfo = await getChannel({ channelID: channel.id });
+              if (
+                (channelInfo?.header as C4TabbedHeader)?.author.thumbnails?.[0]
+                  ?.url
+              ) {
+                console.log(
+                  "thumb?",
+                  channel.id,
+                  (channelInfo?.header as C4TabbedHeader)?.author
+                    .thumbnails?.[0]?.url
+                );
+                await ctx.prisma.channels.update({
+                  where: { id: channel.id },
+                  data: {
+                    thumbnail: (channelInfo?.header as C4TabbedHeader)?.author
+                      .thumbnails?.[0]?.url,
+                  },
+                });
+              }
+            }
+          })(),
+        ]);
       })
     );
     const errors = tryProcessAllChannels.filter((p) => p.status === "rejected");
