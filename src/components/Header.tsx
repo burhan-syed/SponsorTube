@@ -40,17 +40,17 @@ const Header = ({
           </Button>
         ) : (
           <Link href={"/"}>
-            <a className="h-1/2 flex items-center gap-x-1 font-bold">
-              <div className="h-full aspect-square">
-              <Image
-                src={"/SponsorTube.svg"}
-                width={128}
-                height={128}
-                layout="responsive"
-                className=""
-              />
+            <a className="flex h-1/2 items-center gap-x-1 font-bold">
+              <div className="aspect-square h-full">
+                <Image
+                  src={"/SponsorTube.svg"}
+                  width={128}
+                  height={128}
+                  layout="responsive"
+                  className=""
+                />
               </div>
-              SponsorTube
+              <span className="hidden sm:block">SponsorTube</span>
             </a>
           </Link>
         )}
