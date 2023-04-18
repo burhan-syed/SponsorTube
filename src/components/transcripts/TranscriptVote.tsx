@@ -9,12 +9,14 @@ import {
 import { Button } from "../ui/common/Button";
 const TranscriptVote = ({
   videoId,
+  segmentUUID,
   transcriptDetailsId,
   transcriptId,
   initialDirection,
   disabled = false,
 }: {
   videoId: string;
+  segmentUUID: string;
   transcriptDetailsId: string;
   transcriptId: string;
   initialDirection?: number;
@@ -37,10 +39,12 @@ const TranscriptVote = ({
         () => ({ direction: variables.direction })
       );
     },
-    async onSuccess() {
-      await utils.video.getSponsors.invalidate({
-        videoId: videoId,
-      });
+    async onSuccess(data) {
+      if (data.revalidate) {
+        await utils.video.getSponsors.invalidate({
+          videoId: videoId,
+        });
+      }
     },
   });
 
@@ -48,6 +52,7 @@ const TranscriptVote = ({
     <>
       <Button
         round
+        disableFade
         requireSession={{ required: true, reason: "login to vote" }}
         disabled={
           disabled ||
@@ -62,6 +67,8 @@ const TranscriptVote = ({
             previous: votes?.data?.direction ?? 0,
             direction: votes?.data?.direction === 1 ? 0 : 1,
             transcriptId: transcriptId,
+            videoId,
+            segmentUUID,
           })
         }
       >
@@ -69,6 +76,7 @@ const TranscriptVote = ({
       </Button>
       <Button
         round
+        disableFade
         requireSession={{ required: true, reason: "login to vote" }}
         disabled={
           disabled ||
@@ -83,6 +91,8 @@ const TranscriptVote = ({
             previous: votes?.data?.direction ?? 0,
             direction: votes?.data?.direction === -1 ? 0 : -1,
             transcriptId: transcriptId,
+            videoId,
+            segmentUUID,
           })
         }
       >

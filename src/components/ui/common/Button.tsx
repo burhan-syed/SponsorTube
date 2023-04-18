@@ -26,6 +26,7 @@ type ButtonProps = ButtonBaseProps &
     dummyButton?: boolean;
     loading?: boolean;
     loadingText?: boolean;
+    disableFade?: boolean;
   };
 
 const buttonClasses = cva(
@@ -50,14 +51,17 @@ const buttonClasses = cva(
         small: "text-xs  h-7",
         medium: "text-sm h-9",
         large: "text-md  h-12",
-        adaptive: ""
+        adaptive: "",
       },
       round: {
         true: "",
         false: "",
       },
       disabled: {
-        true: "pointer-events-none opacity-50",
+        true: "pointer-events-none",
+      },
+      faded: {
+        true: "opacity-50",
       },
       hideText: {
         true: "text-transparent",
@@ -117,6 +121,7 @@ export const Button = ({
   size,
   round,
   disabled,
+  disableFade,
   loading,
   loadingText,
   dummyButton,
@@ -129,6 +134,7 @@ export const Button = ({
     round,
     disabled,
     hideText: loading && !loadingText,
+    faded: disabled && !disableFade,
     className: props.className,
   });
   const { data: sessionData } = useSession();

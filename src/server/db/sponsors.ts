@@ -10,12 +10,15 @@ import {
   Videos,
 } from "@prisma/client";
 import type { Context } from "@/server/api/trpc";
+import { getBotIds } from "./bots";
 
 export const getVideoSponsors = async ({
   videoId,
+  withScore,
   prisma,
 }: {
   videoId: string;
+  withScore?: boolean;
   prisma: PrismaClient;
 }) => {
   const sponsors = await prisma.sponsors.findMany({
@@ -29,50 +32,58 @@ export const getVideoSponsors = async ({
       code: true,
       url: true,
       date: true,
+      TranscriptDetails: withScore
+        ? {
+            select: {
+              score: true,
+              id: true,
+              Transcript: { select: { segmentUUID: true } },
+            },
+          }
+        : undefined,
     },
   });
   return sponsors;
 };
 
-export const getLiveVideoSponsors = async ({
+export const getFlattenedTopLiveVideoSponsors = async ({
   videoId,
-  ctx,
+  prisma,
 }: {
   videoId: string;
-  ctx: Context;
+  prisma: PrismaClient;
 }) => {
-  const [segments, videoInfo] = await Promise.all([
-    ctx.prisma.sponsorTimes.findMany({
-      where: {
-        videoID: videoId,
-        Transcripts: {
-          some: { TranscriptDetails: { some: { score: { gte: 1 } } } },
-        },
-      },
-      include: {
-        Transcripts: {
-          where: { score: { gte: 1 } },
-          orderBy: { score: "desc" },
-          take: 5,
-          include: {
-            TranscriptDetails: {
-              where: { score: { gte: 1 } },
-              orderBy: { score: "desc" },
-              take: 5,
-              include: { Annotations: true },
-            },
+  const botIds = await getBotIds({ prisma: prisma });
+
+  const segments = await prisma.sponsorTimes.findMany({
+    where: {
+      videoID: videoId,
+      Transcripts: {
+        some: {
+          TranscriptDetails: {
+            some: { OR: [{ score: { gte: 1 } }, { userId: { in: botIds } }] },
           },
         },
       },
-    }),
-    ctx.prisma.videos.findFirst({
-      where: { id: videoId },
-      select: { published: true },
-    }),
-  ]);
-
-  //console.log("found?", JSON.stringify(segments, null, 2));
-
+    },
+    include: {
+      Transcripts: {
+        where: { OR: [{ score: { gte: 1 } }, { userId: { in: botIds } }] },
+        orderBy: { score: "desc" },
+        take: 5,
+        include: {
+          TranscriptDetails: {
+            where: {
+              OR: [{ score: { gte: 1 } }, { userId: { in: botIds } }],
+            },
+            orderBy: { score: "desc" },
+            take: 5,
+            include: { Annotations: true },
+          },
+        },
+      },
+    },
+  });
   const flatPerSegmentSorted = segments.map(
     (s) =>
       [...s.Transcripts.map((t) => t.TranscriptDetails)]
@@ -84,8 +95,25 @@ export const getLiveVideoSponsors = async ({
             : b.score - a.score
         ) //only the first transcript details for any transcript is evaluated. If tied in score take the latest
   );
+  return flatPerSegmentSorted;
+};
 
-  //console.log("sorted?", JSON.stringify(flatPerSegmentSorted, null, 2));
+export const getLiveVideoSponsors = async ({
+  videoId,
+  ctx,
+}: {
+  videoId: string;
+  ctx: Context;
+}) => {
+  const [flatPerSegmentSorted, videoInfo] = await Promise.all([
+    getFlattenedTopLiveVideoSponsors({ videoId, prisma: ctx.prisma }),
+    ctx.prisma.videos.findFirst({
+      where: { id: videoId },
+      select: { published: true },
+    }),
+  ]);
+
+  //console.log("found?", JSON.stringify(flatPerSegmentSorted, null, 2));
 
   // const annotationinfos = new Map<
   //   string,
@@ -166,7 +194,7 @@ export const getLiveVideoSponsors = async ({
       offer: offers.get(b[0])?.[0],
       url: urls.get(b[0])?.[0],
       code: codes.get(b[0])?.[0],
-      date: videoInfo?.published ? videoInfo?.published : undefined
+      date: videoInfo?.published ? videoInfo?.published : undefined,
     }));
   const filtermap = rawmap
     //filter brands with no info if its already accounted for
@@ -241,6 +269,11 @@ export const compareAndUpdateVideoSponsors = async ({
     prisma.sponsors.findMany({ where: { videoId } }),
   ]);
 
+  // console.log(
+  //   { "SAVED?": JSON.stringify(savedSponsors, null, 2) },
+  //   { "LIVE?": JSON.stringify(videoSponsors, null, 2) }
+  // );
+
   const isDifferent =
     !savedSponsors.some((s) => s.locked) &&
     videoSponsors?.length > 0 &&
@@ -259,25 +292,24 @@ export const compareAndUpdateVideoSponsors = async ({
             (key) => !!!vCopy[key] && delete vCopy[key]
           );
 
-          // console.log(
-          //   "compare?",
-          //   JSON.stringify(vCopy, null, 2),
-          //   JSON.stringify(sCopy, null, 2),
-          //   JSON.stringify(sCopy) === JSON.stringify(vCopy)
-          // );
+          // console.log("compare?", {
+          //   saved: JSON.stringify(sCopy, null, 2),
+          //   live: JSON.stringify(vCopy, null, 2),
+          //   compare: JSON.stringify(sCopy) === JSON.stringify(vCopy),
+          // });
           return JSON.stringify(sCopy) === JSON.stringify(vCopy);
         });
       }));
 
-  if (isDifferent) {
-    console.log("isdifferent", videoId);
-    updateVideoSponsorsFromDB({
+  if (isDifferent || videoSponsors.length === 0) {
+    // console.log("isdifferent", videoId);
+    await updateVideoSponsorsFromDB({
       videoId,
       ctx: { prisma, session: null },
       suppliedVideoSponsors: videoSponsors,
     });
   } else {
-    console.log("isnotdifferent", videoId);
+    // console.log("isnotdifferent", videoId);
   }
 };
 

@@ -25,9 +25,10 @@ const TranscriptTabs = ({
   seekTo(start: number, end: number): void;
 }) => {
   const { data: sessionData, status } = useSession();
-  const { savedTranscriptAnnotations } = useTranscriptQuery({
-    segmentUUID: segment.UUID,
-  });
+  const { savedTranscriptAnnotations, generatedTranscriptAnnotations } =
+    useTranscriptQuery({
+      segmentUUID: segment.UUID,
+    });
 
   const [isNavDisabled, setIsNavDisabled] = useState(false);
   const [tabValue, setTabValue] = useState<string>("");
@@ -54,8 +55,7 @@ const TranscriptTabs = ({
   useEffect(() => {
     if (
       savedTranscriptAnnotations.isFetched &&
-      (savedTranscriptAnnotations?.data?.length ?? 0 > 0) &&
-      !tabValue
+      (savedTranscriptAnnotations?.data?.length ?? 0 > 0)
     ) {
       setTabList((tl) => {
         if (!tl.some((tab) => tab.value === "saved")) {
@@ -63,8 +63,43 @@ const TranscriptTabs = ({
         }
         return tl;
       });
-      !tabValue && setTabValue("saved");
-    } else if (savedTranscriptAnnotations.isFetched && !tabValue) {
+      if (
+        !tabValue &&
+        savedTranscriptAnnotations.data?.length &&
+        generatedTranscriptAnnotations.data?.length
+      ) {
+        let topGeneratedScore = -Infinity;
+        let topSavedScore = -Infinity;
+        generatedTranscriptAnnotations.data.forEach((g) => {
+          if (
+            typeof g.TranscriptDetails[0]?.score === "number" &&
+            g.TranscriptDetails[0]?.score > topGeneratedScore
+          ) {
+            topGeneratedScore = g.TranscriptDetails[0]?.score;
+          }
+        });
+        savedTranscriptAnnotations.data.forEach((s) => {
+          if (
+            typeof s.TranscriptDetails[0]?.score === "number" &&
+            s.TranscriptDetails[0]?.score > topSavedScore
+          ) {
+            topSavedScore = s.TranscriptDetails[0]?.score;
+          }
+        });
+        if (
+          topSavedScore > topGeneratedScore ||
+          topSavedScore === topGeneratedScore
+        ) {
+          setTabValue("saved");
+        } else {
+          setTabValue("generated");
+        }
+      }
+    } else if (
+      savedTranscriptAnnotations.isFetched &&
+      generatedTranscriptAnnotations.isFetched &&
+      !tabValue
+    ) {
       setTabValue("generated");
     }
     return () => {
@@ -73,6 +108,8 @@ const TranscriptTabs = ({
   }, [
     savedTranscriptAnnotations.isFetched,
     savedTranscriptAnnotations.data,
+    generatedTranscriptAnnotations.isFetched,
+    generatedTranscriptAnnotations.data,
     tabValue,
   ]);
 

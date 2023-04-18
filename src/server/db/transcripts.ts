@@ -1,4 +1,8 @@
-import { AnnotationTags, TranscriptAnnotations } from "@prisma/client";
+import {
+  AnnotationTags,
+  PrismaClient,
+  TranscriptAnnotations,
+} from "@prisma/client";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
@@ -46,6 +50,8 @@ export const VoteTranscriptDetailsSchema = z.object({
   previous: z.number(),
   direction: z.number(),
   transcriptId: z.string(),
+  videoId: z.string(),
+  segmentUUID: z.string(),
 });
 
 export const GetUserVoteSchema = z.object({ transcriptDetailsId: z.string() });
@@ -269,6 +275,7 @@ export const saveAnnotationsAndTranscript = async ({
     await findCompleteMatchingTranscriptDetailsAndVote({
       duplicates,
       annotations: input.annotations,
+      videoId: input.videoId,
       ctx,
     });
   } catch (error) {
@@ -559,6 +566,11 @@ async function findDuplicateAnnotations({
           TranscriptDetails: {
             select: {
               transcriptId: true,
+              Transcript: {
+                select: {
+                  segmentUUID: true,
+                },
+              },
             },
           },
         },
@@ -573,24 +585,35 @@ async function findDuplicateAnnotations({
 async function findCompleteMatchingTranscriptDetailsAndVote({
   duplicates,
   annotations,
+  videoId,
   ctx,
 }: {
   duplicates: (TranscriptAnnotations & {
     TranscriptDetails: {
       transcriptId: string;
+      Transcript: {
+        segmentUUID: string;
+      };
     };
   })[][];
   annotations: AnnotationsType;
+  videoId: string;
   ctx: Context;
 }) {
   const matchingTranscriptDetailsIds = new Map<
     string,
-    { annotationIndex: number; count: number; transcriptId: string }
+    {
+      annotationIndex: number;
+      count: number;
+      transcriptId: string;
+      segmentUUID: string;
+    }
   >();
   duplicates.forEach((d, i) => {
     d.forEach((t, j) => {
       const prev = matchingTranscriptDetailsIds.get(t.transcriptDetailsId);
       matchingTranscriptDetailsIds.set(t.transcriptDetailsId, {
+        segmentUUID: t.TranscriptDetails.Transcript.segmentUUID,
         annotationIndex: i,
         transcriptId: t.TranscriptDetails.transcriptId,
         count: prev
@@ -619,6 +642,8 @@ async function findCompleteMatchingTranscriptDetailsAndVote({
               direction: 1,
               previous: pVote.direction,
               transcriptId: v.transcriptId,
+              videoId,
+              segmentUUID: v.segmentUUID,
             },
             ctx,
           });

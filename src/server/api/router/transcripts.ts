@@ -11,6 +11,11 @@ import {
   saveTranscript,
 } from "@/server/db/transcripts";
 import { getBotIds } from "@/server/db/bots";
+import {
+  compareAndUpdateVideoSponsors,
+  getVideoSponsors,
+  updateVideoSponsorsFromDB,
+} from "@/server/db/sponsors";
 
 export const transcriptRouter = createTRPCRouter({
   get: publicProcedure
@@ -71,20 +76,22 @@ export const transcriptRouter = createTRPCRouter({
                 userId: true,
                 score: true,
                 Annotations: true,
-                Votes: ctx.session?.user.id ? {
-                  where: {
-                    TranscriptDetails: {
-                      Transcript: {
-                        segmentUUID: input.segmentUUID,
+                Votes: ctx.session?.user.id
+                  ? {
+                      where: {
+                        TranscriptDetails: {
+                          Transcript: {
+                            segmentUUID: input.segmentUUID,
+                          },
+                        },
+                        userId: ctx.session?.user?.id,
                       },
-                    },
-                    userId: ctx.session?.user?.id,
-                  },
-                } : false,
+                    }
+                  : false,
               },
             },
           },
-          take: 1
+          take: 1,
         });
         return aiGenAnnotations;
       } else if (input.mode === "user") {
@@ -200,7 +207,10 @@ export const transcriptRouter = createTRPCRouter({
     .input(SaveAnnotationsSchema)
     .mutation(async ({ input, ctx }) => {
       console.log(">>>annotation mutation", JSON.stringify(input));
-      return await saveAnnotationsAndTranscript({ input, ctx });
+      const save = await saveAnnotationsAndTranscript({ input, ctx });
+      input.videoId &&
+        (await updateVideoSponsorsFromDB({ videoId: input.videoId, ctx }));
+      return save;
     }),
   delete: protectedProcedure
     .input(
@@ -230,7 +240,6 @@ export const transcriptRouter = createTRPCRouter({
     .input(GetUserVoteSchema)
     .query(async ({ input, ctx }) => {
       if (!ctx.session?.user?.id) return { direction: 0 };
-      console.log("vinput?", input)
       const vote = await ctx.prisma.userTranscriptDetailsVotes.findUnique({
         where: {
           userId_transcriptDetailsId: {
@@ -239,35 +248,48 @@ export const transcriptRouter = createTRPCRouter({
           },
         },
       });
-      console.log("vote?", vote)
-
       return { direction: vote?.direction ?? 0 };
     }),
   voteTranscriptDetails: protectedProcedure
     .input(VoteTranscriptDetailsSchema)
     .mutation(async ({ input, ctx }) => {
-      const scoreUpdate = () =>
+      const scoreUpdate = (previous = 0) =>
         input.direction === 1
-          ? input.previous === -1
+          ? previous < 0
             ? 2
-            : input.previous === 0
+            : previous === 0
             ? 1
             : 0
           : input.direction === -1
-          ? input.previous === 1
+          ? previous > 0
             ? -2
-            : input.previous === 0
+            : previous === 0
             ? -1
             : 0
           : input.direction === 0
-          ? input.previous === 1
+          ? previous > 0
             ? -1
-            : input.previous === -1
+            : previous < 0
             ? 1
             : 0
           : 0;
+      const [previous, storedSponsors] = await Promise.all([
+        ctx.prisma.userTranscriptDetailsVotes.findUnique({
+          where: {
+            userId_transcriptDetailsId: {
+              userId: ctx.session.user.id,
+              transcriptDetailsId: input.transcriptDetailsId,
+            },
+          },
+        }),
+        getVideoSponsors({
+          videoId: input.segmentUUID,
+          prisma: ctx.prisma,
+          withScore: true,
+        }),
+      ]);
 
-      await ctx.prisma.userTranscriptDetailsVotes.upsert({
+      const update = await ctx.prisma.userTranscriptDetailsVotes.upsert({
         where: {
           userId_transcriptDetailsId: {
             userId: ctx.session.user.id,
@@ -284,18 +306,44 @@ export const transcriptRouter = createTRPCRouter({
           TranscriptDetails: {
             update: {
               score: {
-                increment: scoreUpdate(),
+                increment: scoreUpdate(previous?.direction),
               },
               Transcript: {
                 update: {
                   score: {
-                    increment: scoreUpdate(),
+                    increment: scoreUpdate(previous?.direction),
                   },
                 },
               },
             },
           },
         },
+        include: {
+          TranscriptDetails: {
+            select: {
+              score: true,
+            },
+          },
+        },
       });
+
+      const segmentStoredSponsors = storedSponsors.find(
+        (s) => s.TranscriptDetails?.Transcript.segmentUUID === input.segmentUUID
+      );
+      if (
+        !segmentStoredSponsors ||
+        ((input.direction === 0 || input.direction === -1) &&
+          update.transcriptDetailsId ===
+            segmentStoredSponsors.transcriptDetailsId) ||
+        update.TranscriptDetails.score >=
+          (segmentStoredSponsors.TranscriptDetails?.score ?? -1)
+      ) {
+        await compareAndUpdateVideoSponsors({
+          videoId: input.videoId,
+          prisma: ctx.prisma,
+        });
+        return { revalidate: true };
+      }
+      return { revalidate: false };
     }),
 });

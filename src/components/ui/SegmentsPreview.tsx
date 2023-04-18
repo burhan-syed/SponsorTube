@@ -21,7 +21,7 @@ const SegmentsPreview = ({
     { videoId: videoId },
     { enabled: inView }
   );
-  if (segments.isLoading || savedSegments.isLoading || sponsors.isLoading) {
+  if (segments.isLoading || savedSegments.isLoading || sponsors.isLoading || sponsors.isRefetching) {
     return (
       <div ref={ref} className={clsx(className)}>
         {/* <>

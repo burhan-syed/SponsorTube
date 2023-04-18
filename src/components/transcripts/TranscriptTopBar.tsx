@@ -51,6 +51,7 @@ const TranscriptTopBar = ({
         >
           <TranscriptVote
             videoId={videoID}
+            segmentUUID={segmentUUID}
             initialDirection={initialVoteDirection}
             transcriptDetailsId={transcript.transcriptDetailsId}
             transcriptId={transcript.id}

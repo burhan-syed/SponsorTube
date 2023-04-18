@@ -59,14 +59,15 @@ const VideoSponsors = ({ videoId }: { videoId: string }) => {
     s && setSelectedSegment((p) => (p === s ? "" : s));
   };
   //console.log("vod sponsors?", sponsors.data);
+  const sponsorsLoading = sponsors.isLoading || sponsors.isRefetching;
   return (
     <div
       className={clsx(
         "flex items-center justify-center rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA",
-        !sponsors.isLoading && "p-3"
+        !sponsorsLoading && "p-3"
       )}
     >
-      {sponsors.isLoading ? (
+      {sponsorsLoading ? (
         <div className="skeleton-box  w-full p-3  text-xs">
           <span className="mr-auto select-none text-xs text-transparent">
             sponsors loading..
