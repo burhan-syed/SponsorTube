@@ -316,9 +316,11 @@ export const compareAndUpdateVideoSponsors = async ({
 export const summarizeChannelSponsors = async ({
   channelId,
   ctx,
+  overrideRateLimit = false
 }: {
   channelId: string;
   ctx: Context;
+  overrideRateLimit?:boolean
 }) => {
   const perfStart = performance.now();
   const now = new Date();
@@ -341,6 +343,7 @@ export const summarizeChannelSponsors = async ({
       });
       return cError;
     } else if (
+      !overrideRateLimit && 
       pChannelSummary &&
       pChannelSummary?.lastUpdated &&
       pChannelSummary.status !== "error" &&
