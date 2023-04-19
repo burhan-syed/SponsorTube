@@ -56,14 +56,14 @@ enum UserRole {
 }
 
 model User {
-  id            String     @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?    @unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
-  role     UserRole?
+  role          UserRole?
 
   SponsorTypes               SponsorTypes[]
   UserSponsorVotes           UserSponsorVotes[]
@@ -255,19 +255,14 @@ model BotQueue {
   totalTokens     Int?
   rawResponseData Json?
 
-  parentProcessId String?
-
-  Transcript     Transcripts   @relation(fields: [transcriptId], references: [id])
-  Video          Videos?       @relation(fields: [videoId], references: [id])
-  Bot            Bots          @relation(fields: [botId], references: [id])
-  ProcessQueue   ProcessQueue? @relation(fields: [processQueueId], references: [id])
-  processQueueId String?
+  Transcript Transcripts @relation(fields: [transcriptId], references: [id])
+  Video      Videos?     @relation(fields: [videoId], references: [id])
+  Bot        Bots        @relation(fields: [botId], references: [id])
 
   @@unique([transcriptId, botId])
   @@index([transcriptId])
   @@index([botId])
   @@index([videoId])
-  @@index([processQueueId])
 }
 
 enum ProcessType {
@@ -289,14 +284,15 @@ model ProcessQueue {
   channelId String? @default("")
   videoId   String? @default("")
 
-  Channel  Channels?  @relation(fields: [channelId], references: [id])
-  Video    Videos?    @relation(fields: [videoId], references: [id])
-  BotQueue BotQueue[]
+  Channel Channels? @relation(fields: [channelId], references: [id])
+  Video   Videos?   @relation(fields: [videoId], references: [id])
 
   @@unique([channelId, videoId, type])
   @@index([id])
+  @@index([type])
   @@index([videoId])
   @@index([channelId])
+  @@index(fields: [type, videoId, channelId])
 }
 
 model TranscriptDetails {
@@ -353,7 +349,7 @@ model TranscriptAnnotations {
 }
 
 model Sponsors {
-  id                  String  @id @default(cuid())
+  id                  String             @id @default(cuid())
   videoId             String
   transcriptDetailsId String
   brand               String
@@ -362,12 +358,12 @@ model Sponsors {
   code                String?
   type                BigInt?
   offer               String?
-  locked              Boolean @default(false)
+  locked              Boolean            @default(false)
   date                DateTime?
-  Votes             UserSponsorVotes[]
-  Video             Videos             @relation(fields: [videoId], references: [id])
-  TranscriptDetails TranscriptDetails? @relation(fields: [transcriptDetailsId], references: [id])
-  SponsorType       SponsorTypes?      @relation(fields: [type], references: [id])
+  Votes               UserSponsorVotes[]
+  Video               Videos             @relation(fields: [videoId], references: [id])
+  TranscriptDetails   TranscriptDetails? @relation(fields: [transcriptDetailsId], references: [id])
+  SponsorType         SponsorTypes?      @relation(fields: [type], references: [id])
 
   @@unique([videoId, brand, product])
   @@index([videoId])
