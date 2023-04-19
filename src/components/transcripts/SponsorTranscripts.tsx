@@ -21,13 +21,16 @@ const SponsorTranscripts = ({
   videoDuration,
 }: SponsorTranscriptsProps) => {
   const { segments, savedSegments } = useSponsorBlock({ videoID });
-  const engCaptions = useMemo(
-    () =>
-      captionTracks?.filter(
-        (t) => t.languageCode === "en" || t.languageCode === "en-US"
-      ),
-    [captionTracks]
-  );
+  const engCaptions = useMemo(() => {
+    let c = captionTracks?.filter(
+      (t) => t.languageCode === "en" || t.languageCode === "en-US"
+    );
+    if ((c?.length ?? 0 > 0) && c?.some((c) => c.url.includes("kind=asr"))) {
+      //prefer asr (automatic speech recognition) tracks as manual ones may exclude sponsored segments
+      c = c?.filter((c) => c.url.includes("kind=asr"));
+    }
+    return c;
+  }, [captionTracks]);
 
   // filter 0-0 second segments (whole video sponsors) or segments not in video time
   const filteredSavedSegments =

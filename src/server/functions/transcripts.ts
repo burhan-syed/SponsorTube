@@ -35,7 +35,7 @@ export const getTranscriptsInTime = ({
     }
     return "";
   });
-  const transcriptsInTime = transcript.filter((l) => l && l?.length > 0)
+  const transcriptsInTime = transcript.filter((l) => l && l?.length > 0);
   return {
     transcript: transcriptsInTime.join(" "),
     runs: transcriptsInTime,
