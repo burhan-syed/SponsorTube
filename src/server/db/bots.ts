@@ -441,6 +441,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
     };
 
     const parsed = parseResponseData(responseData);
+    //console.log("parsed?", parsed);
 
     if (!parsed) {
       const cError = new CustomError({
@@ -458,7 +459,8 @@ export const getSegmentAnnotationsOpenAICall = async ({
 
     const matchAndUpdateText = (
       originalText: string,
-      newTextSegment: string
+      newTextSegment: string,
+      lockedStrings?: string[]
     ): string => {
       //original transcripts may be missing the following characters which gpt will respond with.
       const chars = ["%", "/", "$", "https://", "."];
@@ -472,7 +474,12 @@ export const getSegmentAnnotationsOpenAICall = async ({
         newTextSegment.replace(/%|\/|\$|https:\/\/|\./gm, ""),
         newTextSegment.replace(/%|\/|\$|https:\/\/|\./gm, " "),
         //newTextSegment.replace(/%|\/|\$|https:\/\/|\./gm, " or "),
-      ];
+      ].filter(
+        (t) =>
+          !lockedStrings?.some(
+            (l) => l.trim().toLowerCase() === t.trim().toLowerCase()
+          )
+      );
       if (!replacedNewTexts.some((r) => r !== newTextSegment)) {
         return originalText;
       }
@@ -508,9 +515,11 @@ export const getSegmentAnnotationsOpenAICall = async ({
     for (let i = 0; i < parsedToArray.length; i++) {
       updatedTranscript = matchAndUpdateText(
         updatedTranscript,
-        parsedToArray?.[i] ?? ""
+        parsedToArray?.[i] ?? "",
+        parsed.map((p) => p.get("BRAND") ?? "")
       );
     }
+    //console.log("updated?", updatedTranscript);
     const matchedAnnotations = parsed
       .map((p) => {
         return [...p.keys()]
@@ -545,6 +554,8 @@ export const getSegmentAnnotationsOpenAICall = async ({
       text: string;
       tag: AnnotationTags;
     }[];
+    //console.log("matched?", JSON.stringify(matchedAnnotations, null, 2));
+
     try {
       if (matchedAnnotations.length > 0) {
         const transformedInputValues =
