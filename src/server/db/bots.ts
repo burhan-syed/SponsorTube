@@ -81,7 +81,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
       cause: new CustomError({
         message: "Input segment too long. Please annotate manually.",
         expose: true,
-        level: "PARTIAL",
+        level: "COMPLETE",
       }),
     });
   }
@@ -95,7 +95,11 @@ export const getSegmentAnnotationsOpenAICall = async ({
 
   if (!bots?.[0]) {
     const message = "No Bots Found";
-    const cError = new CustomError({ message });
+    const cError = new CustomError({
+      message,
+      level: "COMPLETE",
+      expose: true,
+    });
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: message,
@@ -420,7 +424,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
             return data;
           });
       };
- 
+
       if ((responseData as CreateCompletionResponse)?.choices?.[0]?.text) {
         return formatText(
           (responseData as CreateCompletionResponse).choices?.[0]?.text
@@ -610,7 +614,20 @@ export const getSegmentAnnotationsOpenAICall = async ({
       where: { id: botQueue.id },
       data: { status: "error", lastUpdated: new Date() },
     });
-
+    if (err instanceof TRPCError && err.cause instanceof CustomError) {
+      throw err;
+    } else if (err instanceof TRPCError) {
+      const customErr = new CustomError({
+        expose: true,
+        level: "COMPLETE",
+        message: "something went wrong",
+      });
+      throw new TRPCError({
+        code: err.code,
+        message: err.message,
+        cause: customErr,
+      });
+    }
     throw err;
   }
 
