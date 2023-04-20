@@ -8,6 +8,7 @@ import { z } from "zod";
 import { getChannel } from "../../../apis/youtube";
 import { getVideosContinuation } from "@/server/functions/channel";
 import {
+  processAllChannels,
   processChannel,
   summarizeAllChannels,
 } from "@/server/functions/process";
@@ -156,6 +157,15 @@ export const channelRouter = createTRPCRouter({
       };
     }),
   summarizeAllChannels: adminProcedure.mutation(async ({ ctx }) => {
+    if (process.env.NODE_ENV !== "development") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "only run locally" });
+    }
     await summarizeAllChannels({ ctx });
+  }),
+  processAllChannels: adminProcedure.mutation(async ({ ctx }) => {
+    if (process.env.NODE_ENV !== "development") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "only run locally" });
+    }
+    await processAllChannels({ ctx });
   }),
 });

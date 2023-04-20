@@ -19,6 +19,7 @@ import {
 import { processAllSegments, processVideo } from "@/server/functions/process";
 import { transformInnerTubeVideoToVideoCard } from "@/server/transformers/transformer";
 import { VideoDetailsInfo } from "@/types/schemas";
+import { TRPCError } from "@trpc/server";
 
 export const videoRouter = createTRPCRouter({
   segments: publicProcedure
@@ -129,6 +130,9 @@ export const videoRouter = createTRPCRouter({
       return processStatus;
     }),
   processAll: adminProcedure.mutation(async ({ ctx }) => {
+    if (process.env.NODE_ENV !== "development") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "only run locally" });
+    }
     await processAllSegments({ ctx });
   }),
   getRecent: publicProcedure

@@ -14,7 +14,7 @@ import type Video from "youtubei.js/dist/src/parser/classes/Video";
 import type { Context } from "@/server/api/trpc";
 import type { GetSegmentAnnotationsType } from "../db/bots";
 import type { C4TabbedHeader } from "youtubei.js/dist/src/parser/nodes";
-import type { ProcessQueue, QueueStatus } from "@prisma/client";
+import type { PrismaClient, ProcessQueue, QueueStatus } from "@prisma/client";
 import type { VideoInfo } from "youtubei.js/dist/src/parser/youtube";
 import { saveVideoDetails } from "../db/videos";
 import { saveTranscript } from "../db/transcripts";
@@ -50,79 +50,7 @@ export const processVideo = async ({
   queueId && console.log("processing video with queue", queueId, videoId);
 
   let preVidInfo = suppliedVideoInfo;
-
-  if (!channelId && !preVidInfo) {
-    preVidInfo = await getVideoInfo({ videoID: videoId });
-  }
-
-  if (!channelId && !preVidInfo?.basic_info?.channel?.id) {
-    throw new TRPCError({
-      code: "PARSE_ERROR",
-      cause: new CustomError({
-        message: "Unable to get channel information",
-        expose: true,
-      }),
-    });
-  }
-  const processQueue = (await ctx.prisma.$transaction(async (tx) => {
-    const prevQueue = await tx.processQueue.findUnique({
-      where: {
-        channelId_videoId_type: {
-          channelId: (channelId ??
-            preVidInfo?.basic_info?.channel?.id) as string,
-          videoId,
-          type: "video",
-        },
-      },
-    });
-    if (
-      prevQueue &&
-      prevQueue.status === "pending" // || prevQueue?.status === "completed")
-    ) {
-      return { status: prevQueue.status };
-    }
-    const processQueue = await ctx.prisma.processQueue.upsert({
-      where: prevQueue?.id
-        ? { id: prevQueue.id }
-        : {
-            channelId_videoId_type: {
-              channelId: (channelId ??
-                preVidInfo?.basic_info?.channel?.id) as string,
-              videoId,
-              type: "video",
-            },
-          },
-      create: {
-        status: "pending",
-        videoId: videoId,
-        channelId: (channelId ?? preVidInfo?.basic_info?.channel?.id) as string,
-        parentProcessId: queueId,
-        type: "video",
-        timeInitialized: new Date(),
-      },
-      update: {
-        status: "pending",
-        parentProcessId: queueId,
-        timeInitialized: new Date(),
-      },
-    });
-    return processQueue;
-  })) as ProcessQueue;
-
-  //no id when returned with status as partial or completed
-  if (!processQueue?.id) {
-    throw new TRPCError({
-      code: "PRECONDITION_FAILED",
-      cause: new CustomError({
-        expose: true,
-        message: `Video is already ${
-          processQueue.status === "pending" ? "processing" : "processed"
-        }.`,
-        type: processQueue.status === "pending" ? "BOT_PENDING" : undefined,
-      }),
-    });
-  }
-
+  let caughtCompletion = false;
   const completeQueue = async (
     processQueue: ProcessQueue,
     status?: QueueStatus
@@ -134,258 +62,368 @@ export const processVideo = async ({
         lastUpdated: new Date(),
       },
     });
+    caughtCompletion = true;
   };
-
   try {
-    const [segmentsResult, videoInfoResult] = await Promise.allSettled([
-      getVideoSegments({
-        userID: ctx.session?.user?.id ?? "sponsortubebot",
-        videoID: videoId,
-      }),
-      preVidInfo ? preVidInfo : getVideoInfo({ videoID: videoId }),
-    ]);
-
-    const videoInfo =
-      videoInfoResult.status === "fulfilled"
-        ? videoInfoResult.value
-        : undefined;
-    let segments =
-      segmentsResult.status === "fulfilled" ? segmentsResult.value : undefined;
-
-    if (!videoInfo) {
-      await completeQueue(processQueue, "error");
-      return;
+    if (!channelId && !preVidInfo) {
+      preVidInfo = await getVideoInfo({ videoID: videoId });
     }
-    segments = segments?.filter((s) =>
-      videoInfo.basic_info.duration
-        ? s.startTime < videoInfo.basic_info.duration
-        : true
-    );
 
-    const englishCaptionTracks = videoInfo?.captions?.caption_tracks?.filter(
-      (t) => t.language_code === "en" || t.language_code === "en-US"
-    );
-
-    const vodUpsert = async (videoInfo: VideoInfo, segments?: any[]) => {
+    if (!channelId && !preVidInfo?.basic_info?.channel?.id) {
+      throw new TRPCError({
+        code: "PARSE_ERROR",
+        cause: new CustomError({
+          message: "Unable to get channel information",
+          expose: true,
+        }),
+      });
+    }
+    const processQueue = (await ctx.prisma.$transaction(async (tx) => {
+      const prevQueue = await tx.processQueue.findUnique({
+        where: {
+          channelId_videoId_type: {
+            channelId: (channelId ??
+              preVidInfo?.basic_info?.channel?.id) as string,
+            videoId,
+            type: "video",
+          },
+        },
+      });
       if (
-        videoInfo.basic_info.id &&
-        videoInfo.basic_info.channel?.id &&
-        videoInfo.primary_info?.published.text &&
-        englishCaptionTracks?.[0]?.base_url //we won't save vods without english transcripts b/c gpt isn't good at deciphering non-english text, this is our best assumption
+        prevQueue &&
+        prevQueue.status === "pending" // || prevQueue?.status === "completed")
       ) {
-        try {
-          const vodUpsert = await ctx.prisma.videos.upsert({
-            where: { id: videoInfo.basic_info.id },
-            update: {},
-            create: {
-              id: videoInfo.basic_info.id,
-              title: videoInfo.basic_info.title,
-              published: new Date(
-                Date.parse(videoInfo.primary_info?.published.text)
-              ),
-              duration: videoInfo.basic_info.duration,
-              thumbnail:
-                videoInfo.basic_info.thumbnail?.[0]?.url?.split("?")?.[0],
-              thumbnailHeight: videoInfo.basic_info.thumbnail?.[0]?.height,
-              thumbnailWidth: videoInfo.basic_info.thumbnail?.[0]?.width,
-              Channel: {
-                connectOrCreate: {
-                  where: { id: videoInfo.basic_info.channel?.id },
-                  create: {
-                    id: videoInfo.basic_info.channel?.id,
-                    name: videoInfo.basic_info.channel?.name,
-                    hasSponsors:
-                      segments && segments.length > 0 ? true : undefined,
+        return { status: prevQueue.status };
+      }
+      const processQueue = await tx.processQueue.upsert({
+        where: prevQueue?.id
+          ? { id: prevQueue.id }
+          : {
+              channelId_videoId_type: {
+                channelId: (channelId ??
+                  preVidInfo?.basic_info?.channel?.id) as string,
+                videoId,
+                type: "video",
+              },
+            },
+        create: {
+          status: "pending",
+          videoId: videoId,
+          channelId: (channelId ??
+            preVidInfo?.basic_info?.channel?.id) as string,
+          parentProcessId: queueId,
+          type: "video",
+          timeInitialized: new Date(),
+        },
+        update: {
+          status: "pending",
+          parentProcessId: queueId,
+          timeInitialized: new Date(),
+        },
+      });
+      return processQueue;
+    })) as ProcessQueue;
+
+    //no id when returned with status as partial or completed
+    if (!processQueue?.id) {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        cause: new CustomError({
+          expose: true,
+          message: `Video is already ${
+            processQueue.status === "pending" ? "processing" : "processed"
+          }.`,
+          type: processQueue.status === "pending" ? "BOT_PENDING" : undefined,
+        }),
+      });
+    }
+
+    try {
+      const [segmentsResult, videoInfoResult] = await Promise.allSettled([
+        getVideoSegments({
+          userID: ctx.session?.user?.id ?? "sponsortubebot",
+          videoID: videoId,
+        }),
+        preVidInfo ? preVidInfo : getVideoInfo({ videoID: videoId }),
+      ]);
+
+      const videoInfo =
+        videoInfoResult.status === "fulfilled"
+          ? videoInfoResult.value
+          : undefined;
+      let segments =
+        segmentsResult.status === "fulfilled"
+          ? segmentsResult.value
+          : undefined;
+
+      if (!videoInfo) {
+        await completeQueue(processQueue, "error");
+        return;
+      }
+
+      //if no response check db
+      if (!segments) {
+        segments = (
+          await ctx.prisma.sponsorTimes.findMany({
+            where: { videoID: videoId, category: "sponsor" },
+          })
+        ).map((s) => ({
+          ...s,
+          category: "sponsor",
+          videoDuration: s.videoDuration ?? 0,
+        }));
+      }
+
+      segments = segments?.filter((s) =>
+        videoInfo.basic_info.duration
+          ? s.startTime < videoInfo.basic_info.duration
+          : true
+      );
+
+      let englishCaptionTracks = videoInfo?.captions?.caption_tracks?.filter(
+        (t) => t.language_code === "en" || t.language_code === "en-US"
+      );
+      if (
+        (englishCaptionTracks?.length ?? 0 > 0) &&
+        englishCaptionTracks?.some((c) => c.base_url.includes("kind=asr"))
+      ) {
+        //prefer asr (automatic speech recognition) tracks as manual ones may exclude sponsored segments
+        englishCaptionTracks = englishCaptionTracks?.filter((c) =>
+          c.base_url.includes("kind=asr")
+        );
+      }
+
+      const vodUpsert = async (videoInfo: VideoInfo, segments?: any[]) => {
+        if (
+          videoInfo.basic_info.id &&
+          videoInfo.basic_info.channel?.id &&
+          videoInfo.primary_info?.published.text &&
+          englishCaptionTracks?.[0]?.base_url //we won't save vods without english transcripts b/c gpt isn't good at deciphering non-english text, this is our best assumption
+        ) {
+          try {
+            const vodUpsert = await ctx.prisma.videos.upsert({
+              where: { id: videoInfo.basic_info.id },
+              update: {},
+              create: {
+                id: videoInfo.basic_info.id,
+                title: videoInfo.basic_info.title,
+                published: new Date(
+                  Date.parse(videoInfo.primary_info?.published.text)
+                ),
+                duration: videoInfo.basic_info.duration,
+                thumbnail:
+                  videoInfo.basic_info.thumbnail?.[0]?.url?.split("?")?.[0],
+                thumbnailHeight: videoInfo.basic_info.thumbnail?.[0]?.height,
+                thumbnailWidth: videoInfo.basic_info.thumbnail?.[0]?.width,
+                Channel: {
+                  connectOrCreate: {
+                    where: { id: videoInfo.basic_info.channel?.id },
+                    create: {
+                      id: videoInfo.basic_info.channel?.id,
+                      name: videoInfo.basic_info.channel?.name,
+                      hasSponsors:
+                        segments && segments.length > 0 ? true : undefined,
+                    },
                   },
                 },
               },
-            },
-            include: { Channel: true },
-          });
-          if (
-            !vodUpsert.Channel.hasSponsors &&
-            segments &&
-            segments.length > 0
-          ) {
-            try {
-              await ctx.prisma.channels.update({
-                where: { id: videoInfo.basic_info.channel.id },
-                data: { hasSponsors: true },
-              });
-            } catch (err) {}
-          }
-        } catch (err) {}
-      }
-    };
-
-    if (
-      !segments ||
-      !(segments.length > 0) ||
-      !englishCaptionTracks?.[0]?.base_url
-    ) {
-      await vodUpsert(videoInfo, segments);
-      await completeQueue(processQueue, "error");
-      return;
-    }
-
-    let captions: {
-      text: string;
-      start: number;
-      dur: number;
-    }[];
-
-    try {
-      captions = await getXMLCaptions(englishCaptionTracks[0].base_url);
-    } catch (err) {
-      await vodUpsert(videoInfo, segments);
-      console.log("XMLCAPTIONS ERR");
-      throw err;
-    }
-
-    const segmentTranscripts = segments.map((s) => ({
-      segment: { ...s },
-      ...getTranscriptsInTime({
-        transcripts: captions,
-        times: { startTimeMS: s.startTime, endTimeMS: s.endTime },
-      }),
-    }));
-
-    let errored = false;
-    const checkIfErrored = (calls: PromiseSettledResult<void>[]) => {
-      const errors = calls
-        .filter(
-          (result): result is PromiseRejectedResult =>
-            result.status === "rejected"
-        )
-        .map((e) => e.reason);
-
-      //video is errored if there was an uncaught error or if the caught custom error has a level of complete
-      errors.some((e) => {
-        if (e instanceof TRPCError && e.cause instanceof CustomError) {
-          //console.log("is custom error", e.cause);
-          if (e.cause.level === "COMPLETE") {
-            errored = true;
-            return true;
-          }
-          return false;
+              include: { Channel: true },
+            });
+            if (
+              !vodUpsert.Channel.hasSponsors &&
+              segments &&
+              segments.length > 0
+            ) {
+              try {
+                await ctx.prisma.channels.update({
+                  where: { id: videoInfo.basic_info.channel.id },
+                  data: { hasSponsors: true },
+                });
+              } catch (err) {}
+            }
+          } catch (err) {}
         }
-        errored = true;
-        return true;
-      });
+      };
 
-      return errors;
-    };
-
-    if (options?.skipAnnotations) {
-      const bot = botId ?? (await ctx.prisma.bots.findFirst())?.id;
-
-      if (!bot) {
-        errored = true;
-      } else {
-        const saveAnnotations = await Promise.allSettled([
-          saveVideoDetails({
-            ctx: { ...ctx, session: { user: { id: bot }, expires: "" } },
-            input: { videoId, segmentIDs: segments.map((s) => s.UUID) },
-            inputVideoInfo: videoInfo,
-          }),
-          ...segmentTranscripts.map(
-            async (st) =>
-              await saveTranscript({
-                input: {
-                  segmentUUID: st.segment.UUID,
-                  text: st.transcript,
-                  endTime: st.transcriptEnd,
-                  startTime: st.transcriptStart,
-                },
-                ctx: {
-                  ...ctx,
-                  session: { expires: "", user: { id: bot } },
-                },
-              })
-          ),
-        ]);
-        const errors = checkIfErrored(saveAnnotations);
-        console.log("done saving vod transcript", {
-          videoId,
-          segmentTranscriptsLength: segmentTranscripts.length,
-          errors: errors,
-          errorsLength: errors.length,
-          errored,
-        });
+      if (
+        !segments ||
+        !(segments.length > 0) ||
+        !englishCaptionTracks?.[0]?.base_url
+      ) {
+        await vodUpsert(videoInfo, segments);
+        await completeQueue(processQueue, "error");
+        return;
       }
-      await completeQueue(processQueue, errored ? "error" : "partial");
-    } else if (options?.spawnProcess) {
-      segmentTranscripts.forEach((st) =>
-        spawnSegmentAnnotationsOpenAICallProcess({
-          segment: st.segment,
-          transcript: st.transcript,
-          startTime: st.transcriptStart,
-          endTime: st.transcriptEnd,
-          videoId: videoId,
-        })
-      );
-    } else {
-      console.log(
-        "processing video segments",
-        videoId,
-        segmentTranscripts.length
-      );
-      const calls = await Promise.allSettled(
-        segmentTranscripts.map(async (st) => {
-          await getSegmentAnnotationsOpenAICall({
-            input: {
-              segment: st.segment,
-              transcript: st.transcript,
-              startTime: st.transcriptStart,
-              endTime: st.transcriptEnd,
-              videoId: videoId,
-            },
-            ctx: ctx,
-            inputVideoInfo: videoInfo,
+
+      let captions: {
+        text: string;
+        start: number;
+        dur: number;
+      }[];
+
+      try {
+        captions = await getXMLCaptions(englishCaptionTracks[0].base_url);
+      } catch (err) {
+        await vodUpsert(videoInfo, segments);
+        console.log("XMLCAPTIONS ERR");
+        throw err;
+      }
+
+      const segmentTranscripts = segments.map((s) => ({
+        segment: { ...s },
+        ...getTranscriptsInTime({
+          transcripts: captions,
+          times: { startTimeMS: s.startTime, endTimeMS: s.endTime },
+        }),
+      }));
+
+      let errored = false;
+      const checkIfErrored = (calls: PromiseSettledResult<void>[]) => {
+        const errors = calls
+          .filter(
+            (result): result is PromiseRejectedResult =>
+              result.status === "rejected"
+          )
+          .map((e) => e.reason);
+
+        //video is errored if there was an uncaught error or if the caught custom error has a level of complete
+        errors.some((e) => {
+          if (e instanceof TRPCError && e.cause instanceof CustomError) {
+            //console.log("is custom error", e.cause);
+            if (e.cause.level === "COMPLETE") {
+              errored = true;
+              return true;
+            }
+            return false;
+          }
+          errored = true;
+          return true;
+        });
+
+        return errors;
+      };
+
+      if (options?.skipAnnotations) {
+        const bot = botId ?? (await ctx.prisma.bots.findFirst())?.id;
+
+        if (!bot) {
+          errored = true;
+        } else {
+          const saveAnnotations = await Promise.allSettled([
+            saveVideoDetails({
+              ctx: { ...ctx, session: { user: { id: bot }, expires: "" } },
+              input: { videoId, segmentIDs: segments.map((s) => s.UUID) },
+              inputVideoInfo: videoInfo,
+            }),
+            ...segmentTranscripts.map(
+              async (st) =>
+                await saveTranscript({
+                  input: {
+                    segmentUUID: st.segment.UUID,
+                    text: st.transcript,
+                    endTime: st.transcriptEnd,
+                    startTime: st.transcriptStart,
+                  },
+                  ctx: {
+                    ...ctx,
+                    session: { expires: "", user: { id: bot } },
+                  },
+                })
+            ),
+          ]);
+          const errors = checkIfErrored(saveAnnotations);
+          console.log("done saving vod transcript", {
+            videoId,
+            segmentTranscriptsLength: segmentTranscripts.length,
+            errors: errors,
+            errorsLength: errors.length,
+            errored,
           });
-        })
-      );
-      const errors = checkIfErrored(calls);
-      // console.log("done processing video segments", {
-      //   videoId,
-      //   segmentTranscriptsLength: segmentTranscripts.length,
-      //   errors: errors,
-      //   errorsLength: errors.length,
-      //   errored,
-      // });
-      await completeQueue(processQueue, errored ? "error" : "completed");
-      let errormessages = errors
-        .filter((e) => e instanceof TRPCError && e.cause instanceof CustomError)
-        .map((e: TRPCError) => e.cause?.message);
-      return { errors: errormessages };
+        }
+        await completeQueue(processQueue, errored ? "error" : "partial");
+      } else if (options?.spawnProcess) {
+        segmentTranscripts.forEach((st) =>
+          spawnSegmentAnnotationsOpenAICallProcess({
+            segment: st.segment,
+            transcript: st.transcript,
+            startTime: st.transcriptStart,
+            endTime: st.transcriptEnd,
+            videoId: videoId,
+          })
+        );
+      } else {
+        console.log(
+          "processing video segments",
+          videoId,
+          segmentTranscripts.length
+        );
+        const calls = await Promise.allSettled(
+          segmentTranscripts.map(async (st) => {
+            await getSegmentAnnotationsOpenAICall({
+              input: {
+                segment: st.segment,
+                transcript: st.transcript,
+                startTime: st.transcriptStart,
+                endTime: st.transcriptEnd,
+                videoId: videoId,
+              },
+              ctx: ctx,
+              inputVideoInfo: videoInfo,
+            });
+          })
+        );
+        const errors = checkIfErrored(calls);
+        // console.log("done processing video segments", {
+        //   videoId,
+        //   segmentTranscriptsLength: segmentTranscripts.length,
+        //   errors: errors,
+        //   errorsLength: errors.length,
+        //   errored,
+        // });
+        await completeQueue(processQueue, errored ? "error" : "completed");
+        let errormessages = errors
+          .filter(
+            (e) => e instanceof TRPCError && e.cause instanceof CustomError
+          )
+          .map((e: TRPCError) => e.cause?.message);
+        return { errors: errormessages };
+      }
+    } catch (err) {
+      await completeQueue(processQueue, "error");
+      if (err instanceof TRPCError) {
+        if (err.cause instanceof CustomError) {
+          err.cause.level = "COMPLETE";
+        } else {
+          let newErr = new TRPCError({
+            message: err.message,
+            code: err.code,
+            cause: new CustomError({
+              message: "Something went wrong",
+              expose: true,
+              level: "COMPLETE",
+            }),
+          });
+          throw newErr;
+        }
+        throw err;
+      }
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        cause: new CustomError({
+          message: "Something went wrong",
+          expose: true,
+          level: "COMPLETE",
+        }),
+      });
     }
   } catch (err) {
-    await completeQueue(processQueue, "error");
-    if (err instanceof TRPCError) {
-      if (err.cause instanceof CustomError) {
-        err.cause.level = "COMPLETE";
-      } else {
-        let newErr = new TRPCError({
-          message: err.message,
-          code: err.code,
-          cause: new CustomError({
-            message: "Something went wrong",
-            expose: true,
-            level: "COMPLETE",
-          }),
-        });
-        throw newErr;
-      }
-      throw err;
+    if (!caughtCompletion) {
+      await ctx.prisma.processQueue.updateMany({
+        where: { videoId, type: "video" },
+        data: { status: "error" },
+      });
     }
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      cause: new CustomError({
-        message: "Something went wrong",
-        expose: true,
-        level: "COMPLETE",
-      }),
-    });
+    throw err;
   }
 };
 
@@ -395,12 +433,14 @@ export const processChannelVideoTranscriptAnnotations = async ({
   continueQueue,
   stopAt,
   ctx,
+  spawnProcess = true,
 }: {
   channelId: string;
   parentQueueId?: string;
   continueQueue?: true;
   stopAt?: Date;
   ctx: Context;
+  spawnProcess?: boolean;
 }) => {
   console.log(
     "process channnel video transcript annotations..",
@@ -583,7 +623,13 @@ export const processChannelVideoTranscriptAnnotations = async ({
         },
         data: { status: "completed", lastUpdated: new Date() },
       }),
-      summarizeChannelCall({ channelId }),
+      spawnProcess
+        ? summarizeChannelCall({ channelId })
+        : summarizeChannelSponsors({
+            channelId: channelId,
+            ctx,
+            overrideRateLimit: true,
+          }),
     ]);
   }
 
@@ -609,12 +655,14 @@ export const processChannel = async ({
   maxVideos = 25,
   maxPages = undefined,
   limitToPreviousDate = true,
+  spawnProcesses = true,
 }: {
   channelId: string;
   ctx: Context;
   maxPages?: number;
   maxVideos?: number;
   limitToPreviousDate?: boolean;
+  spawnProcesses?: boolean;
 }) => {
   const prevQueue = await ctx.prisma.processQueue.findUnique({
     where: {
@@ -644,6 +692,7 @@ export const processChannel = async ({
 
   const channel = await getChannel({ channelID: channelId });
   if (!channel) {
+    throw Error("channel not found");
     return;
   }
 
@@ -769,50 +818,115 @@ export const processChannel = async ({
   }
 
   const botId = (await ctx.prisma.bots.findFirst())?.id;
-  const spawnProcesses = await Promise.allSettled(
-    filteredVods.map((v) =>
-      spawnVideoProcess({
-        videoId: v.id,
-        channelId: channelId,
-        queueId: newQueue.id,
-        skipAnnotations: true,
-        botId,
-        videoInfo: (v as VideoWithVideoInfo)?.videoInfo,
-      })
-    )
-  );
+  let videoProcesses: PromiseSettledResult<void | {
+    errors: (string | undefined)[];
+  }>[] = [];
+  if (spawnProcesses) {
+    videoProcesses = await Promise.allSettled(
+      filteredVods.map((v) =>
+        spawnVideoProcess({
+          videoId: v.id,
+          channelId: channelId,
+          queueId: newQueue.id,
+          skipAnnotations: true,
+          botId,
+          videoInfo: (v as VideoWithVideoInfo)?.videoInfo,
+        })
+      )
+    );
+  } else {
+    //TODO: async promiseall this. current slow loop to avoid prisma transaction errors
+    for (let i = 0; i < filteredVods.length; i++) {
+      const v = filteredVods[i] as Video | VideoWithVideoInfo;
+      try {
+        const result = await processVideo({
+          videoId: v.id,
+          channelId: channelId,
+          queueId: newQueue.id,
+          botId,
+          suppliedVideoInfo: (v as VideoWithVideoInfo)?.videoInfo,
+          ctx,
+          options: {
+            skipAnnotations: true,
+          },
+        });
+        videoProcesses.push({ status: "fulfilled", value: result });
+      } catch (err) {
+        videoProcesses.push({ status: "rejected", reason: err });
+      }
+    }
+  }
 
   if (filteredVods.length > 0) {
-    spawnAnnotateChannelVideosProcess({ channelId, queueId: newQueue.id });
-    await ctx.prisma.processQueue.update({
-      where: { id: newQueue.id },
-      data: {
-        status: "partial",
-        lastUpdated: new Date(),
-      },
-    });
-  } else {
-    await ctx.prisma.$transaction(async (tx) => {
-      const pendingVods = await tx.processQueue.findMany({
-        where: {
-          channelId,
-          videoId: { not: "" },
-          type: "video",
-          status: { in: ["partial", "pending"] },
-        },
-        select: { id: true },
-      });
-      if (pendingVods.length > 0) {
-        spawnAnnotateChannelVideosProcess({ channelId, queueId: newQueue.id });
-      }
-      await tx.processQueue.update({
+    if (spawnProcesses) {
+      spawnAnnotateChannelVideosProcess({ channelId, queueId: newQueue.id });
+      await ctx.prisma.processQueue.update({
         where: { id: newQueue.id },
         data: {
-          status: pendingVods.length > 0 ? "partial" : "completed",
+          status: "partial",
           lastUpdated: new Date(),
         },
       });
+    } else {
+      await ctx.prisma.processQueue.update({
+        where: { id: newQueue.id },
+        data: {
+          status: "partial",
+          lastUpdated: new Date(),
+        },
+      });
+      await processChannelVideoTranscriptAnnotations({
+        channelId,
+        parentQueueId: newQueue.id,
+        ctx,
+      });
+    }
+  } else {
+    const pendingVods = await ctx.prisma.processQueue.findMany({
+      where: {
+        channelId,
+        videoId: { not: "" },
+        type: "video",
+        status: { in: ["partial", "pending"] },
+      },
+      select: { id: true },
     });
+    if (pendingVods.length > 0) {
+      if (spawnProcesses) {
+        spawnAnnotateChannelVideosProcess({
+          channelId,
+          queueId: newQueue.id,
+        });
+        await ctx.prisma.processQueue.update({
+          where: { id: newQueue.id },
+          data: {
+            status: "partial",
+            lastUpdated: new Date(),
+          },
+        });
+      } else {
+        await processChannelVideoTranscriptAnnotations({
+          channelId,
+          parentQueueId: newQueue.id,
+          ctx,
+        });
+        await ctx.prisma.processQueue.update({
+          where: { id: newQueue.id },
+          data: {
+            status: "completed",
+            lastUpdated: new Date(),
+          },
+        });
+      }
+    } else {
+      await ctx.prisma.processQueue.update({
+        where: { id: newQueue.id },
+        data: {
+          status: "completed",
+          lastUpdated: new Date(),
+        },
+      });
+    }
   }
 
   const endServerCall = performance.now();
@@ -825,7 +939,9 @@ export const processChannel = async ({
     completed: completedVodsMap.size,
     limitToPreviousDate,
     from,
-    errored: spawnProcesses?.filter((s) => s.status === "rejected")?.length,
+    errored: videoProcesses
+      ?.filter((s) => s.status === "rejected")
+      .map((e: any) => e?.["reason"]),
   });
 };
 
@@ -1076,7 +1192,11 @@ export const summarizeAllChannels = async ({ ctx }: { ctx: Context }) => {
     const tryProcessAllChannels = await Promise.allSettled(
       channelsWithSponsors.map(async (channel) => {
         await Promise.allSettled([
-          summarizeChannelSponsors({ channelId: channel.id, ctx }),
+          summarizeChannelSponsors({
+            channelId: channel.id,
+            ctx,
+            overrideRateLimit: true,
+          }),
           (async () => {
             if (!channel.thumbnail) {
               const channelInfo = await getChannel({ channelID: channel.id });
@@ -1115,6 +1235,94 @@ export const summarizeAllChannels = async ({ ctx }: { ctx: Context }) => {
       total: tryProcessAllChannels.length,
       errored: errors.length,
       success: success.length,
+    });
+  }
+
+  console.log("DONE ALL?", {
+    errored: allErrored.length,
+    success: allSuccess.length,
+  });
+};
+
+export const processAllChannels = async ({ ctx }: { ctx: Context }) => {
+  let allErrored: any[] = [];
+  let allSuccess: any[] = [];
+  let total = 0;
+  const take = 10;
+  let cursor: string | undefined;
+  let done = false;
+
+  const partialChannels = await ctx.prisma.processQueue.findMany({
+    where: {
+      type: "channel_videos",
+      status: { in: ["partial", "error"] },
+      channelId: { not: undefined },
+    },
+  });
+  console.log("processing paritalized", partialChannels.length);
+  await Promise.allSettled(
+    partialChannels.map((c) =>
+      processChannelVideoTranscriptAnnotations({
+        channelId: c.channelId as unknown as string,
+        parentQueueId: c.id,
+        ctx,
+      })
+    )
+  );
+  console.log("done with partial");
+
+  while (!done) {
+    const start = performance.now();
+    const channelsWithSponsors = await ctx.prisma.channels.findMany({
+      where: {
+        hasSponsors: true,
+        ProcessQueue: {
+          none: {
+            status: "completed",
+            type: "channel_videos",
+            timeInitialized: {
+              gt: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 4),
+            },
+          },
+        }, //exclude completed channel video processes less than 4 day ago
+      },
+      take: take + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      orderBy: { id: "asc" },
+    });
+
+    if (channelsWithSponsors.length > take) {
+      const lastChannel = channelsWithSponsors.pop();
+      cursor = lastChannel?.id;
+    } else {
+      done = true;
+    }
+
+    const tryProcessAllChannels = await Promise.allSettled(
+      channelsWithSponsors.map((channel) =>
+        processChannel({
+          channelId: channel.id,
+          limitToPreviousDate: false,
+          maxPages: 1,
+          maxVideos: 20,
+          spawnProcesses: false,
+          ctx,
+        })
+      )
+    );
+    const errors = tryProcessAllChannels.filter((p) => p.status === "rejected");
+    const success = tryProcessAllChannels.filter(
+      (p) => p.status === "fulfilled"
+    );
+
+    allErrored = [...allErrored, ...errors];
+    allSuccess = [...allSuccess, ...success];
+    total = total + tryProcessAllChannels.length;
+    console.log("DONE PART?", {
+      total,
+      errored: errors.length,
+      success: success.length,
+      timeSec: (performance.now() - start) / 1000,
     });
   }
 

@@ -8,6 +8,7 @@ const SearchPage = () => {
   const session = useSession();
   const processAll = api.video.processAll.useMutation();
   const updateAll = api.channel.summarizeAllChannels.useMutation();
+  const processAllChannels = api.channel.processAllChannels.useMutation();
   const adminTest = api.example.admin.useMutation();
 
   return (
@@ -22,14 +23,21 @@ const SearchPage = () => {
             disabled={processAll.isLoading}
             onClick={() => processAll.mutate()}
           >
-            Process All
+            Process All Segments
           </Button>
           <Button
             loading={updateAll.isLoading}
             disabled={updateAll.isLoading}
             onClick={() => updateAll.mutate()}
           >
-            Update All
+            Summarize All Channels
+          </Button>
+          <Button
+            loading={processAllChannels.isLoading}
+            disabled={processAllChannels.isLoading}
+            onClick={() => processAllChannels.mutate()}
+          >
+            Process All Channels
           </Button>
           <Button
             loading={adminTest.isLoading}
