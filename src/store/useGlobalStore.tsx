@@ -6,11 +6,17 @@ interface GlobalState {
   removeSessionRequired: () => void;
   generalDialogueTrigger: [
     number,
-    { title: string; description: string; close: string }
+    {
+      title: string;
+      description: string;
+      content?: JSX.Element;
+      close: string;
+    }
   ];
   setDialogueTrigger: (contents: {
     title: string;
     description: string;
+    content?: JSX.Element;
     close: string;
   }) => void;
   removeDialogue: () => void;
@@ -26,10 +32,14 @@ const useGlobalStore = create<GlobalState>((set) => ({
       ],
     })),
   removeSessionRequired: () => set({ sessionRequiredTrigger: [0, ""] }),
-  generalDialogueTrigger: [0, { title: "", description: "", close: "ok" }],
+  generalDialogueTrigger: [
+    0,
+    { title: "", description: "", close: "ok", contents: <></> },
+  ],
   setDialogueTrigger: (contents: {
     title: string;
     description: string;
+    content?: JSX.Element;
     close: string;
   }) =>
     set((state) => ({
@@ -37,7 +47,10 @@ const useGlobalStore = create<GlobalState>((set) => ({
     })),
   removeDialogue: () =>
     set({
-      generalDialogueTrigger: [0, { title: "", description: "", close: "ok" }],
+      generalDialogueTrigger: [
+        0,
+        { title: "", description: "", close: "ok", content: <></> },
+      ],
     }),
 }));
 
