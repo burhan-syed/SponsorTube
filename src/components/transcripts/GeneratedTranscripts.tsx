@@ -4,9 +4,10 @@ import type { Segment } from "sponsorblock-api";
 import useVideoCaptions from "@/hooks/useVideoCaptions";
 import useSegmentTranscript from "@/hooks/useSegmentTranscript";
 import { api } from "@/utils/api";
-import Switch from "../ui/common/Switch";
+import Switch from "@/components/ui/common/Switch";
 import TranscriptLoader from "../ui/loaders/transcripts/TranscriptLoader";
 import TranscriptTopBar from "./TranscriptTopBar";
+import Label from "../ui/common/Label";
 
 const GeneratedTranscripts = ({
   segment,
@@ -102,11 +103,16 @@ const GeneratedTranscripts = ({
                           <span className="mr-2">
                             This transcript was modified{" "}
                           </span>
-                          <Switch
-                            setOnCheckedChange={setDisplayOriginal}
-                            checked={displayOriginal}
-                            label="Display original"
+                          <Label
                             htmlFor={`display_original_switch_${segment.UUID}`}
+                            className="select-none pr-1"
+                          >
+                            Display Original
+                          </Label>
+                          <Switch
+                            onCheckedChange={setDisplayOriginal}
+                            checked={displayOriginal}
+                            id={`display_original_switch_${segment.UUID}`}
                             disabled={isNavDisabled}
                           />
                         </div>
