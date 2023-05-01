@@ -132,5 +132,5 @@ module.exports = {
       "3xl": ["4.8rem", { lineHeight: "5.7rem" }],
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 };
