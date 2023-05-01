@@ -11,8 +11,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import Head from "next/head";
-import AlertDialogueProvider from "@/components/ui/dialogue/AlertDialogueProvider";
-import GeneralDialogueProvider from "@/components/ui/dialogue/GeneralDialogueProvider";
+import AlertDialogueProvider from "@/components/ui/dialogue/AlertDialogProvider";
+import GeneralDialogueProvider from "@/components/ui/dialogue/GeneralDialogProvider";
 import { useEffect, useState } from "react";
 import RouteChangeLoader from "@/components/ui/loaders/RouteChangeLoader";
 

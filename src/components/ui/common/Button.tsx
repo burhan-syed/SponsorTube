@@ -29,7 +29,7 @@ type ButtonProps = ButtonBaseProps &
     disableFade?: boolean;
   };
 
-const buttonClasses = cva(
+export const buttonClasses = cva(
   "relative rounded-full inline-flex items-center justify-center transition-all ease-in-out select-none hover:shadow ",
   {
     variants: {

@@ -1,7 +1,7 @@
 import useGlobalStore from "@/store/useGlobalStore";
 import React from "react";
-import GeneralDialogueWrapper from "./GeneralDialogueWrapper";
-import GeneralDialogueContent from "./GeneralDialogueContent";
+import GeneralDialogWrapper from "./GeneralDialogWrapper";
+import GeneralDialogContent from "./GeneralDialogContent";
 
 const GeneralDialogueProvider = ({
   children,
@@ -13,16 +13,16 @@ const GeneralDialogueProvider = ({
   );
   return (
     <>
-      <GeneralDialogueWrapper
+      <GeneralDialogWrapper
         triggerAlert={dialogueTrigger[0]}
         content={
           <>
-            <GeneralDialogueContent {...dialogueTrigger[1]} />
+            <GeneralDialogContent {...dialogueTrigger[1]} />
           </>
         }
       >
         {children}
-      </GeneralDialogueWrapper>
+      </GeneralDialogWrapper>
     </>
   );
 };

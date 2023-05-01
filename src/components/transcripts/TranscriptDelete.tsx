@@ -3,9 +3,9 @@ import React, { useState } from "react";
 import { api } from "@/utils/api";
 import { BiTrashAlt } from "react-icons/bi";
 import { useSession } from "next-auth/react";
-import AlertDialogueWrapper from "../ui/dialogue/AlertDialogueWrapper";
-import LoginAlertDialogueContent from "../ui/dialogue/LoginAlertDialogueContent";
-import ActionAlertDialogueContent from "../ui/dialogue/ActionAlertDialogueContent";
+import AlertDialogueWrapper from "../ui/dialogue/AlertDialogWrapper";
+import LoginAlertDialogueContent from "../ui/dialogue/LoginAlertDialogContent";
+import ActionAlertDialogContent from "../ui/dialogue/ActionAlertDialogContent";
 import { Button } from "../ui/common/Button";
 
 interface TranscriptDeleteProps {
@@ -69,7 +69,7 @@ const TranscriptDelete = ({
         triggerAlert={triggerDeleteAlertDialogue}
         content={
           <>
-            <ActionAlertDialogueContent
+            <ActionAlertDialogContent
               action={mutate}
               description="are you sure you want to delete?"
             />
