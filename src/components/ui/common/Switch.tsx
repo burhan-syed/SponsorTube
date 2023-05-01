@@ -1,42 +1,26 @@
 import React from "react";
-import * as SwitchPrimitive from "@radix-ui/react-switch";
-import clsx from "clsx";
+import * as SwitchPrimitives from "@radix-ui/react-switch";
+import { cn } from "@/utils/cn";
 
-const Switch = ({
-  setOnCheckedChange,
-  checked,
-  label,
-  htmlFor,
-  disabled,
-}: {
-  setOnCheckedChange(c: boolean): void;
-  checked: boolean;
-  disabled?: boolean;
-  label?: string;
-  htmlFor: string;
-}) => {
-  return (
-    <>
-      {label && (
-        <label className={"select-none pr-1"} htmlFor={htmlFor}>
-          {label}
-        </label>
+const Switch = React.forwardRef<
+  React.ElementRef<typeof SwitchPrimitives.Root>,
+  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
+>(({ className, ...props }, ref) => (
+  <SwitchPrimitives.Root
+    className={cn(
+      " peer inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-th-callToAction  focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-th-textPrimary/80 data-[state=unchecked]:bg-th-additiveBackground/20 ",
+      className
+    )}
+    {...props}
+    ref={ref}
+  >
+    <SwitchPrimitives.Thumb
+      className={cn(
+        "pointer-events-none block h-5 w-5 scale-95 rounded-full bg-th-textPrimaryInverse shadow ring-0 transition-transform data-[state=checked]:translate-x-[1.99rem] data-[state=unchecked]:translate-x-[0rem]"
       )}
-
-      <SwitchPrimitive.Root
-        disabled={disabled}
-        onCheckedChange={(c) => setOnCheckedChange(c)}
-        checked={checked}
-        className={clsx(
-          "relative h-5 w-10 rounded-full bg-th-additiveBackground/20 ring-th-callToAction focus:ring-1 data-[state=checked]:bg-th-textPrimary/80",
-          disabled && "opacity-50"
-        )}
-        id={htmlFor}
-      >
-        <SwitchPrimitive.Thumb className="block h-5 w-5 translate-x-[0.01rem] scale-95 rounded-full bg-th-textPrimaryInverse shadow transition-transform data-[state=checked]:translate-x-[1.99rem]" />
-      </SwitchPrimitive.Root>
-    </>
-  );
-};
+    />
+  </SwitchPrimitives.Root>
+));
+Switch.displayName = SwitchPrimitives.Root.displayName;
 
 export default Switch;
