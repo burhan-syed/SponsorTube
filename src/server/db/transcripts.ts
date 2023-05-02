@@ -548,36 +548,58 @@ async function findDuplicateAnnotations({
 }) {
   const isBot =
     typeof isUserABot === "boolean" ? isUserABot : await isUserABot({ ctx });
-
-  const duplicates = await ctx.prisma.$transaction(
-    annotations.map((a) =>
-      ctx.prisma.transcriptAnnotations.findMany({
-        where: {
-          ...a,
-          TranscriptDetails: {
-            Transcript: {
-              segmentUUID: segmentUUID,
-              textHash: textHash,
-            },
-            userId: isBot ? ctx.session?.user?.id : undefined,
+  //console.log("FINDING?", JSON.stringify(annotations, null, 2));
+  const matchingTranscriptDetails = await ctx.prisma.transcriptDetails.findMany(
+    {
+      where: {
+        Transcript: {
+          segmentUUID: segmentUUID,
+          textHash: textHash,
+        },
+        userId: isBot ? ctx.session?.user.id : undefined,
+        Annotations: {
+          every: { text: { in: annotations.map((a) => a.text) } },
+        },
+      },
+      select: {
+        id: true,
+        Annotations: true,
+        Transcript: {
+          select: {
+            id: true,
+            segmentUUID: true,
           },
         },
-        include: {
-          TranscriptDetails: {
-            select: {
-              transcriptId: true,
-              Transcript: {
-                select: {
-                  segmentUUID: true,
-                },
-              },
-            },
-          },
-        },
-      })
-    )
+      },
+    }
   );
-  //console.log("SUBMITTED?", annotations);
+  //console.log("MATCHING??", matchingTranscriptDetails);
+  const sortedNew = annotations
+    .sort((a, b) => a.start - b.start)
+    .map((m) =>
+      [
+        ...Object.entries({
+          start: m.start,
+          end: m.end,
+          text: m.text,
+          tag: m.tag,
+        }),
+      ].sort()
+    );
+  const stringifiedNew = JSON.stringify(sortedNew);
+  const duplicates = matchingTranscriptDetails.filter((m) => {
+    const sortedOld = m.Annotations.sort((a, b) => a.start - b.start).map((m) =>
+      [
+        ...Object.entries({
+          start: m.start,
+          end: m.end,
+          text: m.text,
+          tag: m.tag,
+        }),
+      ].sort()
+    );
+    return JSON.stringify(sortedOld) === stringifiedNew;
+  });
   //console.log("DUPLICATES?", duplicates);
   return duplicates;
 }
@@ -588,14 +610,14 @@ async function findCompleteMatchingTranscriptDetailsAndVote({
   videoId,
   ctx,
 }: {
-  duplicates: (TranscriptAnnotations & {
-    TranscriptDetails: {
-      transcriptId: string;
-      Transcript: {
-        segmentUUID: string;
-      };
+  duplicates: {
+    id: string;
+    Transcript: {
+      id: string;
+      segmentUUID: string;
     };
-  })[][];
+    Annotations: TranscriptAnnotations[];
+  }[];
   annotations: AnnotationsType;
   videoId: string;
   ctx: Context;
@@ -609,58 +631,36 @@ async function findCompleteMatchingTranscriptDetailsAndVote({
       segmentUUID: string;
     }
   >();
-  duplicates.forEach((d, i) => {
-    d.forEach((t, j) => {
-      const prev = matchingTranscriptDetailsIds.get(t.transcriptDetailsId);
-      matchingTranscriptDetailsIds.set(t.transcriptDetailsId, {
-        segmentUUID: t.TranscriptDetails.Transcript.segmentUUID,
-        annotationIndex: i,
-        transcriptId: t.TranscriptDetails.transcriptId,
-        count: prev
-          ? prev.annotationIndex !== i
-            ? (prev.count += 1)
-            : prev.count
-          : 1,
-      });
+  //console.log("duplicates?", JSON.stringify(duplicates, null, 2));
+  if (duplicates?.[0]?.id) {
+    const pVote = await getUserVote({
+      input: { transcriptDetailsId: duplicates?.[0]?.id },
+      ctx,
     });
-  });
+    if (pVote.direction !== 1) {
+      await updateUserTranscriptDetailsVote({
+        input: {
+          transcriptDetailsId: duplicates?.[0]?.id,
+          direction: 1,
+          previous: pVote.direction,
+          transcriptId: duplicates?.[0]?.Transcript?.id,
+          videoId,
+          segmentUUID: duplicates?.[0]?.Transcript?.segmentUUID,
+        },
+        ctx,
+      });
+    }
 
-  await Promise.all(
-    [...matchingTranscriptDetailsIds.entries()].map(async (o) => {
-      const v = o[1];
-      const k = o[0];
-      if (v.count === annotations.length) {
-        //console.log("DUPLICATE MATCH", v);
-        const pVote = await getUserVote({
-          input: { transcriptDetailsId: k },
-          ctx,
-        });
-        if (pVote.direction !== 1) {
-          await updateUserTranscriptDetailsVote({
-            input: {
-              transcriptDetailsId: k,
-              direction: 1,
-              previous: pVote.direction,
-              transcriptId: v.transcriptId,
-              videoId,
-              segmentUUID: v.segmentUUID,
-            },
-            ctx,
-          });
-        }
-
-        const message = `These annotations were previously submitted.${
-          pVote.direction !== 1
-            ? " An upvote was placed on the previous annotations."
-            : ""
-        }`;
-        const cError = new CustomError({ message, expose: true });
-        throw new TRPCError({
-          message,
-          code: "PRECONDITION_FAILED",
-          cause: cError,
-        });
-      }
-    })
-  );
+    const message = `These annotations were previously submitted.${
+      pVote.direction !== 1
+        ? " A vote was placed on the previous annotations."
+        : ""
+    }`;
+    const cError = new CustomError({ message, expose: true });
+    throw new TRPCError({
+      message,
+      code: "PRECONDITION_FAILED",
+      cause: cError,
+    });
+  }
 }
