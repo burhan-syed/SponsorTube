@@ -106,6 +106,7 @@ const ChannelStatusToolTip = ({
         side: "bottom",
         sideOffset: 10,
       }}
+      className="rounded-full"
     >
       <Button dummyButton={true} round={true}>
         <BsInfo className="h-5 w-5 flex-none" />
@@ -204,7 +205,7 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
   ]);
 
   return (
-    <div className="flex w-full gap-2 md:w-auto flex-none">
+    <div className="flex w-full flex-none gap-2 md:w-auto">
       <div className="w-full">
         <Dropdown
           disabled={isLoading}
@@ -232,10 +233,11 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
               <span>Sync Sponsors</span>
             </button>,
           ]}
+          menuHeader={{ title: "Process Channel", description: "description" }}
           menuOptions={{
             sideOffset: 5,
             side: "bottom",
-            align: windowWidth > 768 ? "end" : "center",
+            align: windowWidth > 768 ? "end" : "start",
           }}
         >
           <ChannelProcessButtonChildren isLoading={isLoading} />

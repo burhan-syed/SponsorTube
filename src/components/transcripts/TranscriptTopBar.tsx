@@ -119,7 +119,10 @@ const TranscriptTopBar = ({
       )}
       {setEditToggled && (
         <div className={clsx(annotateToggled && "hidden")}>
-          <ToolTip text={annotateToggled ? "" : "edit text"}>
+          <ToolTip
+            text={annotateToggled ? "" : "edit text"}
+            className="rounded-full"
+          >
             <Toggle
               disabled={annotateToggled}
               className={clsx(
@@ -134,7 +137,7 @@ const TranscriptTopBar = ({
         </div>
       )}
       {setAnnotateToggled && (
-        <ToolTip text={editToggled ? "" : "annotate"}>
+        <ToolTip text={editToggled ? "" : "annotate"} className="rounded-full">
           <Toggle
             disabled={editToggled}
             pressed={annotateToggled}
