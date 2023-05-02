@@ -81,6 +81,12 @@ body {
   }
 }
 
+@media (max-width: 640px) {
+  [data-radix-popper-content-wrapper] {
+    transform: none !important;
+  }
+}
+
 .react-autosuggest__input {
   @apply m-0 ml-1 h-full w-full border-none bg-transparent outline-none sm:ml-3 sm:p-1;
 }
