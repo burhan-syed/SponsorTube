@@ -5,20 +5,30 @@ const ToolTip = ({
   children,
   text,
   manualControlMS,
+  className,
   tooltipOptions = { side: "bottom", sideOffset: 10 },
 }: {
   children: React.ReactNode;
   text: string | React.ReactNode;
+  className?: string;
   manualControlMS?: number;
   tooltipOptions?: TooltipPrimitive.TooltipContentProps;
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>();
-  const [focused, setFocused] = useState(false); 
+  const [focused, setFocused] = useState(false);
   const triggerRef = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     let timeout: any;
     if (isOpen && manualControlMS && focused) {
-      timeout = setTimeout(() => {console.log("blur?", triggerRef?.current?.blur); setIsOpen(false); setFocused(false);  if(triggerRef.current){triggerRef?.current?.blur(); triggerRef.current.tabIndex = 1}}, manualControlMS);
+      timeout = setTimeout(() => {
+        console.log("blur?", triggerRef?.current?.blur);
+        setIsOpen(false);
+        setFocused(false);
+        if (triggerRef.current) {
+          triggerRef?.current?.blur();
+          triggerRef.current.tabIndex = 1;
+        }
+      }, manualControlMS);
     }
 
     return () => {
@@ -28,7 +38,7 @@ const ToolTip = ({
 
   return (
     <TooltipPrimitive.Root open={manualControlMS ? isOpen : undefined}>
-      <TooltipPrimitive.Trigger asChild>
+      <TooltipPrimitive.Trigger asChild className={className}>
         <span
           ref={triggerRef}
           tabIndex={0}
@@ -39,7 +49,10 @@ const ToolTip = ({
             manualControlMS && setIsOpen(false);
           }}
           onFocus={() => {
-            if(manualControlMS) {setIsOpen(true); setFocused(true);}
+            if (manualControlMS) {
+              setIsOpen(true);
+              setFocused(true);
+            }
           }}
           onBlur={() => {
             manualControlMS && setIsOpen(false);
@@ -52,7 +65,7 @@ const ToolTip = ({
         {text && (
           <TooltipPrimitive.Content
             className={
-              "select-none rounded-md bg-th-tooltipBackground/80 p-2 py-1 text-xs font-semibold text-th-tooltipText transition-opacity data-[state=delayed-open]:animate-[fadeIn_100ms_ease-in-out_forwards] data-[state=instant-open]:animate-[fadeIn_20ms_ease-in-out_forwards] "
+              "z-50 select-none rounded-md bg-th-tooltipBackground/80 p-2 py-1 text-xs font-semibold text-th-tooltipText transition-opacity data-[state=delayed-open]:animate-[fadeIn_100ms_ease-in-out_forwards] data-[state=instant-open]:animate-[fadeIn_20ms_ease-in-out_forwards]"
             }
             {...tooltipOptions}
           >
