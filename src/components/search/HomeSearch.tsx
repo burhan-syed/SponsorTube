@@ -45,8 +45,8 @@ const HomeSearch = ({
         className={cn(
           "inline-flex h-11 max-w-6xl text-th-searchText md:px-0  ",
           focused
-            ? "fixed left-1/2 top-[10%] z-50 w-[95vw] -translate-x-1/2 sm:relative sm:top-[40%] sm:z-0 sm:w-full"
-            : "absolute left-1/2 top-1/4 w-[95vw] -translate-x-1/2 -translate-y-1/2 sm:top-1/2 sm:w-full "
+            ? "fixed left-1/2 top-32 z-50 w-[95vw] -translate-x-1/2 sm:relative sm:top-[40%] sm:z-0 sm:w-full"
+            : "absolute bottom-32 left-1/2 w-[95vw] -translate-x-1/2 -translate-y-1/2 sm:top-1/2 sm:w-full "
         )}
         id="HomeSearch"
       >
@@ -56,7 +56,7 @@ const HomeSearch = ({
           className={cn(
             "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border bg-th-menuBackground sm:border sm:bg-transparent sm:shadow-[inset_0_1px_2px_#eeeeee]",
             focused
-              ? "scale-100 border-th-searchBorder opacity-100 animate-in fade-in-90 slide-in-from-bottom-10 duration-300 ease-out sm:border-th-searchBorderFocus "
+              ? "scale-100 border-th-searchBorder opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:border-th-searchBorderFocus sm:slide-in-from-bottom-10 "
               : "border-th-searchBorder sm:ml-8 sm:border-r-0 "
           )}
         >
@@ -116,7 +116,7 @@ const HomeSearch = ({
           className={cn(
             "z-10 h-full rounded-r-full border border-l-0 border-th-searchBorder bg-th-searchButton px-2   after:bg-th-additiveBackground/5  hover:bg-th-searchButtonHover sm:border sm:border-th-searchBorder sm:bg-th-searchButton sm:px-4 sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus sm:focus:outline-none",
             focused &&
-              "scale-100 opacity-100 animate-in fade-in-90 slide-in-from-bottom-10 duration-300 ease-out"
+              "scale-100 opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:slide-in-from-bottom-10"
           )}
         >
           <TfiSearch className="mx-2 h-4 w-4 sm:h-5 sm:w-5" />
