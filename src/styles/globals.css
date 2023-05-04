@@ -6,11 +6,15 @@
   html {
     overflow-x: hidden;
     font-size: 62.5%;
+    width: 100%;
+    height: 100%;
   }
-}
-
-body {
-  @apply text-base;
+  body {
+    @apply h-full w-full text-base;
+  }
+  #__next {
+    @apply h-full w-full;
+  }
 }
 
 :root {
@@ -81,15 +85,21 @@ body {
   }
 }
 
+@keyframes blur {
+  0% {
+    backdrop-filter: blur(0px);
+  }
+  100% {
+    backdrop-filter: blur(5px);
+  }
+}
+
 @media (max-width: 640px) {
-  [data-radix-popper-content-wrapper] {
+  [data-radix-popper-content-wrapper][dir] {
     transform: none !important;
   }
 }
 
-.react-autosuggest__input {
-  @apply m-0 ml-1 h-full w-full border-none bg-transparent outline-none sm:ml-3 sm:p-1;
-}
 .react-autosuggest__input--focused {
   @apply border-none outline-none;
 }
@@ -98,10 +108,36 @@ body {
   @apply w-full;
 }
 
-.react-autosuggest__input {
-  @apply h-full w-full flex-none px-2 text-sm  outline-none;
-}
+#NavBarSearch {
+  .react-autosuggest__input {
+    @apply m-0 h-full w-full border-none bg-transparent px-2 pl-4 py-2 text-sm outline-none sm:pl-5 sm:py-3;
+  }
 
+  .react-autosuggest__suggestions-container--open {
+    @apply fixed left-0 top-12 z-[9999] flex w-full flex-col items-center bg-th-raisedBackground shadow-md sm:absolute sm:h-auto sm:rounded-2xl sm:border sm:py-2;
+  }
+  .react-autosuggest__suggestions-list {
+    @apply w-full list-none overflow-auto;
+  }
+  .react-autosuggest__suggestion--highlighted {
+    @apply bg-th-searchBackgroundHover;
+  }
+}
+#HomeSearch {
+  .react-autosuggest__input {
+    @apply m-0 h-full w-full border-none bg-transparent px-2 py-3 pl-5  text-sm outline-none  sm:pl-5;
+  }
+
+  .react-autosuggest__suggestions-container--open {
+    @apply fixed top-[calc(10%+5rem)] z-[9999] flex w-[95vw] flex-col items-center overflow-hidden rounded-[2.2rem] bg-th-raisedBackground py-4 shadow-md sm:absolute sm:left-0 sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:py-2;
+  }
+  .react-autosuggest__suggestions-list {
+    @apply w-full list-none divide-y overflow-auto first:border-t last:border-b sm:divide-y-0 first:sm:border-0 last:sm:border-0;
+  }
+  .react-autosuggest__suggestion--highlighted {
+    @apply bg-th-searchBackgroundHover;
+  }
+}
 /* .react-autosuggest__input--focused {
   @apply shadow-lg;
 } */
@@ -109,13 +145,3 @@ body {
 /* .react-autosuggest__input--open {
   @apply;
 } */
-
-.react-autosuggest__suggestions-container--open {
-  @apply fixed left-0 top-12 z-[9999] flex w-full flex-col items-center bg-th-raisedBackground shadow-md sm:absolute sm:h-auto sm:rounded-2xl sm:border sm:py-2;
-}
-.react-autosuggest__suggestions-list {
-  @apply w-full list-none overflow-auto;
-}
-.react-autosuggest__suggestion--highlighted {
-  @apply bg-th-searchBackgroundHover;
-}

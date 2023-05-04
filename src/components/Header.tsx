@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import Search from "./Search";
-import Auth from "./Auth";
 import clsx from "clsx";
 import { Button } from "./ui/common/Button";
 import { TfiSearch, TfiArrowLeft } from "react-icons/tfi";
 import HeaderAuth from "./auth/HeaderAuth";
 import Image from "next/image";
+import NavBarSearch from "./search/NavBarSearch";
 
 const Header = ({
   searchInitialValue = "",
@@ -63,7 +62,7 @@ const Header = ({
             showSearch ? "" : "hidden sm:block"
           )}
         >
-          <Search
+          <NavBarSearch
             initialValue={searchInitialText}
             autoFocus={showSearch}
             setAutoFocus={setShowSearch}
@@ -77,7 +76,7 @@ const Header = ({
                   e.preventDefault();
                   setShowSearch(true);
                 }}
-                className="flex h-8 flex-grow items-center justify-start rounded-lg bg-th-additiveBackground/5 px-2 sm:hidden"
+                className="flex h-8 flex-grow items-center justify-start rounded-lg bg-th-additiveBackground/5 px-2 pl-3 sm:hidden"
               >
                 {searchInitialText}
               </button>

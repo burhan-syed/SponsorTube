@@ -44,7 +44,7 @@ const Dropdown = ({
           </button>
         </DropdownMenu.Trigger>
 
-        <DropdownMenu.Portal>
+        <DropdownMenu.Portal id="dropdownportal">
           <DropdownMenu.Content
             className="fixed bottom-0 left-0 z-50 flex w-full min-w-[20rem] scale-100 flex-col overflow-hidden  rounded-t-lg bg-th-raisedBackground p-6 shadow animate-in fade-in-90 slide-in-from-bottom-10 sm:relative sm:bottom-auto sm:w-auto sm:min-w-[calc(var(--radix-popper-anchor-width))] sm:rounded-lg  sm:px-0 sm:py-1 sm:data-[side=bottom]:slide-in-from-top-2 sm:data-[side=left]:slide-in-from-right-2 sm:data-[side=right]:slide-in-from-left-2 sm:data-[side=top]:slide-in-from-bottom-2"
             {...menuOptions}
