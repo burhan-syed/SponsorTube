@@ -20,7 +20,10 @@ const ChannelHeader = ({ channel, channelId }: ChannelHeaderProps) => {
             width={channel.thumbnail?.width}
             alt=""
             unoptimized={true}
-          />
+            style={{
+              maxWidth: "100%",
+              height: "auto"
+            }} />
         )}
       </div>
       <div className="flex w-full flex-col items-center gap-y-2 md:flex-grow md:flex-row md:items-start md:justify-between">

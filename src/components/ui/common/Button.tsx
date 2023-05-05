@@ -169,7 +169,7 @@ export const Button = ({
 
   if ("href" in props && props.href !== undefined) {
     return (
-      <Link {...props}>
+      <Link {...props} legacyBehavior>
         <span className={clsx(classes)} ref={containerRef}>
           {children}
           <TouchResponse isPressed={isPressed} className={"rounded-full"} />

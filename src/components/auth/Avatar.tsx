@@ -16,6 +16,12 @@ const Avatar = ({ img, user }: { img?: string; user?: string }) => {
     <div className="h-8 w-8 flex-none">
       <Dropdown
         modal={false}
+        menuOptions={
+          {
+            sideOffset: 10,
+            align: "end"
+          }
+        }
         MenuItems={[
           <button
             className="flex items-center justify-between px-4 md:justify-start md:gap-2 md:px-4"
@@ -30,13 +36,7 @@ const Avatar = ({ img, user }: { img?: string; user?: string }) => {
         <div className="relative h-8 w-8 flex-none overflow-hidden rounded-full">
           {img && (
             <>
-              <Image
-                src={img}
-                layout="fill"
-                unoptimized
-                alt={initials}
-                className="z-10"
-              />
+              <Image src={img} unoptimized alt={initials} className="z-10" fill sizes="100vw" />
             </>
           )}
           <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none">
