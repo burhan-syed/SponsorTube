@@ -181,7 +181,7 @@ export const processVideo = async ({
       );
 
       let englishCaptionTracks = videoInfo?.captions?.caption_tracks?.filter(
-        (t) => t.language_code === "en" || t.language_code === "en-US"
+        (t) => t.language_code === "en" || t.language_code === "en-US" || t.language_code?.includes("en-")
       );
       if (
         (englishCaptionTracks?.length ?? 0 > 0) &&
