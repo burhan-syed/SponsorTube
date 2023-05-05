@@ -182,39 +182,39 @@ const useSearch = ({
     });
     // const parts = AutosuggestHighlightParse(suggestion, matches);
     return (
-      <Link href={`/search?q=${encodeURIComponent(suggestion.value)}`}>
-        <a
-          className={cn(
-            "z-10 flex items-center gap-4  p-1 px-0 sm:border-none sm:p-2",
-            variant === "HOME" ? "" : variant === "NAV" && "border-b"
-          )}
+      (<Link
+        href={`/search?q=${encodeURIComponent(suggestion.value)}`}
+        className={cn(
+          "z-10 flex items-center gap-4  p-1 px-0 sm:border-none sm:p-2",
+          variant === "HOME" ? "" : variant === "NAV" && "border-b"
+        )}>
+
+        <div>
+          <TfiSearch className="ml-4 h-4 w-4 flex-none" />
+        </div>
+        <span>
+          {parts.map((part, i) => (
+            <span
+              className={cn(part.highlight && "font-bold")}
+              key={`${i}_${part.text}`}
+            >
+              {part.text}
+            </span>
+          ))}
+        </span>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setSearchTerm(suggestion.value);
+            setAutoCompleteSearchTerm(suggestion.value);
+          }}
+          className="ml-auto mr-2 aspect-square rounded-lg bg-th-additiveBackground/5 p-2 sm:hidden"
         >
-          <div>
-            <TfiSearch className="ml-4 h-4 w-4 flex-none" />
-          </div>
-          <span>
-            {parts.map((part, i) => (
-              <span
-                className={cn(part.highlight && "font-bold")}
-                key={`${i}_${part.text}`}
-              >
-                {part.text}
-              </span>
-            ))}
-          </span>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setSearchTerm(suggestion.value);
-              setAutoCompleteSearchTerm(suggestion.value);
-            }}
-            className="ml-auto mr-2 aspect-square rounded-lg bg-th-additiveBackground/5 p-2 sm:hidden"
-          >
-            <BsBoxArrowInUpLeft />
-          </button>
-        </a>
-      </Link>
+          <BsBoxArrowInUpLeft />
+        </button>
+
+      </Link>)
     );
   };
 

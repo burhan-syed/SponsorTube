@@ -13,11 +13,11 @@ const ChannelCard = ({ channel }: ChannelCardProps) => {
   const { isPressed, containerRef } = useIsPressed();
   const thumbnail = channel.thumbnail;
   return (
-    <Link href={`/channel/${channel.id}`}>
-      <a
+    <Link
+        href={`/channel/${channel.id}`}
         ref={containerRef}
-        className="relative flex items-center p-2 text-xs text-th-textSecondary hover:cursor-pointer sm:rounded-xl"
-      >
+        className="relative flex items-center p-2 text-xs text-th-textSecondary hover:cursor-pointer sm:rounded-xl">
+
         <div className="flex aspect-video w-1/2 flex-none items-center justify-center sm:w-80 ">
           <div className="relative h-24 w-24 overflow-hidden rounded-full sm:h-32 sm:w-32 ">
             {thumbnail?.url && (
@@ -26,13 +26,15 @@ const ChannelCard = ({ channel }: ChannelCardProps) => {
                 alt=""
                 width={thumbnail?.width}
                 height={thumbnail?.height}
-                layout="responsive"
                 unoptimized={true}
-              />
+                sizes="100vw"
+                style={{
+                  width: "100%",
+                  height: "auto"
+                }} />
             )}
           </div>
         </div>
-
         <div className="flex-col">
           <div className="">
             <h3 className="text-base text-th-textPrimary ">{channel.name}</h3>
@@ -46,10 +48,9 @@ const ChannelCard = ({ channel }: ChannelCardProps) => {
 
           <p>{channel.shortDescription}</p>
         </div>
-
         <TouchResponse isPressed={isPressed} className="sm:rounded-xl" />
-      </a>
-    </Link>
+
+      </Link>
   );
 };
 

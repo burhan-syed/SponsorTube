@@ -26,13 +26,14 @@ const AutoAnnotateAll = ({
   const processVideo = api.video.processVideo.useMutation({
     async onSuccess(data, variables, context) {
       //console.log("success?", data);
-      setDisable(true);
       if (data?.errors?.length ?? 0 > 0) {
         dialogueTrigger({
           title: "The following errors were logged for one or more segments",
           description: data?.errors?.join("\n") ?? "",
           close: "ok",
         });
+      }else{
+        setDisable(true);
       }
 
       await Promise.all([

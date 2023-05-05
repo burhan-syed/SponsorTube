@@ -46,35 +46,38 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
             }}
           >
             <Link href={`/channel/${authorId}`}>
-              <a>
-                <div
-                  className={clsx(
-                    !authorThumbnail?.url && "bg-th-chipBackgroundHover",
-                    "relative h-10 w-10 flex-none overflow-hidden rounded-full "
-                  )}
-                >
-                  {authorThumbnail?.url ? (
-                    <Image
-                      src={authorThumbnail.url}
-                      unoptimized={true}
-                      alt={""}
-                      width={40}
-                      height={40}
-                    ></Image>
-                  ) : (
-                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase">
-                      {authorName.substring(0, 2)}
-                    </span>
-                  )}
-                </div>
-              </a>
+
+              <div
+                className={clsx(
+                  !authorThumbnail?.url && "bg-th-chipBackgroundHover",
+                  "relative h-10 w-10 flex-none overflow-hidden rounded-full "
+                )}
+              >
+                {authorThumbnail?.url ? (
+                  <Image
+                    src={authorThumbnail.url}
+                    unoptimized={true}
+                    alt={""}
+                    width={40}
+                    height={40}
+                    style={{
+                      maxWidth: "100%",
+                      height: "auto"
+                    }}></Image>
+                ) : (
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase">
+                    {authorName.substring(0, 2)}
+                  </span>
+                )}
+              </div>
+
             </Link>
           </ToolTip>
 
           <div className="">
             <div className="flex items-center gap-x-1">
-              <Link href={`/channel/${authorId}`}>
-                <a className="text-lg font-semibold">{authorName}</a>
+              <Link href={`/channel/${authorId}`} className="text-lg font-semibold">
+                {authorName}
               </Link>
               {isVerifiedArtist ? (
                 <>
