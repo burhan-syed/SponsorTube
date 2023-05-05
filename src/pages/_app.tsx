@@ -15,6 +15,20 @@ import AlertDialogueProvider from "@/components/ui/dialogue/AlertDialogProvider"
 import GeneralDialogueProvider from "@/components/ui/dialogue/GeneralDialogProvider";
 import { useEffect, useState } from "react";
 import RouteChangeLoader from "@/components/ui/loaders/RouteChangeLoader";
+import { Roboto, Roboto_Mono } from "next/font/google";
+
+const roboto = Roboto({
+  weight: ["100", "300", "400", "500", "700", "900"],
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-roboto",
+});
+
+const roboto_mono = Roboto_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-roboto-mono",
+});
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -48,13 +62,21 @@ const MyApp: AppType<{ session: Session | null }> = ({
 
   return (
     <>
+      <style jsx global>
+        {`
+          :root {
+            --font-roboto: ${roboto.style.fontFamily};
+            --font-roboto-mono: ${roboto_mono.style.fontFamily};
+          }
+        `}
+      </style>
       <Head>
         <meta
           name="viewport"
           content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover, user-scalable=0" //user-scalable="no"
         />
       </Head>
-      <main className="h-full w-full">
+      <main className={"h-full w-full"}>
         <CookiesProvider>
           <SessionProvider session={session}>
             <TooltipProvider>

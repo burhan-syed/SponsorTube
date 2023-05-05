@@ -94,7 +94,7 @@ const VideoSponsors = ({ videoId }: { videoId: string }) => {
         </div>
       ) : sponsors.data && sponsors.data.length > 0 ? (
         <>
-          <h2 className="hidden text-sm font-bold">sponsor information</h2>
+          <h2 className="sr-only">sponsor information</h2>
           <table className="w-full table-fixed text-xs">
             <tbody>
               {Object.values(AnnotationTags)
@@ -107,7 +107,7 @@ const VideoSponsors = ({ videoId }: { videoId: string }) => {
                 )
                 .map((type) => (
                   <tr
-                    className="border-th border-b border-t border-th-additiveBackground/10  font-bold first:border-t-0 last:border-b-0 [&_th]:w-16 [&_th]:pr-2"
+                    className="border-th border-b border-t border-th-additiveBackground/10  font-semibold first:border-t-0 last:border-b-0 [&_th]:w-16 [&_th]:pr-2"
                     key={type}
                   >
                     <th className="select-none  py-2 text-start font-semibold sm:text-sm">

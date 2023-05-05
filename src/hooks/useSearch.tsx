@@ -195,7 +195,7 @@ const useSearch = ({
         <span>
           {parts.map((part, i) => (
             <span
-              className={cn(part.highlight && "font-bold")}
+              className={cn(part.highlight && "font-semibold")}
               key={`${i}_${part.text}`}
             >
               {part.text}

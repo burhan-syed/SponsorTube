@@ -110,7 +110,7 @@ const Home: NextPage = ({}) => {
                 isLoading={videoInfo.isLoading}
               />
             </div> */}
-            <h2 className="text-center font-extrabold md:text-left md:text-lg">
+            <h2 className="font-semibold  md:text-lg sr-only md:not-sr-only">
               Sponsored Segment Transcripts
             </h2>
             <SponsorTranscripts

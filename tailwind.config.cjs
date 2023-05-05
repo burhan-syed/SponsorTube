@@ -57,8 +57,8 @@ module.exports = {
         96: "38.4rem",
       },
       fontFamily: {
-        sans: ["Roboto", ...defaultTheme.fontFamily.sans],
-        mono: ["Roboto Mono", ...defaultTheme.fontFamily.mono],
+        sans: ["var(--font-roboto)", ...defaultTheme.fontFamily.sans],
+        mono: ["var(--font-roboto-mono)", ...defaultTheme.fontFamily.mono],
       },
       colors: {
         "th-textPrimary": withOpacity("--textPrimary"),
@@ -104,14 +104,20 @@ module.exports = {
         },
       },
     },
+    fontWeight: {
+      thin: "100",
+      light: "300",
+      normal: "400",
+      semibold: "500",
+      bold: "700",
+      extrabold: "900",
+    },
     fontSize: {
       xxs: ["1.0rem", { lineHeight: "1.4rem" }],
       xs: [
         "1.2rem",
         {
           lineHeight: "1.8rem",
-          // letterSpacing: '-0.01em',
-          // fontWeight: "400",
         },
       ],
       sm: ["1.4rem", { lineHeight: "1.4rem" }],

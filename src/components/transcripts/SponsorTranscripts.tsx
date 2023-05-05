@@ -93,7 +93,7 @@ const SponsorTranscripts = ({
           ))}
         </>
       ) : (
-        <div className="flex w-full flex-grow items-center justify-center rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-3 text-center text-sm font-semibold leading-relaxed lg:leading-loose">
+        <div className="flex w-full flex-grow items-center justify-center rounded-lg border border-th-additiveBackground/10 bg-th-generalBackgroundA p-3 text-center text-sm leading-relaxed lg:leading-loose">
           <p>
             We found no sponsor segments for this video.
             <br />

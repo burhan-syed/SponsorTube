@@ -34,7 +34,7 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
         target="_blank"
         rel={"noreferrer"}
       >
-        <h1 className="text-xl font-bold">{title}</h1>
+        <h1 className="text-xl font-semibold">{title}</h1>
       </a>
       <div className="flex flex-wrap items-end justify-between">
         <div className="flex flex-none items-center gap-x-2">
@@ -76,7 +76,7 @@ const VideoInfo = ({ videoId, info }: VideoInfoProps) => {
 
           <div className="">
             <div className="flex items-center gap-x-1">
-              <Link href={`/channel/${authorId}`} className="text-lg font-semibold">
+              <Link href={`/channel/${authorId}`} className="text-lg font-normal">
                 {authorName}
               </Link>
               {isVerifiedArtist ? (

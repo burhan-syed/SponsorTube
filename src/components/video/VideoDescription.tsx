@@ -86,7 +86,7 @@ const VideoDescription = ({
                     ))}
                     <br />
                     <button
-                      className="mt-4 font-bold hover:font-extrabold"
+                      className="mt-4 font-semibold hover:font-bold"
                       onClick={() => {
                         setExpandVideoDescription(false);
                         // containerRef?.current.scrollIntoView({
@@ -101,7 +101,7 @@ const VideoDescription = ({
                   </>
                 ) : (
                   <button
-                    className="font-bold hover:font-extrabold"
+                    className="font-semibold hover:font-bold"
                     onClick={() => setExpandVideoDescription(true)}
                   >
                     Show more
