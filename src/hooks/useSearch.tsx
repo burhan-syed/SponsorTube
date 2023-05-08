@@ -12,12 +12,14 @@ const useSearch = ({
   autoFocus = false,
   setAutoFocus,
   variant,
+  noScroll = false, 
 }: {
   initialValue?: string;
   placeholder?: string;
   autoFocus?: boolean;
   setAutoFocus?(b: boolean): void;
   variant: "HOME" | "NAV";
+  noScroll?:boolean;
 }) => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -38,7 +40,7 @@ const useSearch = ({
     const html = document.querySelector("html");
     if (html) {
       html.style.overflow =
-        (results.data?.results?.length ?? 0 > 0) && autoFocus
+        ((results.data?.results?.length ?? 0 > 0) && autoFocus || (noScroll && focused))
           ? "hidden"
           : "auto";
     }
@@ -48,7 +50,12 @@ const useSearch = ({
         html.style.overflow = "auto";
       }
     };
-  }, [results.data, autoFocus]);
+  }, [results.data, autoFocus, noScroll, focused]);
+
+  const forceUnfocus = () => {
+    inputRef.current?.blur(); 
+    setFocused(false); 
+  }
 
   const onFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
@@ -110,7 +117,7 @@ const useSearch = ({
             searchContainerBounding.y + searchContainerBounding.height
         )
       ) {
-        setFocused(false);
+        forceUnfocus();
       }
     };
     if (focused) {
@@ -241,6 +248,7 @@ const useSearch = ({
     results,
     searchTerm,
     autoCompleteSearchTerm,
+    forceUnfocus
   };
 };
 
