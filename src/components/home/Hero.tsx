@@ -30,8 +30,11 @@ const Hero = () => {
     );
   }, []);
   return (
-    <div className="flex w-full flex-grow flex-col pb-10 sm:gap-y-[4vh] sm:pb-[20vh]">
-      <h1 className="text-[calc(min(18vw,10rem))] font-semibold leading-[1] sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]">
+    <div className="flex w-full flex-grow flex-col sm:gap-y-[4vh] sm:pt-[10vh] md:pt-[8vh] lg:pt-[10vh] xl:pt-[12vh] 2xl:pt-[20vh]">
+      <h1
+        className="text-[calc(min(18vw,10rem))] font-semibold leading-[1] text-th-textPrimaryInverse sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]"
+        style={{ textShadow: "1px 2px 2px #00000020" }}
+      >
         <ScrollInText
           textLines={HeroText}
           duration={[500]}
@@ -40,7 +43,10 @@ const Hero = () => {
         />
       </h1>
       <div className="mt-[8vw] flex flex-col gap-y-[3vh] sm:mt-0 sm:gap-y-[4vh] ">
-        <h2 className="px-1 text-[calc(min(4vw,2rem))] font-normal leading-[1.2] text-th-textSecondary sm:order-2 sm:text-[2.6vw] md:text-[2vw] xl:text-[1.4vw] 2xl:text-[calc(min(1.5vw,2rem))]">
+        <h2
+          className="px-1 text-[calc(min(4vw,2rem))] font-normal leading-[1.2] text-th-textPrimaryInverse sm:order-2 sm:text-[2.6vw] md:max-w-[60vw] md:text-[2vw] xl:text-[1.4vw] 2xl:text-[calc(min(1.5vw,2rem))]"
+          style={{ textShadow: "1px 2px 2px #00000020" }}
+        >
           <ScrollInText
             textLines={SubHeroText}
             initialDelay={SecondaryTextInitialDelay}

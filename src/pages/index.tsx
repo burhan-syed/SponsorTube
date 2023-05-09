@@ -4,6 +4,8 @@ import HomeSearch from "@/components/search/HomeSearch";
 import type { NextPage } from "next";
 import HomeNavBar from "@/components/home/HomeNavBar";
 import Hero from "@/components/home/Hero";
+import GradientBG from "@/components/ui/GradientBG";
+import HomeDivider from "@/components/home/HomeDivider";
 
 const Home: NextPage = () => {
   //const hello = trpc.example.hello.useQuery({ text: "from tRPC" });
@@ -49,13 +51,23 @@ const Home: NextPage = () => {
       <div className="fixed top-0 z-50 w-full ">
         <HomeNavBar />
       </div>
-      <section className="relative top-16 flex sm:items-center h-[calc(100%-6.4rem)] w-full px-4 md:px-[calc(5vw)] 2xl:max-w-[192rem] mx-auto  ">
-        <Hero />
-      </section>
-      <section className="h-[300vh]">
+      <GradientBG />
+      <div className="">
+        <section className="mx-auto h-[calc(100%-6.4rem)] w-full px-4 pt-16 sm:items-center md:px-[calc(5vw)] 2xl:max-w-[192rem]">
+          <div className="relative flex ">
+            <Hero />
+          </div>
+        </section>
+        <div className="mt-[10vw] md:w-full">
+          <HomeDivider delay={1500} />
+          <div className="h-[300vh] bg-th-baseBackground backdrop-blur-lg">
+            <section className="mx-auto w-full px-4 pt-16 sm:items-center md:px-[calc(5vw)] 2xl:max-w-[192rem]">
+              some more text
+            </section>
+          </div>
+        </div>
+      </div>
 
-      </section>
-     
       {/* <div className="absolute top-0 -z-10 min-h-screen min-w-full bg-slate-300"> */}
       {/* <div
           className="fixed right-0 origin-top-right bg-gradient-to-br from-rose-800  to-red-700 transition-transform duration-300 ease-out"

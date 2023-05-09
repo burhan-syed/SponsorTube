@@ -55,6 +55,8 @@
   --searchBackground: hsl(0, 0%, 100%);
   --searchHoverBackground: rgb(238, 238, 238);
   --searchText: hsl(0, 0%, 6.7%);
+
+  --gradientAccent: #0050BA;
 }
 
 .skeleton-box {
@@ -79,6 +81,17 @@
   animation: shimmer 2s infinite;
   content: "";
 }
+
+.radial-gradient {
+  filter: contrast(900%) brightness(900%);
+  background: radial-gradient(
+      closest-side,
+      var(--gradientAccent),
+      rgba(0, 0, 0, 0)
+    ),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 50 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.99' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
@@ -90,7 +103,7 @@
     backdrop-filter: blur(0px);
   }
   100% {
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(8px);
   }
 }
 
@@ -110,7 +123,7 @@
 
 #NavBarSearch {
   .react-autosuggest__input {
-    @apply m-0 h-full w-full border-none bg-transparent px-2 pl-4 py-2 text-sm outline-none sm:pl-5 sm:py-3;
+    @apply m-0 h-full w-full border-none bg-transparent px-2 py-2 pl-4 text-sm outline-none sm:py-3 sm:pl-5;
   }
 
   .react-autosuggest__suggestions-container--open {
@@ -125,14 +138,14 @@
 }
 #HomeSearch {
   .react-autosuggest__input {
-    @apply m-0 h-full w-full border-none bg-transparent px-2 py-3 pl-5  text-sm sm:text-lg outline-none  sm:pl-5;
+    @apply m-0 h-full w-full border-none bg-transparent px-2 py-3 pl-5  text-sm outline-none sm:pl-5  sm:text-lg;
   }
 
   .react-autosuggest__suggestions-container--open {
-    @apply fixed top-[calc(10%+5rem)] sm:top-[calc(10%+7rem)] z-[9999] flex w-[95vw] flex-col items-center overflow-hidden rounded-[2.2rem] bg-th-raisedBackground py-4 shadow-md sm:absolute sm:left-0 sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:py-2;
+    @apply fixed top-[calc(10%+5rem)] z-[9999] flex w-[95vw] flex-col items-center overflow-hidden rounded-[2.2rem] bg-th-raisedBackground py-4 shadow-md sm:absolute sm:left-0 sm:top-[calc(10%+7rem)] sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:py-2;
   }
   .react-autosuggest__suggestions-list {
-    @apply w-full list-none  overflow-auto ;
+    @apply w-full list-none  overflow-auto;
   }
   .react-autosuggest__suggestion--highlighted {
     @apply bg-th-searchBackgroundHover;

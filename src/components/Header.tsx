@@ -23,8 +23,8 @@ const Header = ({
     <>
       <header
         className={clsx(
-          "fixed top-0 z-50 flex h-12 w-screen items-center justify-between gap-2 bg-th-baseBackground sm:h-14 ",
-          showSearch ? "px-2 " : "px-4 md:pr-6 "
+          "fixed top-0 z-50 flex h-12 w-full items-center justify-between gap-2 bg-th-baseBackground sm:h-14 ",
+          showSearch ? "px-2 " : "px-4  "
         )}
       >
         {showSearch ? (
@@ -38,10 +38,7 @@ const Header = ({
             <TfiArrowLeft className=" h-4 w-4 flex-none" />
           </Button>
         ) : (
-          <Link
-            href={"/"}
-            className="flex h-1/2 items-center gap-x-1"
-          >
+          <Link href={"/"} className="flex h-1/2 items-center gap-x-1">
             <div className="aspect-square h-full">
               <Image
                 src={"/SponsorTube.svg"}
@@ -100,7 +97,7 @@ const Header = ({
         )}
         {!showSearch && <HeaderAuth />}
       </header>
-      <div className="h-12 w-screen sm:h-14"></div>
+      <div className="h-12 w-full sm:h-14"></div>
     </>
   );
 };

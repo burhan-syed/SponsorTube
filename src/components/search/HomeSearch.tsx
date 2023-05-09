@@ -39,10 +39,23 @@ const HomeSearch = ({
     noScroll: true,
   });
 
+  useEffect(() => {
+    if (focused) {
+      if (window.innerWidth > 640) {
+        inputRef.current?.scrollIntoView({
+          block: "center",
+          behavior: "smooth",
+        });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  }, [focused]);
+
   return (
     <>
       {focused && (
-        <h2 className="fixed left-[2.5vw] top-16 z-50 flex w-[95vw] max-w-6xl  items-center text-[16vw] font-semibold  leading-[1] opacity-95 sm:absolute  sm:left-0  sm:top-auto sm:w-full sm:-translate-y-full  sm:pb-[4vh] sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]">
+        <h2 className="fixed left-[2.5vw] top-16 z-50 flex w-[95vw] max-w-6xl  items-center text-[16vw] font-semibold  leading-[1] text-th-textPrimaryInverse opacity-95  sm:absolute  sm:left-0 sm:top-auto sm:w-full  sm:-translate-y-full sm:pb-[4vh] sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]">
           <div className="flex w-full items-center justify-between animate-in fade-in-0 slide-in-from-bottom-12 duration-300 ease-out ">
             <button
               onClick={(e) => {
@@ -153,14 +166,10 @@ const HomeSearch = ({
       {((results.data?.results && (results.data?.results?.length ?? 0 > 0)) ||
         results.isLoading) &&
         (focused || autoFocus) && (
-          //prevent click through and close search when clicked
-          <div
-            // onClick={(e) => {
-            //   e.stopPropagation();
-            //   setAutoFocus && setAutoFocus(false);
-            // }}
-            className="fixed inset-0 top-16 z-40 h-full w-full animate-[blur_ease-in-out_500ms_forwards] bg-th-baseBackground/90 opacity-100 fade-in-90"
-          ></div>
+          //bg blur
+          <>
+            <div className="fixed inset-0 z-40 h-full w-full animate-[blur_ease-in-out_500ms_forwards] bg-th-invertedBackground/50 opacity-100 fade-in-90"></div>
+          </>
         )}
     </>
   );
