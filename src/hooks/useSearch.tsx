@@ -193,7 +193,7 @@ const useSearch = ({
         href={`/search?q=${encodeURIComponent(suggestion.value)}`}
         className={cn(
           "z-10 flex items-center gap-4  p-1 px-0 sm:border-none sm:p-2",
-          variant === "HOME" ? "" : variant === "NAV" && "border-b"
+          variant === "HOME" ? "sm:text-lg" : variant === "NAV" && "border-b"
         )}>
 
         <div>

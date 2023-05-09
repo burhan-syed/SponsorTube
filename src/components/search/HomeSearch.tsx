@@ -36,35 +36,37 @@ const HomeSearch = ({
     setAutoFocus,
     variant: "HOME",
     placeholder: "Lookup any Channel or Video",
-    noScroll: true
+    noScroll: true,
   });
 
   return (
     <>
       {focused && (
-        <h2 className="z-50 w-[95vw] fixed top-16 flex items-center justify-between text-[18vw] font-semibold leading-[1] opacity-95 animate-in fade-in-0 slide-in-from-bottom-12 duration-300 ease-out sm:hidden">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              forceUnfocus();
-            }}
-            className="outline-none animate-in slide-in-from-right-20 duration-500"
-          >
-            <TfiAngleLeft className="h-[10vw] w-[10vw] flex-none" />
-          </button>
-          <span className="animate-in slide-in-from-left-20 duration-500 ">
-            Search
-          </span>
+        <h2 className="fixed left-[2.5vw] top-16 z-50 flex w-[95vw] max-w-6xl  items-center text-[16vw] font-semibold  leading-[1] opacity-95 sm:absolute  sm:left-0  sm:top-auto sm:w-full sm:-translate-y-full  sm:pb-[4vh] sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]">
+          <div className="flex w-full items-center justify-between animate-in fade-in-0 slide-in-from-bottom-12 duration-300 ease-out ">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                forceUnfocus();
+              }}
+              className="outline-none animate-in slide-in-from-right-20 duration-500 "
+            >
+              <TfiAngleLeft className="h-[10vw] w-[10vw]  flex-none md:h-[8vw] md:w-[8vw] lg:h-[7.6vw] lg:w-[7.6vw] xl:h-[6.6vw] xl:w-[6.6vw] 2xl:h-[calc(min(5.5vw,12rem))] 2xl:w-[calc(min(5.5vw,12rem))]" />
+            </button>
+            <span className="animate-in slide-in-from-left-20 duration-500  ">
+              Search
+            </span>
+          </div>
         </h2>
       )}
       <form
         ref={formRef}
         onSubmit={onFormSubmit}
         className={cn(
-          "flex h-11 max-w-6xl flex-grow flex-col text-th-searchText md:px-0  ",
+          "flex h-11 max-w-6xl flex-grow flex-col text-th-searchText sm:h-16 md:px-0  ",
           focused
-            ? "fixed left-1/2 top-[calc(18vw+6.4rem)] z-50 w-[95vw] -translate-x-1/2 sm:relative sm:left-auto sm:top-auto sm:w-auto sm:translate-x-0"
+            ? "fixed left-1/2 top-[calc(18vw+6.6rem)] z-50 w-[95vw] -translate-x-1/2 sm:relative sm:left-auto sm:top-auto sm:w-auto sm:translate-x-0 rounded-full sm:shadow-md "
             : " "
         )}
         id="HomeSearch"
@@ -74,27 +76,27 @@ const HomeSearch = ({
             // onFocus={() => setFocused(true)}
             // onBlur={() => setFocused(false)}
             className={cn(
-              "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border bg-th-menuBackground sm:border sm:bg-transparent sm:shadow-[inset_0_1px_2px_#eeeeee]",
+              "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border border-r-0 bg-th-menuBackground ", //sm:border sm:shadow-[inset_0_1px_2px_#eeeeee]
               focused
-                ? "scale-100 border-th-searchBorder opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none sm:border-th-searchBorderFocus "
-                : "border-th-searchBorder sm:ml-8 sm:border-r-0 "
+                ? " border-th-searchBorder opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none  sm:shadow-[inset_0_1px_2px_#eeeeee] " //sm:border-th-searchBorderFocus
+                : "border-th-searchBorder   " //sm:border-r-0 sm:ml-8
             )}
           >
-            {focused && (
-              <div
-                className="hidden h-full items-center hover:cursor-text sm:flex"
-                onClick={() => inputRef.current?.focus()}
-              >
-                <TfiSearch className="h-4 w-4 flex-none sm:ml-4 " />
-              </div>
-            )}
+            {/* {focused && ( */}
+            <div
+              className="hidden h-full items-center hover:cursor-text sm:flex"
+              onClick={() => inputRef.current?.focus()}
+            >
+              <TfiSearch className="h-4 w-4 flex-none sm:ml-4 sm:h-5 sm:w-5 " />
+            </div>
+            {/* )} */}
             <Autosuggest
               id="HomeSearch"
               inputProps={inputProps}
               suggestions={
                 results?.data?.results &&
                 (results.data?.results?.length ?? 0) > 0
-                  ? results.data?.results.map((r) => ({ value: r }))
+                  ? results.data?.results.map((r) => ({ value: r })).slice(0, 5)
                   : []
               }
               getSuggestionValue={(suggestion) => suggestion.value}
@@ -118,7 +120,7 @@ const HomeSearch = ({
             {results.isLoading &&
               autoCompleteSearchTerm.length >= 3 &&
               focused && (
-                <div className="fixed top-[calc(10%+5rem)] z-[9999] flex w-[95vw] flex-col items-center overflow-hidden rounded-[2.2rem] bg-th-raisedBackground py-2 shadow-md sm:absolute sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:py-2">
+                <div className="fixed top-[calc(10%+5rem)] z-50 flex w-[95vw] flex-col items-center overflow-hidden rounded-[2.2rem] bg-th-raisedBackground py-2 shadow-md sm:absolute sm:top-[calc(10%+7rem)] sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:py-2">
                   <div className="flex w-full flex-col">
                     <div className="pointer-events-none z-10 flex items-center gap-4 p-1 px-0 sm:border-none sm:p-2">
                       <div>
@@ -135,20 +137,18 @@ const HomeSearch = ({
             type="submit"
             aria-label="search"
             className={cn(
-              "z-10 h-full rounded-r-full border border-l-0 border-th-searchBorder bg-th-searchButton px-2   after:bg-th-additiveBackground/5  hover:bg-th-searchButtonHover sm:border sm:border-th-searchBorder sm:bg-th-searchButton sm:px-4 sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus sm:focus:outline-none",
+              "z-10 h-full rounded-r-full border border-th-searchBorder bg-th-searchButton px-2   after:bg-th-additiveBackground/5  hover:bg-th-searchButtonHover  sm:px-4 sm:focus:border-th-searchBorderFocus sm:focus:outline-none", //sm:border sm:border-th-searchBorder sm:bg-th-searchButton sm:px-4 sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus
               focused &&
-                "scale-100 opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none"
+                " opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none"
             )}
           >
-            <TfiSearch className="mx-2 h-4 w-4 sm:h-5 sm:w-5" />
+            <TfiSearch className="mx-2 h-4 w-4 flex-none sm:h-5 sm:w-5" />
           </button>
         </div>
       </form>
       {focused && (
         //placeholder
-        <div className="inline-flex h-11 max-w-6xl">
-          {/* <div className="relative m-0 h-full w-full border-none bg-transparent px-2 py-3 pl-5  text-sm outline-none  sm:pl-5"></div> */}
-        </div>
+        <div className="inline-flex h-11 max-w-6xl sm:hidden"></div>
       )}
       {((results.data?.results && (results.data?.results?.length ?? 0 > 0)) ||
         results.isLoading) &&

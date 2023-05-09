@@ -20,7 +20,8 @@ const Hero = () => {
     new Promise((res) =>
       setTimeout((r) => {
         if (el) {
-          el.className = "animate-in slide-in-from-bottom-10 ";
+          el.className =
+            "flex w-full animate-in slide-in-from-bottom-10 transition-opacity sm:relative sm:order-1";
           el.style.opacity = "100%";
           // el.style.transform = "translate(0%,0%)";
         }
@@ -29,8 +30,8 @@ const Hero = () => {
     );
   }, []);
   return (
-    <div className="flex w-full flex-grow flex-col pb-10">
-      <h1 className="text-[18vw] font-semibold leading-[1] sm:text-[10.6vw]">
+    <div className="flex w-full flex-grow flex-col pb-10 sm:gap-y-[4vh] sm:pb-[20vh]">
+      <h1 className="text-[calc(min(18vw,10rem))] font-semibold leading-[1] sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]">
         <ScrollInText
           textLines={HeroText}
           duration={[500]}
@@ -38,8 +39,8 @@ const Hero = () => {
           initialDelay={0}
         />
       </h1>
-      <div className="mt-[8vw] flex flex-col gap-y-[3vh] ">
-        <h2 className=" px-1 text-[4vw] font-normal leading-[1.2] text-th-textSecondary sm:text-[2vw]">
+      <div className="mt-[8vw] flex flex-col gap-y-[3vh] sm:mt-0 sm:gap-y-[4vh] ">
+        <h2 className="px-1 text-[calc(min(4vw,2rem))] font-normal leading-[1.2] text-th-textSecondary sm:order-2 sm:text-[2.6vw] md:text-[2vw] xl:text-[1.4vw] 2xl:text-[calc(min(1.5vw,2rem))]">
           <ScrollInText
             textLines={SubHeroText}
             initialDelay={SecondaryTextInitialDelay}
@@ -49,7 +50,7 @@ const Hero = () => {
         </h2>
         <div
           ref={searchContainerRef}
-          className="flex w-full opacity-0 transition-opacity duration-1000 ease-in-out"
+          className="flex w-full opacity-0 transition-opacity ease-in-out sm:relative sm:order-1 "
         >
           <HomeSearch />
         </div>

@@ -125,11 +125,11 @@
 }
 #HomeSearch {
   .react-autosuggest__input {
-    @apply m-0 h-full w-full border-none bg-transparent px-2 py-3 pl-5  text-sm outline-none  sm:pl-5;
+    @apply m-0 h-full w-full border-none bg-transparent px-2 py-3 pl-5  text-sm sm:text-lg outline-none  sm:pl-5;
   }
 
   .react-autosuggest__suggestions-container--open {
-    @apply fixed top-[calc(10%+5rem)] z-[9999] flex w-[95vw] flex-col items-center overflow-hidden rounded-[2.2rem] bg-th-raisedBackground py-4 shadow-md sm:absolute sm:left-0 sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:py-2;
+    @apply fixed top-[calc(10%+5rem)] sm:top-[calc(10%+7rem)] z-[9999] flex w-[95vw] flex-col items-center overflow-hidden rounded-[2.2rem] bg-th-raisedBackground py-4 shadow-md sm:absolute sm:left-0 sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:py-2;
   }
   .react-autosuggest__suggestions-list {
     @apply w-full list-none  overflow-auto ;
