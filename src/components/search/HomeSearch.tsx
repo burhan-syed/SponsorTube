@@ -64,9 +64,9 @@ const HomeSearch = ({
         ref={formRef}
         onSubmit={onFormSubmit}
         className={cn(
-          "flex h-11 max-w-6xl flex-grow flex-col text-th-searchText sm:h-16 md:px-0  ",
+          "flex h-11 max-w-6xl flex-grow flex-col text-th-searchText md:h-[calc(mac(4.6vw,4.4rem))] md:px-0  lg:h-[4.6vw]  xl:h-[3.6vw]   2xl:h-[calc(min(3.2vw,6.4rem))]  ",
           focused
-            ? "fixed left-1/2 top-[calc(18vw+6.6rem)] z-50 w-[95vw] -translate-x-1/2 sm:relative sm:left-auto sm:top-auto sm:w-auto sm:translate-x-0 rounded-full sm:shadow-md "
+            ? "fixed left-1/2 top-[calc(18vw+6.6rem)] z-50 w-[95vw] -translate-x-1/2 rounded-full sm:relative sm:left-auto sm:top-auto sm:w-auto sm:translate-x-0 sm:shadow-md "
             : " "
         )}
         id="HomeSearch"
@@ -76,7 +76,7 @@ const HomeSearch = ({
             // onFocus={() => setFocused(true)}
             // onBlur={() => setFocused(false)}
             className={cn(
-              "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border border-r-0 bg-th-menuBackground ", //sm:border sm:shadow-[inset_0_1px_2px_#eeeeee]
+              "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border border-r-0 bg-th-menuBackground sm:shadow-[inset_0_1px_2px_#eeeeee]", //sm:border sm:shadow-[inset_0_1px_2px_#eeeeee]
               focused
                 ? " border-th-searchBorder opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none  sm:shadow-[inset_0_1px_2px_#eeeeee] " //sm:border-th-searchBorderFocus
                 : "border-th-searchBorder   " //sm:border-r-0 sm:ml-8
@@ -137,7 +137,7 @@ const HomeSearch = ({
             type="submit"
             aria-label="search"
             className={cn(
-              "z-10 h-full rounded-r-full border border-th-searchBorder bg-th-searchButton px-2   after:bg-th-additiveBackground/5  hover:bg-th-searchButtonHover  sm:px-4 sm:focus:border-th-searchBorderFocus sm:focus:outline-none", //sm:border sm:border-th-searchBorder sm:bg-th-searchButton sm:px-4 sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus
+              "z-10 h-full rounded-r-full border border-th-searchBorder bg-th-searchButton px-2   after:bg-th-additiveBackground/5  hover:bg-th-searchButtonHover sm:px-4  sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus sm:focus:outline-none", //sm:border sm:border-th-searchBorder sm:bg-th-searchButton sm:px-4 sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus
               focused &&
                 " opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none"
             )}
