@@ -20,6 +20,8 @@ interface GlobalState {
     close: string;
   }) => void;
   removeDialogue: () => void;
+  homeSearchTriggered: boolean;
+  setHomeSearchTriggered: (b: boolean) => void;
 }
 
 const useGlobalStore = create<GlobalState>((set) => ({
@@ -52,6 +54,9 @@ const useGlobalStore = create<GlobalState>((set) => ({
         { title: "", description: "", close: "ok", content: <></> },
       ],
     }),
+  homeSearchTriggered: false,
+  setHomeSearchTriggered: (triggered: boolean) =>
+    set((state) => ({ homeSearchTriggered: triggered })),
 }));
 
 export default useGlobalStore;

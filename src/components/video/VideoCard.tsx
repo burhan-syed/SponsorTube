@@ -1,5 +1,5 @@
 import React from "react";
-import Image from "next/image";
+import Image from "next/legacy/image";
 import Link from "next/link";
 import useIsPressed from "@/hooks/useIsPressed";
 import TouchResponse from "@/components/ui/common/TouchResponse";
@@ -32,12 +32,13 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
           alt=""
           width={video.author?.thumbnail?.width}
           height={video.author?.thumbnail?.height}
-          // layout={"fill"}
+          layout={"fill"}
           unoptimized={true}
-          style={{
-            maxWidth: "100%",
-            height: "auto"
-          }} />
+          // style={{
+          //   maxWidth: "100%",
+          //   height: "auto"
+          // }} 
+          />
       )}
     </div>
   );
@@ -91,11 +92,13 @@ const VideoCard = ({ video, variant = "regular" }: VideoCardProps) => {
               width={videoThumbnail?.width}
               height={videoThumbnail?.height}
               unoptimized={true}
-              sizes="100vw"
-              style={{
-                width: "100%",
-                height: "auto"
-              }} />
+              layout="fill"
+              // sizes="100vw"
+              // style={{
+              //   width: "100%",
+              //   height: "auto"
+              // }} 
+              />
           )}
 
         </Link>

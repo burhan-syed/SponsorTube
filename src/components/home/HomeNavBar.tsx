@@ -3,10 +3,16 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import HeaderAuth from "../auth/HeaderAuth";
 import { cn } from "@/utils/cn";
+import useGlobalStore from "@/store/useGlobalStore";
+import HomeNav from "./HomeNav";
+import HomeHeaderAuth from "../auth/HomeHeaderAuth";
+import ThemeSwitcher from "../ui/ThemeSwitcher";
 
 const HomeNavBar = () => {
-  const [invertText, setInvertText] = useState(true);
-  const [blurBG, setBlurBG] = useState(false);
+  const [invert, setInvert] = useState(true);
+  const homeSearchTriggered = useGlobalStore(
+    (store) => store.homeSearchTriggered
+  );
   useEffect(() => {
     function convertRemToPixels(rem: number) {
       return (
@@ -15,31 +21,22 @@ const HomeNavBar = () => {
     }
     let windowHeight = window.innerHeight;
     let windowWidth = window.innerWidth;
-    let triggerY =
-      windowWidth > 768
-        ? windowHeight - 0.1 * windowWidth + convertRemToPixels(6.4) //100vh - 10vw(home spacing) - 6.4rem(navbar height)
-        : 4 * windowWidth - 1.5 * windowWidth - 1 * windowWidth;
+    let triggerY = convertRemToPixels(6.4);
     const onScroll = () => {
-      console.log("s?", window.scrollY, windowHeight, windowWidth, triggerY);
       const scrollY = window.scrollY;
-      if (scrollY > convertRemToPixels(6.4)) {
-        setBlurBG(true);
-      } else {
-        setBlurBG(false);
-      }
       if (scrollY > triggerY) {
-        setInvertText(false);
+        setInvert(false);
       } else {
-        setInvertText(true);
+        setInvert(true);
       }
     };
     const onResize = () => {
       windowHeight = window.innerHeight;
       windowWidth = window.innerWidth;
-      triggerY =
-        windowWidth > 768
-          ? windowHeight - 0.1 * windowWidth + convertRemToPixels(6.4)
-          : 4 * windowWidth - 1.5 * windowWidth - 1 * windowWidth;
+      // triggerY =
+      //   windowWidth > 768
+      //     ? windowHeight - 0.1 * windowWidth + convertRemToPixels(6.4)
+      //     : 4 * windowWidth - 1.5 * windowWidth - 1 * windowWidth;
     };
     window.addEventListener("scroll", onScroll);
     window.addEventListener("resize", onResize);
@@ -53,9 +50,10 @@ const HomeNavBar = () => {
   return (
     <nav
       className={cn(
-        "relative flex h-16 w-full items-center justify-center bg-th-baseBackground/0  transition-colors duration-500",
-        invertText ? "text-th-textPrimaryInverse" : "text-th-textPrimary",
-        blurBG ? "backdrop-blur-sm" : "backdrop-blur-none"
+        "relative flex h-16 w-full items-center justify-center transition-colors duration-500 ",
+        invert || homeSearchTriggered
+          ? " text-th-textPrimaryInverse sm:bg-transparent "
+          : "text-th-textPrimary before:pointer-events-none before:absolute before:h-[150%] before:w-full before:bg-gradient-to-b before:from-th-baseBackground before:via-transparent before:to-transparent  sm:backdrop-blur-none"
       )}
     >
       <div className="relative flex h-full w-full items-center justify-between px-4 md:px-[calc(5vw)] 2xl:max-w-[192rem]">
@@ -71,6 +69,7 @@ const HomeNavBar = () => {
               style={{
                 width: "100%",
                 height: "auto",
+                filter: `drop-shadow(1px 2px 2px #00000020)`,
               }}
             />
           </div>
@@ -79,9 +78,29 @@ const HomeNavBar = () => {
             style={{ textShadow: "1px 2px 2px #00000020" }}
           >
             SponsorTube
+            <span className="pl-0.5 text-sm font-thin">beta</span>
           </span>
         </Link>
-        <HeaderAuth />
+
+        <div className="items-center gap-x-6 sm:flex  ">
+          {/* <ul
+            className={cn(
+              " hidden sm:flex items-center gap-x-6 text-lg font-semibold",
+              homeSearchTriggered
+                ? "text-th-textPrimaryInverse"
+                : "text-th-textPrimary text-opacity-80"
+            )}
+          >
+            <li>
+              <Link href={"/recent"}>Recents</Link>
+            </li>
+            <li>
+              <Link href={"/about"}>About</Link>
+            </li>
+          </ul> */}
+          <HomeNav />
+
+        </div>
       </div>
     </nav>
   );

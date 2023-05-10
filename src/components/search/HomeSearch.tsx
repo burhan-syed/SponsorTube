@@ -4,6 +4,7 @@ import { TfiSearch, TfiClose, TfiAngleLeft } from "react-icons/tfi";
 import { Button } from "@/components/ui/common/Button";
 import { cn } from "@/utils/cn";
 import useSearch from "@/hooks/useSearch";
+import useGlobalStore from "@/store/useGlobalStore";
 
 const HomeSearch = ({
   initialValue = "",
@@ -39,9 +40,14 @@ const HomeSearch = ({
     noScroll: true,
   });
 
+  const setHomeSearchTriggered = useGlobalStore(
+    (store) => store.setHomeSearchTriggered
+  );
+
   useEffect(() => {
     if (focused) {
-      if (window.innerWidth > 640) {
+      setHomeSearchTriggered(true);
+      if (window.innerWidth > 768) {
         inputRef.current?.scrollIntoView({
           block: "center",
           behavior: "smooth",
@@ -49,6 +55,8 @@ const HomeSearch = ({
       } else {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
+    } else {
+      setHomeSearchTriggered(false);
     }
   }, [focused]);
 
@@ -67,9 +75,11 @@ const HomeSearch = ({
                 forceUnfocus();
               }}
               className="outline-none animate-in slide-in-from-right-20 duration-500 "
-
             >
-              <TfiAngleLeft className="h-[10vw] w-[10vw]  flex-none md:h-[8vw] md:w-[8vw] lg:h-[7.6vw] lg:w-[7.6vw] xl:h-[6.6vw] xl:w-[6.6vw] 2xl:h-[calc(min(5.5vw,12rem))] 2xl:w-[calc(min(5.5vw,12rem))]" style={{filter: `drop-shadow(1px 2px 2px #00000020)`}} />
+              <TfiAngleLeft
+                className="h-[10vw] w-[10vw]  flex-none md:h-[8vw] md:w-[8vw] lg:h-[7.6vw] lg:w-[7.6vw] xl:h-[6.6vw] xl:w-[6.6vw] 2xl:h-[calc(min(5.5vw,12rem))] 2xl:w-[calc(min(5.5vw,12rem))]"
+                style={{ filter: `drop-shadow(1px 2px 2px #00000020)` }}
+              />
             </button>
             <span className="animate-in slide-in-from-left-20 duration-500  ">
               Search
@@ -172,7 +182,7 @@ const HomeSearch = ({
         (focused || autoFocus) && (
           //bg blur
           <>
-            <div className="fixed inset-0 z-40 h-full w-full animate-[blur_ease-in-out_500ms_forwards] bg-th-baseBackground/50 opacity-100 fade-in-90"></div>
+            <div className="fixed inset-0 z-40 h-full w-full animate-[blur_ease-in-out_500ms_forwards] bg-th-invertedBackground/50 opacity-100 fade-in-90"></div>
           </>
         )}
     </>

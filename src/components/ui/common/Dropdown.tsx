@@ -33,7 +33,7 @@ const Dropdown = ({
         <DropdownMenu.Trigger disabled={disabled} asChild>
           <button
             ref={containerRef}
-            className="relative flex w-full flex-none items-center justify-center rounded-full bg-th-chipBackground hover:bg-th-chipBackgroundHover"
+            className="relative flex w-full flex-none items-center justify-center rounded-full hover:bg-th-chipBackgroundHover outline-none"
             aria-label="options"
           >
             {cloneElement(children, {

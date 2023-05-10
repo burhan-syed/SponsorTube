@@ -1,0 +1,99 @@
+import React from "react";
+import Dropdown from "../ui/common/Dropdown";
+import { BiLogIn, BiLogOut, BiMenu } from "react-icons/bi";
+import {MdVideoLabel} from "react-icons/md"
+import { signIn, signOut, useSession } from "next-auth/react";
+import { cn } from "@/utils/cn";
+import useGlobalStore from "@/store/useGlobalStore";
+import useIsMobileWindow from "@/hooks/useIsMobileWindow";
+import Link from "next/link";
+
+const DropdownButton = ({ isopen }: { isopen?: boolean }) => {
+  const homeSearchTriggered = useGlobalStore(
+    (store) => store.homeSearchTriggered
+  );
+  const isMobile = useIsMobileWindow();
+
+  return (
+    <div className="relative flex h-8 w-8 flex-none items-center justify-center overflow-hidden md:h-10 md:w-10">
+      <BiMenu
+        className={
+          "h-6 w-6 flex-none " +
+          (homeSearchTriggered || (isopen && isMobile)
+            ? "text-th-textPrimaryInverse"
+            : "text-th-textPrimary")
+        }
+        style={
+          homeSearchTriggered || (isopen && isMobile)
+            ? { filter: `drop-shadow(1px 2px 2px #00000020)` }
+            : {}
+        }
+      />
+    </div>
+  );
+};
+
+const HomeNav = () => {
+  const isMobile = useIsMobileWindow();
+  const session = useSession();
+  return (
+    <div
+      className={
+        "flex h-8 w-8 flex-none items-center justify-center rounded-full md:h-10 md:w-10"
+      }
+    >
+      <Dropdown
+        modal={isMobile}
+        menuOptions={{
+          sideOffset: 10,
+          align: "end",
+        }}
+        MenuItems={[
+          <button
+            className={
+              (session.status === "loading" ? "skeleton-box " : "") +
+              "flex items-center justify-between px-4 md:justify-start md:gap-2 md:px-4"
+            }
+            key={
+              session.status === "authenticated"
+                ? "sign out"
+                : session.status === "unauthenticated"
+                ? "sign in"
+                : ""
+            }
+            onClick={() => {
+              session.status === "unauthenticated"
+                ? signIn()
+                : session.status === "authenticated" && signOut();
+            }}
+          >
+            {session.status === "authenticated" && (
+              <BiLogOut className="h-5 w-5 flex-none" />
+            )}
+            {session.status === "unauthenticated" && (
+              <BiLogIn className="h-5 w-5 flex-none" />
+            )}
+            <span>
+              {session.status === "authenticated"
+                ? "Sign out"
+                : session.status === "unauthenticated"
+                ? "Sign in"
+                : ""}
+            </span>
+          </button>,
+          <Link
+            href={"/recent"}
+            className="flex items-center justify-between px-4 md:justify-start md:gap-2 md:px-4"
+          >
+            <MdVideoLabel className="w-5 h-5 flex-none"/>
+            Recent Videos
+          </Link>,
+        ]}
+      >
+        <DropdownButton />
+      </Dropdown>
+    </div>
+  );
+};
+
+export default HomeNav;
