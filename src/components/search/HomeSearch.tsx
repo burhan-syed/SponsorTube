@@ -55,7 +55,10 @@ const HomeSearch = ({
   return (
     <>
       {focused && (
-        <h2 className="fixed left-[2.5vw] top-16 z-50 flex w-[95vw] max-w-6xl  items-center text-[16vw] font-semibold  leading-[1] text-th-textPrimaryInverse opacity-95  sm:absolute  sm:left-0 sm:top-auto sm:w-full  sm:-translate-y-full sm:pb-[4vh] sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]">
+        <h2
+          className="fixed left-[2.5vw] top-16 z-50 flex w-[95vw] max-w-6xl  items-center text-[16vw] font-semibold  leading-[1] text-th-textPrimaryInverse opacity-95  sm:absolute  sm:left-0 sm:top-auto sm:w-full  sm:-translate-y-full sm:pb-[4vh] sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]"
+          style={{ textShadow: "1px 2px 2px #00000020" }}
+        >
           <div className="flex w-full items-center justify-between animate-in fade-in-0 slide-in-from-bottom-12 duration-300 ease-out ">
             <button
               onClick={(e) => {
@@ -64,8 +67,9 @@ const HomeSearch = ({
                 forceUnfocus();
               }}
               className="outline-none animate-in slide-in-from-right-20 duration-500 "
+
             >
-              <TfiAngleLeft className="h-[10vw] w-[10vw]  flex-none md:h-[8vw] md:w-[8vw] lg:h-[7.6vw] lg:w-[7.6vw] xl:h-[6.6vw] xl:w-[6.6vw] 2xl:h-[calc(min(5.5vw,12rem))] 2xl:w-[calc(min(5.5vw,12rem))]" />
+              <TfiAngleLeft className="h-[10vw] w-[10vw]  flex-none md:h-[8vw] md:w-[8vw] lg:h-[7.6vw] lg:w-[7.6vw] xl:h-[6.6vw] xl:w-[6.6vw] 2xl:h-[calc(min(5.5vw,12rem))] 2xl:w-[calc(min(5.5vw,12rem))]" style={{filter: `drop-shadow(1px 2px 2px #00000020)`}} />
             </button>
             <span className="animate-in slide-in-from-left-20 duration-500  ">
               Search
@@ -150,7 +154,7 @@ const HomeSearch = ({
             type="submit"
             aria-label="search"
             className={cn(
-              "z-10 h-full rounded-r-full border border-th-searchBorder bg-th-searchButton px-2   after:bg-th-additiveBackground/5  hover:bg-th-searchButtonHover sm:px-4  sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus sm:focus:outline-none", //sm:border sm:border-th-searchBorder sm:bg-th-searchButton sm:px-4 sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus
+              "h-full rounded-r-full border border-th-searchBorder bg-th-searchButton px-2   after:bg-th-additiveBackground/5  hover:bg-th-searchButtonHover sm:px-4  sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus sm:focus:outline-none", //sm:border sm:border-th-searchBorder sm:bg-th-searchButton sm:px-4 sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus
               focused &&
                 " opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none"
             )}
@@ -168,7 +172,7 @@ const HomeSearch = ({
         (focused || autoFocus) && (
           //bg blur
           <>
-            <div className="fixed inset-0 z-40 h-full w-full animate-[blur_ease-in-out_500ms_forwards] bg-th-invertedBackground/50 opacity-100 fade-in-90"></div>
+            <div className="fixed inset-0 z-40 h-full w-full animate-[blur_ease-in-out_500ms_forwards] bg-th-baseBackground/50 opacity-100 fade-in-90"></div>
           </>
         )}
     </>

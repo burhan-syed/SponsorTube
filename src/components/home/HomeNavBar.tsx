@@ -17,9 +17,7 @@ const HomeNavBar = () => {
     let windowWidth = window.innerWidth;
     let triggerY =
       windowWidth > 768
-        ? windowHeight -
-          0.1 * windowWidth +
-          convertRemToPixels(6.4)  //100vh - 10vw(home spacing) - 6.4rem(navbar height)
+        ? windowHeight - 0.1 * windowWidth + convertRemToPixels(6.4) //100vh - 10vw(home spacing) - 6.4rem(navbar height)
         : 4 * windowWidth - 1.5 * windowWidth - 1 * windowWidth;
     const onScroll = () => {
       console.log("s?", window.scrollY, windowHeight, windowWidth, triggerY);
@@ -40,9 +38,7 @@ const HomeNavBar = () => {
       windowWidth = window.innerWidth;
       triggerY =
         windowWidth > 768
-          ? windowHeight -
-            0.1 * windowWidth +
-            convertRemToPixels(6.4) 
+          ? windowHeight - 0.1 * windowWidth + convertRemToPixels(6.4)
           : 4 * windowWidth - 1.5 * windowWidth - 1 * windowWidth;
     };
     window.addEventListener("scroll", onScroll);
@@ -78,7 +74,10 @@ const HomeNavBar = () => {
               }}
             />
           </div>
-          <span className="block text-lg font-semibold sm:text-2xl ">
+          <span
+            className="block text-lg font-semibold sm:text-2xl "
+            style={{ textShadow: "1px 2px 2px #00000020" }}
+          >
             SponsorTube
           </span>
         </Link>

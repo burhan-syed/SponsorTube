@@ -13,7 +13,7 @@ const Avatar = ({ img, user }: { img?: string; user?: string }) => {
       : user.substring(0, 2)
     : "??";
   return (
-    <div className="h-8 w-8 flex-none">
+    <div className="h-8 w-8 flex-none shadow-[1px_2px_2px_#00000020] rounded-full">
       <Dropdown
         modal={false}
         menuOptions={
