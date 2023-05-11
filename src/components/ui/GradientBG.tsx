@@ -32,7 +32,7 @@ const GradientBG = () => {
     <div
       className={cn(
         "absolute -z-10 w-full opacity-95 transition-[filter] animate-in fade-in-50 slide-in-from-top-2 duration-500  ",
-        blurred ? "blur-3xl" : ""
+        blurred ? "blur-3xl" : "blur-[1px]"
       )}
     >
       <div className="max-w-screen relative h-[200vh] overflow-hidden">
