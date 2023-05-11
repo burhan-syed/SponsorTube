@@ -1,4 +1,4 @@
-import React, { createRef, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import ScrollInText from "../ui/ScrollInText";
 import HomeSearch from "../search/HomeSearch";
 const Hero = () => {
@@ -22,7 +22,7 @@ const Hero = () => {
       setTimeout((r) => {
         if (el) {
           el.className =
-            "flex w-full animate-in slide-in-from-bottom-10 transition-opacity sm:relative sm:order-1";
+            "flex w-full animate-in slide-in-from-bottom-10 transition-opacity duration-200 sm:relative sm:order-1";
           el.style.opacity = "100%";
           // el.style.transform = "translate(0%,0%)";
         }
@@ -57,7 +57,7 @@ const Hero = () => {
         </h2>
         <div
           ref={searchContainerRef}
-          className="flex w-full opacity-0 transition-opacity ease-in-out sm:relative sm:order-1 "
+          className="flex w-full opacity-0 transition-opacity duration-200 ease-in-out sm:relative sm:order-1 "
         >
           <HomeSearch />
         </div>

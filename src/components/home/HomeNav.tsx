@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Dropdown from "../ui/common/Dropdown";
-import { BiLogIn, BiLogOut, BiMenu } from "react-icons/bi";
-import {MdVideoLabel} from "react-icons/md"
+import { BiLogIn, BiLogOut, BiMenu, BiX } from "react-icons/bi";
+import { MdVideoLabel } from "react-icons/md";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { cn } from "@/utils/cn";
 import useGlobalStore from "@/store/useGlobalStore";
 import useIsMobileWindow from "@/hooks/useIsMobileWindow";
 import Link from "next/link";
@@ -13,20 +12,21 @@ const DropdownButton = ({ isopen }: { isopen?: boolean }) => {
     (store) => store.homeSearchTriggered
   );
   const isMobile = useIsMobileWindow();
-
   return (
     <div className="relative flex h-8 w-8 flex-none items-center justify-center overflow-hidden md:h-10 md:w-10">
-      <BiMenu
-        className={
-          "h-6 w-6 flex-none " +
-          (homeSearchTriggered || (isopen && isMobile)
-            ? "text-th-textPrimaryInverse"
-            : "text-th-textPrimary")
-        }
-        style={
-          {filter: `drop-shadow(1px 2px 2px #00000020)`}
-        }
-      />
+      {isopen && isMobile ? (
+        <BiX className="h-6 w-6 flex-none text-th-textPrimaryInverse" />
+      ) : (
+        <BiMenu
+          className={
+            "h-6 w-6 flex-none " +
+            (homeSearchTriggered
+              ? "text-th-textPrimaryInverse"
+              : "text-th-textPrimary")
+          }
+          style={{ filter: `drop-shadow(1px 2px 2px #00000020)` }}
+        />
+      )}
     </div>
   );
 };
@@ -83,7 +83,7 @@ const HomeNav = () => {
             href={"/recent"}
             className="flex items-center justify-between px-4 md:justify-start md:gap-2 md:px-4"
           >
-            <MdVideoLabel className="w-5 h-5 flex-none"/>
+            <MdVideoLabel className="h-5 w-5 flex-none" />
             Recent Videos
           </Link>,
         ]}
