@@ -4,6 +4,8 @@ import { clsx } from "clsx";
 import { TfiSearch, TfiClose } from "react-icons/tfi";
 import { Button } from "@/components/ui/common/Button";
 import useSearch from "@/hooks/useSearch";
+import { RemoveScroll } from "react-remove-scroll";
+import useIsMobileWindow from "@/hooks/useIsMobileWindow";
 
 const NavBarSearch = ({
   initialValue = "",
@@ -19,6 +21,7 @@ const NavBarSearch = ({
     inputRef,
     onFormSubmit,
     focused,
+    forceUnfocus,
     inputProps,
     suggestions,
     onSuggestionsFetchRequested,
@@ -30,8 +33,10 @@ const NavBarSearch = ({
     searchTerm,
     autoCompleteSearchTerm,
   } = useSearch({ initialValue, autoFocus, setAutoFocus, variant: "HOME" });
-
+  const isMobile = useIsMobileWindow(); 
   return (
+    <RemoveScroll forwardProps enabled={focused && isMobile}>
+
     <>
       <form
         ref={formRef}
@@ -104,17 +109,19 @@ const NavBarSearch = ({
 
       {((results.data?.results && (results.data?.results?.length ?? 0 > 0)) ||
         results.isLoading) &&
-        (focused || autoFocus) && (
+        (focused) && (
           //prevent click through and close search when clicked
           <div
             onClick={(e) => {
               e.stopPropagation();
+              forceUnfocus(); 
               setAutoFocus && setAutoFocus(false);
             }}
             className="fixed left-0 top-12 z-50 h-full w-full animate-[blur_ease-in-out_200ms_forwards] bg-th-invertedBackground/50 opacity-100 fade-in-90 sm:hidden"
           ></div>
         )}
     </>
+    </RemoveScroll>
   );
 };
 

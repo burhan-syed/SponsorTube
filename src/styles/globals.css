@@ -7,14 +7,13 @@
     font-size: 62.5%;
   }
   body {
-    @apply h-full w-full text-base;
+    @apply text-base;
   }
-  #__next {
-    @apply h-full w-full;
-  }
+
 }
 
 :root {
+  --removed-body-scroll-bar-size: 0px;
   --textPrimary: 3, 3, 3; /*rgba(3,3,3)*/
   --textPrimaryInverse: 255, 255, 255; /*rgba(255, 255, 255)*/
   --textSecondary: 96, 96, 96; /*rgba(96, 96, 96)*/

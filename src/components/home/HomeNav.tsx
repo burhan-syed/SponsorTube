@@ -24,9 +24,7 @@ const DropdownButton = ({ isopen }: { isopen?: boolean }) => {
             : "text-th-textPrimary")
         }
         style={
-          homeSearchTriggered || (isopen && isMobile)
-            ? { filter: `drop-shadow(1px 2px 2px #00000020)` }
-            : {}
+          {filter: `drop-shadow(1px 2px 2px #00000020)`}
         }
       />
     </div>

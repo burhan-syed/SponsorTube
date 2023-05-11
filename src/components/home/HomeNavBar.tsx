@@ -50,14 +50,14 @@ const HomeNavBar = () => {
   return (
     <nav
       className={cn(
-        "relative flex h-16 w-full items-center justify-center transition-colors duration-500 ",
+        "relative flex h-16 w-full items-center justify-center transition-colors duration-500 pointer-events-none pr-[var(--removed-body-scroll-bar-size)] ",
         invert || homeSearchTriggered
           ? " text-th-textPrimaryInverse sm:bg-transparent "
-          : "text-th-textPrimary before:pointer-events-none before:absolute before:h-[150%] before:w-full before:bg-gradient-to-b before:from-th-baseBackground before:via-transparent before:to-transparent  sm:backdrop-blur-none"
+          : "text-th-textPrimary before:absolute before:h-[200%] before:w-full before:bg-gradient-to-b before:from-th-baseBackground before:via-transparent before:to-transparent  sm:backdrop-blur-none"
       )}
     >
       <div className="relative flex h-full w-full items-center justify-between px-4 md:px-[calc(5vw)] 2xl:max-w-[192rem]">
-        <Link href={"/"} className="flex h-1/2 items-center gap-x-1">
+        <Link href={"/"} className="flex h-1/2 items-center gap-x-1 pointer-events-auto">
           <div className="aspect-square h-full">
             <Image
               src={"/SponsorTube.svg"}
@@ -82,7 +82,7 @@ const HomeNavBar = () => {
           </span>
         </Link>
 
-        <div className="items-center gap-x-6 sm:flex  ">
+        <div className="items-center gap-x-6 sm:flex pointer-events-auto  ">
           {/* <ul
             className={cn(
               " hidden sm:flex items-center gap-x-6 text-lg font-semibold",

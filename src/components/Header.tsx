@@ -24,7 +24,7 @@ const Header = ({
       <header
         className={clsx(
           "fixed top-0 z-50 flex h-12 w-full items-center justify-between gap-2 bg-th-baseBackground sm:h-14 ",
-          showSearch ? "px-2 " : "px-4  "
+          showSearch ? "px-2 pr-[calc(0.8rem+var(--removed-body-scroll-bar-size))] " : "px-4 pr-[calc(1.6rem+var(--removed-body-scroll-bar-size))] "
         )}
       >
         {showSearch ? (

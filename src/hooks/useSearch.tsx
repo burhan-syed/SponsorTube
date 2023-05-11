@@ -36,21 +36,6 @@ const useSearch = ({
   useEffect(() => {
     autoFocus && inputRef?.current?.focus();
   }, [autoFocus]);
-  useEffect(() => {
-    const html = document.querySelector("html");
-    if (html) {
-      html.style.overflow =
-        ((results.data?.results?.length ?? 0 > 0) && autoFocus || (noScroll && focused))
-          ? "hidden"
-          : "auto";
-    }
-
-    return () => {
-      if (html) {
-        html.style.overflow = "auto";
-      }
-    };
-  }, [results.data, autoFocus, noScroll, focused]);
 
   const forceUnfocus = () => {
     inputRef.current?.blur(); 
