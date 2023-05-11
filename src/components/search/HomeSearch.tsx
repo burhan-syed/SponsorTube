@@ -181,14 +181,12 @@ const HomeSearch = ({
           //placeholder
           <div className="inline-flex h-11 max-w-6xl sm:hidden"></div>
         )}
-        {((results.data?.results && (results.data?.results?.length ?? 0 > 0)) ||
-          results.isLoading) &&
-          (focused || autoFocus) && (
-            //bg blur
-            <>
-              <div className="fixed inset-0 z-40 h-full w-full animate-[blur_ease-in-out_500ms_forwards] bg-th-invertedBackground/50 opacity-100 fade-in-90"></div>
-            </>
-          )}
+        {(focused || autoFocus) && (
+          //bg blur
+          <>
+            <div className="fixed inset-0 z-40 h-full w-full animate-[blur_ease-in-out_500ms_forwards] bg-th-invertedBackground/50 opacity-100 fade-in-90"></div>
+          </>
+        )}
       </>
     </RemoveScroll>
   );

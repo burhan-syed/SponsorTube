@@ -12,14 +12,14 @@ const useSearch = ({
   autoFocus = false,
   setAutoFocus,
   variant,
-  noScroll = false, 
+  noScroll = false,
 }: {
   initialValue?: string;
   placeholder?: string;
   autoFocus?: boolean;
   setAutoFocus?(b: boolean): void;
   variant: "HOME" | "NAV";
-  noScroll?:boolean;
+  noScroll?: boolean;
 }) => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -38,9 +38,9 @@ const useSearch = ({
   }, [autoFocus]);
 
   const forceUnfocus = () => {
-    inputRef.current?.blur(); 
-    setFocused(false); 
-  }
+    inputRef.current?.blur();
+    setFocused(false);
+  };
 
   const onFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
@@ -122,11 +122,15 @@ const useSearch = ({
   useEffect(() => {
     const onKeyPress = (e: KeyboardEvent) => {
       const cValue = inputRef.current?.value;
-      if (e.key === "Escape" && !cValue) {
+      if (e.key === "Tab") {
+        const active = document.activeElement;
+        if (formRef.current && active && !formRef.current.contains(active)) {
+          forceUnfocus();
+        }
+      } else if (e.key === "Escape" && !cValue) {
         escapeCount.current += 1;
         if (escapeCount.current > 1) {
-          inputRef.current?.blur();
-          setFocused(false);
+          forceUnfocus();
         }
       } else if (cValue) {
         escapeCount.current = 0;
@@ -174,13 +178,14 @@ const useSearch = ({
     });
     // const parts = AutosuggestHighlightParse(suggestion, matches);
     return (
-      (<Link
+      <Link
+        tabIndex={-1}
         href={`/search?q=${encodeURIComponent(suggestion.value)}`}
         className={cn(
           "z-10 flex items-center gap-4  p-1 px-0 sm:border-none sm:p-2",
           variant === "HOME" ? "sm:text-lg" : variant === "NAV" && "border-b"
-        )}>
-
+        )}
+      >
         <div>
           <TfiSearch className="ml-4 h-4 w-4 flex-none" />
         </div>
@@ -195,6 +200,7 @@ const useSearch = ({
           ))}
         </span>
         <button
+          tabIndex={-1}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -205,8 +211,7 @@ const useSearch = ({
         >
           <BsBoxArrowInUpLeft />
         </button>
-
-      </Link>)
+      </Link>
     );
   };
 
@@ -233,7 +238,7 @@ const useSearch = ({
     results,
     searchTerm,
     autoCompleteSearchTerm,
-    forceUnfocus
+    forceUnfocus,
   };
 };
 
