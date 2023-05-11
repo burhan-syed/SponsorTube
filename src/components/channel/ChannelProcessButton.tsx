@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/common/Button";
 import ChannelStats from "./ChannelStatsWrapper/ChannelStats";
 import useGlobalStore from "@/store/useGlobalStore";
 import { CustomError } from "@/server/common/errors";
+import useIsMobileWindow from "@/hooks/useIsMobileWindow";
 
 const ChannelProcessButtonChildren = ({
   isopen,
@@ -22,25 +23,27 @@ const ChannelProcessButtonChildren = ({
   isLoading: boolean;
 }) => {
   return (
-    <span className="flex flex-none select-none items-center gap-2 px-4 py-2">
-      <span className="md:hidden">Process Channel Sponsors</span>
-      <span className="hidden md:block">Process Sponsors</span>
+    <div className="rounded-full bg-th-chipBackground flex w-full items-center justify-center">
+      <div className="flex flex-none select-none items-center gap-2 px-4 py-2 ">
+        <span className="md:hidden">Process Channel Sponsors</span>
+        <span className="hidden md:block">Process Sponsors</span>
 
-      <>
-        {isLoading ? (
-          <div className="animate-spin">
-            <BiRefresh className="h-5 w-5 flex-none -scale-x-100  " />
-          </div>
-        ) : (
-          <BiChevronDown
-            className={clsx(
-              "h-5 w-5 flex-none transition-transform ease-in-out",
-              isopen ? "rotate-180" : ""
-            )}
-          />
-        )}
-      </>
-    </span>
+        <>
+          {isLoading ? (
+            <div className="animate-spin">
+              <BiRefresh className="h-5 w-5 flex-none -scale-x-100  " />
+            </div>
+          ) : (
+            <BiChevronDown
+              className={clsx(
+                "h-5 w-5 flex-none transition-transform ease-in-out",
+                isopen ? "rotate-180" : ""
+              )}
+            />
+          )}
+        </>
+      </div>
+    </div>
   );
 };
 
@@ -118,7 +121,7 @@ const ChannelStatusToolTip = ({
 const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [waitToFinish, setWaitToFinish] = useState(false);
-  const windowWidth = useWindowWidth({ initialWidth: 400 });
+  const isMobile = useIsMobileWindow(); 
   const utils = api.useContext();
   const dialogueTrigger = useGlobalStore((store) => store.setDialogueTrigger);
   const { startMonitor, channelStatusQuery } = useMonitorChannel({ channelId });
@@ -209,6 +212,7 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
       <div className="w-full">
         <Dropdown
           disabled={isLoading}
+          modal={isMobile}
           MenuItems={[
             <button
               disabled={isLoading}
@@ -237,7 +241,8 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
           menuOptions={{
             sideOffset: 5,
             side: "bottom",
-            align: windowWidth > 768 ? "end" : "start",
+            align: "end",
+            
           }}
         >
           <ChannelProcessButtonChildren isLoading={isLoading} />

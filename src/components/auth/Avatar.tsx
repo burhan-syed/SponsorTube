@@ -3,8 +3,10 @@ import React from "react";
 import Dropdown from "@/components/ui/common/Dropdown";
 import { signOut } from "next-auth/react";
 import { BiLogOut } from "react-icons/bi";
+import useIsMobileWindow from "@/hooks/useIsMobileWindow";
 
 const Avatar = ({ img, user }: { img?: string; user?: string }) => {
+  const isMobile = useIsMobileWindow();
   const initials = user
     ? user?.split(" ")?.length >= 2
       ? `${user?.split(" ")?.[0]?.[0] ?? "?"}${
@@ -15,7 +17,7 @@ const Avatar = ({ img, user }: { img?: string; user?: string }) => {
   return (
     <div className="h-8 w-8 flex-none shadow-[1px_2px_2px_#00000020] rounded-full">
       <Dropdown
-        modal={false}
+        modal={isMobile}
         menuOptions={
           {
             sideOffset: 10,

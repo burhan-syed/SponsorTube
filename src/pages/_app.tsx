@@ -88,7 +88,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
                   </>
                 </GeneralDialogueProvider>
               </AlertDialogueProvider>
-              <ReactQueryDevtools initialIsOpen={false} />
+              {/* <ReactQueryDevtools initialIsOpen={false} /> */}
             </TooltipProvider>
           </SessionProvider>
         </CookiesProvider>
