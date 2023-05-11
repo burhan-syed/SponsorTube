@@ -16,6 +16,7 @@ import GeneralDialogueProvider from "@/components/ui/dialogue/GeneralDialogProvi
 import { useEffect, useState } from "react";
 import RouteChangeLoader from "@/components/ui/loaders/RouteChangeLoader";
 import { Roboto, Roboto_Mono } from "next/font/google";
+import Footer from "@/components/Footer";
 
 const roboto = Roboto({
   weight: ["100", "300", "400", "500", "700", "900"],
@@ -85,6 +86,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
                   <>
                     <RouteChangeLoader routeIsLoading={routeIsLoading} />
                     <Component {...pageProps} />
+                    <Footer/>
                   </>
                 </GeneralDialogueProvider>
               </AlertDialogueProvider>
