@@ -7,7 +7,13 @@ import useGlobalStore from "@/store/useGlobalStore";
 import useIsMobileWindow from "@/hooks/useIsMobileWindow";
 import Link from "next/link";
 
-const DropdownButton = ({ isopen }: { isopen?: boolean }) => {
+const DropdownButton = ({
+  isopen,
+  invert,
+}: {
+  isopen?: boolean;
+  invert?: boolean;
+}) => {
   const homeSearchTriggered = useGlobalStore(
     (store) => store.homeSearchTriggered
   );
@@ -20,7 +26,9 @@ const DropdownButton = ({ isopen }: { isopen?: boolean }) => {
         <BiMenu
           className={
             "h-6 w-6 flex-none " +
-            (homeSearchTriggered
+            (invert
+              ? "text-th-PrimaryInverse sm:text-th-textPrimary"
+              : homeSearchTriggered
               ? "text-th-textPrimaryInverse"
               : "text-th-textPrimary")
           }
@@ -31,7 +39,7 @@ const DropdownButton = ({ isopen }: { isopen?: boolean }) => {
   );
 };
 
-const HomeNav = () => {
+const HomeNav = ({ invert }: { invert?: boolean }) => {
   const isMobile = useIsMobileWindow();
   const session = useSession();
   return (
@@ -88,7 +96,7 @@ const HomeNav = () => {
           </Link>,
         ]}
       >
-        <DropdownButton />
+        <DropdownButton invert={invert} />
       </Dropdown>
     </div>
   );

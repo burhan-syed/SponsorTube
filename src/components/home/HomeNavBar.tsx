@@ -98,7 +98,7 @@ const HomeNavBar = () => {
               <Link href={"/about"}>About</Link>
             </li>
           </ul> */}
-          <HomeNav />
+          <HomeNav invert={invert}/>
 
         </div>
       </div>
