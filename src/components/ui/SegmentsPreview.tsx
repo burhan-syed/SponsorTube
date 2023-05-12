@@ -15,7 +15,8 @@ const SegmentsPreview = ({
 }) => {
   const { ref, inView } = useInView();
   const { segments, savedSegments } = useSponsorBlock({
-    videoID: inView ? videoId : "",
+    videoID: videoId,
+    enabled: inView
   });
   const sponsors = api.video.getSponsors.useQuery(
     { videoId: videoId },

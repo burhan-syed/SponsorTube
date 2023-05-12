@@ -8,9 +8,11 @@ import { api } from "@/utils/api";
 const useSponsorBlock = ({
   videoID,
   categories = ["sponsor"],
+  enabled = true
 }: {
   videoID: string | undefined;
   categories?: Category[];
+  enabled?:boolean;
 }) => {
   const [cookie, setCookie] = useCookies(["sb-id"]);
   const [userID, setUserID] = useState(() => uuidv4());
@@ -28,7 +30,7 @@ const useSponsorBlock = ({
   const savedSegments = api.video.segments.useQuery(
     { videoID: videoID ?? ""},
     {
-      enabled: !!videoID,
+      enabled: !!videoID && enabled,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
@@ -40,7 +42,7 @@ const useSponsorBlock = ({
     ["sponsorblock", videoID, categories, userID],
     () => getVideoSegments({ userID, videoID, categories }),
     {
-      enabled: !!userID && !!videoID,
+      enabled: !!userID && !!videoID && enabled,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
