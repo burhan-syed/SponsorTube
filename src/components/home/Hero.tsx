@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import ScrollInText from "../ui/ScrollInText";
+import SlideUpText from "../ui/SlideUpText";
 import HomeSearch from "../search/HomeSearch";
 const Hero = () => {
   const HeroText = ["Uncover the", "Brands Behind", "Video Sponsors"];
@@ -36,7 +36,7 @@ const Hero = () => {
         className="text-[calc(min(18vw,10rem))] font-semibold leading-[1] text-th-textPrimaryInverse sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]"
         style={{ textShadow: "1px 2px 2px #00000020" }}
       >
-        <ScrollInText
+        <SlideUpText
           textLines={HeroText}
           duration={[500]}
           delay={HeroTextDelays}
@@ -48,7 +48,7 @@ const Hero = () => {
           className="px-1 text-[calc(min(4vw,2rem))] font-normal leading-[1.2] text-th-textPrimaryInverse sm:order-2 sm:text-[2.6vw] md:max-w-[60vw] md:text-[2vw] xl:text-[1.4vw] 2xl:text-[calc(min(1.5vw,2rem))]"
           style={{ textShadow: "1px 2px 2px #00000020" }}
         >
-          <ScrollInText
+          <SlideUpText
             textLines={SubHeroText}
             initialDelay={SecondaryTextInitialDelay}
             delay={SecondaryTextDelays}

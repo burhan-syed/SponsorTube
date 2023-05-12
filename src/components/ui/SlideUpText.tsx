@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 
-const ScrollInText = ({
+const SlideUpText = ({
   textLines,
   duration = [1000],
   delay = [300],
@@ -52,4 +52,4 @@ const ScrollInText = ({
   );
 };
 
-export default ScrollInText;
+export default SlideUpText;
