@@ -21,21 +21,21 @@ const ScrollComponent = ({
   );
   useEffect(() => {
     let start = window.scrollY;
-    const containerWidth = containerRef.current?.clientWidth ?? 0;
-    const translateWidth = translateRef.current?.clientWidth ?? 0;
-    const translateHeight = translateRef.current?.clientHeight ?? 0;
+    let containerWidth = containerRef.current?.clientWidth ?? 0;
+    let translateWidth = translateRef.current?.clientWidth ?? 0;
+    let translateHeight = translateRef.current?.clientHeight ?? 0;
 
-    const yPos =
+    let yPos =
       (translateRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY;
-    const fromBottom = start >= yPos;
+    let fromBottom = start >= yPos;
 
-    const translateXStart = (containerWidth / translateWidth) * 100 - 100;
+    let translateXStart = (containerWidth / translateWidth) * 100 - 100;
 
-    const totalWindowScroll = document.documentElement.scrollHeight;
-    const scrollWindowHeight = window.innerHeight;
+    let totalWindowScroll = document.documentElement.scrollHeight;
+    let scrollWindowHeight = window.innerHeight;
 
-    const endAtScrollY = fromBottom
-      ? yPos - scrollWindowHeight * (1-completeAt)
+    let endAtScrollY = fromBottom
+      ? yPos - scrollWindowHeight * (1 - completeAt)
       : Math.min(
           yPos + translateHeight - scrollWindowHeight * completeAt,
           totalWindowScroll - scrollWindowHeight
@@ -54,22 +54,57 @@ const ScrollComponent = ({
         translateRef.current.style.transform = `translate(${translate}%,0%)`;
       }
     };
+
+    const onResize = () => {
+      start = window.scrollY;
+      containerWidth = containerRef.current?.clientWidth ?? 0;
+      translateWidth = translateRef.current?.clientWidth ?? 0;
+      translateHeight = translateRef.current?.clientHeight ?? 0;
+
+      yPos =
+        (translateRef.current?.getBoundingClientRect().top ?? 0) +
+        window.scrollY;
+      fromBottom = start >= yPos;
+
+      translateXStart = (containerWidth / translateWidth) * 100 - 100;
+
+      totalWindowScroll = document.documentElement.scrollHeight;
+      scrollWindowHeight = window.innerHeight;
+
+      endAtScrollY = fromBottom
+        ? yPos - scrollWindowHeight * (1 - completeAt)
+        : Math.min(
+            yPos + translateHeight - scrollWindowHeight * completeAt,
+            totalWindowScroll - scrollWindowHeight
+          );
+      onScroll();
+    };
+
     if (inView) {
       window.addEventListener("scroll", onScroll);
+      window.addEventListener("resize", onResize);
+      if (translateRef.current) {
+        translateRef.current.style.opacity = "100%";
+      }
     } else if (translateRef.current) {
       translateRef.current.style.transform = `translate(${translateXStart}%,0%)`;
     }
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, [inView]);
 
   return (
-    <div ref={setRefs} className="h-full w-full">
+    <div
+      ref={setRefs}
+      className="h-full w-full overflow-visible"
+      style={{ whiteSpace: "nowrap" }}
+    >
       <div
         ref={translateRef}
-        style={{ willChange: "transform" }}
-        className="inline-block"
+        style={{ opacity: "0" }}
+        className="inline-block transition-[opacity] duration-500"
       >
         {children}
       </div>
