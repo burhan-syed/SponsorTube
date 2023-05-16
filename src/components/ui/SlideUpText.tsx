@@ -30,7 +30,7 @@ const SlideUpText = ({
       {textLines.map((t, i) => (
         <span key={t} className="flex flex-wrap">
           {t.split(" ").map((t2, j) => (
-            <span key={t2} className="overflow-clip ">
+            <span key={t2} className="">
               <span
                 key={`${t2}_text`}
                 ref={(el) =>
