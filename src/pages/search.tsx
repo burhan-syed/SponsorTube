@@ -20,7 +20,7 @@ const SearchPage = () => {
     }
   );
   return (
-    <div>
+    <div className="min-h-screen">
       <Header searchInitialValue={searchQuery} />
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-2">
         {searchResults.isLoading ? (

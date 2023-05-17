@@ -40,7 +40,7 @@ const RecentsPage = () => {
     )
     .flat() as VideoCardInfo[];
   return (
-    <div>
+    <div className="min-h-screen">
       <Header />
       <section className="mx-auto my-2 px-4 md:px-[calc(10vw)] lg:my-4 2xl:max-w-[192rem]">
         {recentVods.isLoading ? (

@@ -56,7 +56,7 @@ const HomeNavBar = ({noinvert}: {noinvert?:boolean}) => {
           : "text-th-textPrimary before:absolute before:h-[200%] before:w-full before:bg-gradient-to-b before:from-th-baseBackground before:via-transparent before:to-transparent  sm:backdrop-blur-none"
       )}
     >
-      <div className="relative flex h-full w-full items-center justify-between px-4 md:px-[calc(5vw)] 2xl:max-w-[192rem]">
+      <div className="relative flex h-full w-full items-center justify-between px-4 md:px-[5vw] 2xl:max-w-[192rem]">
         <Link href={"/"} className="flex h-1/2 items-center gap-x-1 pointer-events-auto">
           <div className="aspect-square h-full">
             <Image
