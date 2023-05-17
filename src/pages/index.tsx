@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Head from "next/head";
-import type {
-  GetServerSidePropsContext,
-  NextPage,
-} from "next";
+import type { GetServerSidePropsContext, NextPage } from "next";
 import { createServerSideHelpers } from "@trpc/react-query/server";
 import { prisma } from "@/server/db";
 import SuperJSON from "superjson";
@@ -32,6 +29,7 @@ const Home: NextPage = () => {
       <div className="fixed top-0 z-50 w-full ">
         <HomeNavBar />
       </div>
+
       <div className="relative">
         <HeroBG />
         <section className="mx-auto w-full px-4 pt-16 sm:items-center md:px-[5vw] 2xl:max-w-[192rem]">
@@ -74,11 +72,11 @@ const Home: NextPage = () => {
                         "text-h2  group absolute right-[10vw] top-0 flex items-center gap-x-2 font-semibold text-th-textPrimary "
                       }
                     >
-                      <span className="translate-x-0 text-p transition-transform ease-in-out group-hover:-translate-x-2 duration-500">
+                      <span className="text-p translate-x-0 transition-transform duration-500 ease-in-out group-hover:-translate-x-2">
                         View All
                       </span>
-                      <div className="aspect-square h-full rounded-lg lg:rounded-2xl bg-th-textPrimary">
-                        <FaChevronRight className=" p-1 lg:p-2 text-th-textPrimaryInverse" />
+                      <div className="aspect-square h-full rounded-lg bg-th-textPrimary lg:rounded-2xl">
+                        <FaChevronRight className=" p-1 text-th-textPrimaryInverse lg:p-2" />
                       </div>
                     </Link>
                   </div>
@@ -115,9 +113,9 @@ export async function getServerSideProps(
     withSponsors: true,
   });
   context.res.setHeader(
-    'Cache-Control',
-    'public, s-maxage=3600, stale-while-revalidate=59'
-)
+    "Cache-Control",
+    "public, s-maxage=3600, stale-while-revalidate=59"
+  );
   return {
     props: {
       trpcState: helpers.dehydrate(),

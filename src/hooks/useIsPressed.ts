@@ -8,8 +8,16 @@ const useIsPressed = ({ delay = true }: useIsPressedProps = {}) => {
   const containerRef = useRef<HTMLDivElement | HTMLButtonElement>() as any; //React.MutableRefObject<HTMLDivElement | HTMLButtonElement>;
   const timeoutRef = useRef<NodeJS.Timeout>();
   const [isPressed, setIsPressed] = useState(false);
+  const triggerPressTimeoutRef = useRef<NodeJS.Timeout>();
+  const triggerPress = () => {
+    setIsPressed(true);
+    triggerPressTimeoutRef.current = setTimeout(() => setIsPressed(false), 100);
+  };
   useEffect(() => {
     const onMouseDown = () => {
+      if (triggerPressTimeoutRef.current) {
+        clearTimeout(triggerPressTimeoutRef.current);
+      }
       if (timeoutRef.current && delay) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = undefined;
@@ -51,7 +59,7 @@ const useIsPressed = ({ delay = true }: useIsPressedProps = {}) => {
     };
   }, [isPressed, delay]);
 
-  return { containerRef, isPressed };
+  return { containerRef, isPressed, triggerPress };
 };
 
 export default useIsPressed;

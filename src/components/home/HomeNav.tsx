@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import Dropdown from "../ui/common/Dropdown";
 import { BiLogIn, BiLogOut, BiMenu, BiX } from "react-icons/bi";
 import { MdVideoLabel } from "react-icons/md";
+import { BsFillQuestionCircleFill } from "react-icons/bs";
 import { signIn, signOut, useSession } from "next-auth/react";
 import useGlobalStore from "@/store/useGlobalStore";
 import useIsMobileWindow from "@/hooks/useIsMobileWindow";
@@ -89,10 +90,19 @@ const HomeNav = ({ invert }: { invert?: boolean }) => {
           </button>,
           <Link
             href={"/recent"}
+            key={"recents link"}
             className="flex items-center justify-between px-4 md:justify-start md:gap-2 md:px-4"
           >
             <MdVideoLabel className="h-5 w-5 flex-none" />
             Recent Videos
+          </Link>,
+          <Link
+            href={"/faqs"}
+            key={"faqs link"}
+            className="flex items-center justify-between px-4 md:justify-start md:gap-2 md:px-4"
+          >
+            <BsFillQuestionCircleFill className="h-5 w-5 flex-none" />
+            FAQs
           </Link>,
         ]}
       >

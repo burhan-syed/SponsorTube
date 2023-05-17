@@ -4,17 +4,18 @@ import type { AccordionItemType } from "@/components/ui/common/accordion/Accordi
 import { NextPage } from "next";
 import { BsInputCursorText } from "react-icons/bs";
 import { MdEditNote } from "react-icons/md";
-
-import Link from "next/link";
+import { cn } from "@/utils/cn";
 
 const faqGeneralItems: AccordionItemType[] = [
   {
     value: "data",
     trigger: "How does SponsorTube get its data?",
     content: (
-      <p>
-        We use a combination of four sources: <br />{" "}
-        <ol className="list-decimal">
+      <>
+        <p>
+          We use a combination of four sources: <br />
+        </p>
+        <ol className="text-base lg:text-lg">
           <li>
             SponsorBlock helps us identify portions of each video that may
             include sponsor information in the form of ad reads.
@@ -30,7 +31,7 @@ const faqGeneralItems: AccordionItemType[] = [
           </li>
           <li>Manual data entry by SponsorTube users and administration.</li>
         </ol>
-      </p>
+      </>
     ),
   },
   {
@@ -150,31 +151,35 @@ const faqTranscriptAnnotations: AccordionItemType[] = [
     value: "define_terms",
     trigger: "What is a segment, transcript, or annotation?",
     content: (
-      <p>
-        We define these terms as the following:
-        <br />
-        <ul>
+      <>
+        <p>
+          We define these terms as the following:
+          <br />
+        </p>
+        <ul className="text-base lg:text-lg">
           <li>{`A “segment” is a portion of the video dedicated to a sponsored ad read.`}</li>
           <li>{`A “transcript” is the spoken word taken from video captions during the segment.`}</li>
           <li>{`An “annotation” is an identification of a key information from the transcript such as the brands, products, offers, or urls relevant to the sponsor.`}</li>
         </ul>
-      </p>
+      </>
     ),
   },
   {
     value: "define_types",
     trigger: "What is a brand, product, offer of url?",
     content: (
-      <p>
-        These are the current annotation types on SponsorTube. We define these
-        terms as the following: <br />
-        <ul>
+      <>
+        <p>
+          These are the current annotation types on SponsorTube. We define these
+          terms as the following: <br />
+        </p>
+        <ul className="text-base lg:text-lg">
           <li>{`A “brand” is the identifying company sponsoring the segment. A brand must be identified with every annotation submission.`}</li>
           <li>{`A “product” is the specific item or service being promoted during the segment.`}</li>
           <li>{`An “offer” is the incentive being provided to engage with the sponsor. This is generally a discount.`}</li>
           <li>{`A “url” is the call to action link for the audience to follow and engage with the sponsor. This may also be a reference to the link such as the link “down below” in the description.`}</li>
         </ul>
-      </p>
+      </>
     ),
   },
   {
@@ -229,13 +234,25 @@ const faqTranscriptAnnotations: AccordionItemType[] = [
       <p>
         First identify if there is an error with a misspelling in the transcript
         or inaccurate annotations. <br />
-        {`If the transcript is invalid, press the “edit text” button (`}
-        <BsInputCursorText className="inline" />
-        {`) and correct the transcript. For more information on what a transcript should look like find the “What should the transcript look like” FAQ below.`}
+        {`If the transcript is invalid, press the “edit text” button `}
+        {
+          <span className="inline-flex items-center">
+            {`(`}
+            <BsInputCursorText />
+            {`)`}
+          </span>
+        }
+        {` and correct the transcript. For more information on what a transcript should look like find the “What should the transcript look like” FAQ below.`}
         <br />
-        {`If the annotations are invalid press the “annotate” button (`}
-        <MdEditNote className="inline" />
-        {`). Please note the transcript should be corrected prior to adding or fixing annotations. Then use the dropdown to select the type of annotation and highlight the relevant text in the transcript. To remove a highlighted annotation simply press on it. To quickly remove all instances of the highlighted annotation press the relevant button at the bottom of the transcript. All submitted annotations must have at least one brand identified.`}
+        {`If the annotations are invalid press the “annotate” button `}
+        {
+          <span className="inline-flex items-center">
+            {`(`}
+            <MdEditNote />
+            {`)`}
+          </span>
+        }
+        {`. Please note the transcript should be corrected prior to adding or fixing annotations. Then use the dropdown to select the type of annotation and highlight the relevant text in the transcript. To remove a highlighted annotation simply press on it. To quickly remove all instances of the highlighted annotation press the relevant button at the bottom of the transcript. All submitted annotations must have at least one brand identified.`}
       </p>
     ),
   },
@@ -319,9 +336,14 @@ const Faqs: NextPage = () => {
   return (
     <>
       <div className="fixed top-0 z-50 w-full ">
-        <HomeNavBar />
+        <HomeNavBar noinvert={true} />
       </div>
-      <section className="2xl:max-w-[192rem mx-auto w-full px-4 pt-16 sm:items-center md:px-[5vw]">
+      <section
+        className={cn(
+          "mx-auto min-h-screen w-full px-[5vw] py-20 2xl:max-w-[192rem]",
+          "prose max-w-full prose-h3:my-1 prose-headings:font-normal prose-p:text-base  prose-p:leading-relaxed prose-p:text-th-textSecondary prose-a:text-th-callToAction prose-a:no-underline prose-p:lg:text-lg"
+        )}
+      >
         <h1 className="text-h1">FAQs</h1>
         <h2 className="text-h2">General</h2>
         <Accordion items={faqGeneralItems} />

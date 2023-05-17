@@ -8,7 +8,7 @@ import HomeNav from "./HomeNav";
 import HomeHeaderAuth from "../auth/HomeHeaderAuth";
 import ThemeSwitcher from "../ui/ThemeSwitcher";
 
-const HomeNavBar = () => {
+const HomeNavBar = ({noinvert}: {noinvert?:boolean}) => {
   const [invert, setInvert] = useState(true);
   const homeSearchTriggered = useGlobalStore(
     (store) => store.homeSearchTriggered
@@ -51,7 +51,7 @@ const HomeNavBar = () => {
     <nav
       className={cn(
         "relative flex h-16 w-full items-center justify-center transition-colors duration-500 pointer-events-none pr-[var(--removed-body-scroll-bar-size)] ",
-        invert || homeSearchTriggered
+        (invert || homeSearchTriggered) && !noinvert
           ? " text-th-textPrimaryInverse sm:bg-transparent "
           : "text-th-textPrimary before:absolute before:h-[200%] before:w-full before:bg-gradient-to-b before:from-th-baseBackground before:via-transparent before:to-transparent  sm:backdrop-blur-none"
       )}
@@ -83,22 +83,8 @@ const HomeNavBar = () => {
         </Link>
 
         <div className="items-center gap-x-6 sm:flex pointer-events-auto  ">
-          {/* <ul
-            className={cn(
-              " hidden sm:flex items-center gap-x-6 text-lg font-semibold",
-              homeSearchTriggered
-                ? "text-th-textPrimaryInverse"
-                : "text-th-textPrimary text-opacity-80"
-            )}
-          >
-            <li>
-              <Link href={"/recent"}>Recents</Link>
-            </li>
-            <li>
-              <Link href={"/about"}>About</Link>
-            </li>
-          </ul> */}
-          <HomeNav invert={invert}/>
+ 
+          <HomeNav invert={invert && !noinvert}/>
 
         </div>
       </div>
