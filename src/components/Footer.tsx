@@ -2,10 +2,6 @@ import Link from "next/link";
 import React from "react";
 
 const links: { href: string; display: string }[] = [
-  {
-    href: "/about",
-    display: "About",
-  },
   { href: "/faqs", display: "FAQs" },
   { href: "/recent", display: "Recents" },
 ];
