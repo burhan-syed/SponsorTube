@@ -48,10 +48,10 @@ const Header = ({
             <Link href={"/"} className="flex h-1/2 items-center gap-x-1">
               <div className="aspect-square h-full">
                 <Image
-                  src={"/SponsorTube.svg"}
+                  src={"/android-chrome-192x192.png"}
                   alt="logo"
-                  width={128}
-                  height={128}
+                  width={192}
+                  height={192}
                   className=""
                   sizes="100vw"
                   style={{
