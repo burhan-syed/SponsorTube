@@ -45,6 +45,7 @@ export const processVideo = async ({
   options?: {
     spawnProcess?: boolean;
     skipAnnotations?: boolean;
+    skipTransaction?: boolean;
   };
 }) => {
   queueId && console.log("processing video with queue", queueId, videoId);
@@ -78,27 +79,34 @@ export const processVideo = async ({
         }),
       });
     }
-    const processQueue = (await ctx.prisma.$transaction(async (tx) => {
-      const prevQueue = await tx.processQueue.findUnique({
-        where: {
-          channelId_videoId_type: {
+    const processQueue = options?.skipTransaction
+      ? await ctx.prisma.processQueue.upsert({
+          where: {
+            channelId_videoId_type: {
+              channelId: (channelId ??
+                preVidInfo?.basic_info?.channel?.id) as string,
+              videoId,
+              type: "video",
+            },
+          },
+          create: {
+            status: "pending",
+            videoId: videoId,
             channelId: (channelId ??
               preVidInfo?.basic_info?.channel?.id) as string,
-            videoId,
+            parentProcessId: queueId,
             type: "video",
+            timeInitialized: new Date(),
           },
-        },
-      });
-      if (
-        prevQueue &&
-        prevQueue.status === "pending" // || prevQueue?.status === "completed")
-      ) {
-        return { status: prevQueue.status };
-      }
-      const processQueue = await tx.processQueue.upsert({
-        where: prevQueue?.id
-          ? { id: prevQueue.id }
-          : {
+          update: {
+            status: "pending",
+            parentProcessId: queueId,
+            timeInitialized: new Date(),
+          },
+        })
+      : ((await ctx.prisma.$transaction(async (tx) => {
+          const prevQueue = await tx.processQueue.findUnique({
+            where: {
               channelId_videoId_type: {
                 channelId: (channelId ??
                   preVidInfo?.basic_info?.channel?.id) as string,
@@ -106,23 +114,41 @@ export const processVideo = async ({
                 type: "video",
               },
             },
-        create: {
-          status: "pending",
-          videoId: videoId,
-          channelId: (channelId ??
-            preVidInfo?.basic_info?.channel?.id) as string,
-          parentProcessId: queueId,
-          type: "video",
-          timeInitialized: new Date(),
-        },
-        update: {
-          status: "pending",
-          parentProcessId: queueId,
-          timeInitialized: new Date(),
-        },
-      });
-      return processQueue;
-    })) as ProcessQueue;
+          });
+          if (
+            prevQueue &&
+            prevQueue.status === "pending" // || prevQueue?.status === "completed")
+          ) {
+            return { status: prevQueue.status };
+          }
+          const processQueue = await tx.processQueue.upsert({
+            where: prevQueue?.id
+              ? { id: prevQueue.id }
+              : {
+                  channelId_videoId_type: {
+                    channelId: (channelId ??
+                      preVidInfo?.basic_info?.channel?.id) as string,
+                    videoId,
+                    type: "video",
+                  },
+                },
+            create: {
+              status: "pending",
+              videoId: videoId,
+              channelId: (channelId ??
+                preVidInfo?.basic_info?.channel?.id) as string,
+              parentProcessId: queueId,
+              type: "video",
+              timeInitialized: new Date(),
+            },
+            update: {
+              status: "pending",
+              parentProcessId: queueId,
+              timeInitialized: new Date(),
+            },
+          });
+          return processQueue;
+        })) as ProcessQueue);
 
     //no id when returned with status as partial or completed
     if (!processQueue?.id) {
@@ -181,7 +207,10 @@ export const processVideo = async ({
       );
 
       let englishCaptionTracks = videoInfo?.captions?.caption_tracks?.filter(
-        (t) => t.language_code === "en" || t.language_code === "en-US" || t.language_code?.includes("en-")
+        (t) =>
+          t.language_code === "en" ||
+          t.language_code === "en-US" ||
+          t.language_code?.includes("en-")
       );
       if (
         (englishCaptionTracks?.length ?? 0 > 0) &&
@@ -835,11 +864,9 @@ export const processChannel = async ({
       )
     );
   } else {
-    //TODO: async promiseall this. current slow loop to avoid prisma transaction errors
-    for (let i = 0; i < filteredVods.length; i++) {
-      const v = filteredVods[i] as Video | VideoWithVideoInfo;
-      try {
-        const result = await processVideo({
+    videoProcesses = await Promise.allSettled(
+      filteredVods.map((v) =>
+        processVideo({
           videoId: v.id,
           channelId: channelId,
           queueId: newQueue.id,
@@ -848,13 +875,31 @@ export const processChannel = async ({
           ctx,
           options: {
             skipAnnotations: true,
+            skipTransaction: true,
           },
-        });
-        videoProcesses.push({ status: "fulfilled", value: result });
-      } catch (err) {
-        videoProcesses.push({ status: "rejected", reason: err });
-      }
-    }
+        })
+      )
+    );
+    //TODO: async promiseall this. current slow loop to avoid prisma transaction errors
+    // for (let i = 0; i < filteredVods.length; i++) {
+    //   const v = filteredVods[i] as Video | VideoWithVideoInfo;
+    //   try {
+    //     const result = await processVideo({
+    //       videoId: v.id,
+    //       channelId: channelId,
+    //       queueId: newQueue.id,
+    //       botId,
+    //       suppliedVideoInfo: (v as VideoWithVideoInfo)?.videoInfo,
+    //       ctx,
+    //       options: {
+    //         skipAnnotations: true,
+    //       },
+    //     });
+    //     videoProcesses.push({ status: "fulfilled", value: result });
+    //   } catch (err) {
+    //     videoProcesses.push({ status: "rejected", reason: err });
+    //   }
+    // }
   }
 
   if (filteredVods.length > 0) {
@@ -1276,15 +1321,15 @@ export const processAllChannels = async ({ ctx }: { ctx: Context }) => {
     const channelsWithSponsors = await ctx.prisma.channels.findMany({
       where: {
         hasSponsors: true,
-        ProcessQueue: {
-          none: {
-            status: "completed",
-            type: "channel_videos",
-            timeInitialized: {
-              gt: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 4),
-            },
-          },
-        }, //exclude completed channel video processes less than 4 day ago
+        // ProcessQueue: {
+        //   none: {
+        //     status: "completed",
+        //     type: "channel_videos",
+        //     timeInitialized: {
+        //       gt: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 4),
+        //     },
+        //   },
+        // }, //exclude completed channel video processes less than 4 day ago
       },
       take: take + 1,
       cursor: cursor ? { id: cursor } : undefined,
