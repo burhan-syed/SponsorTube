@@ -23,7 +23,10 @@ const Home: NextPage = () => {
     <>
       <Head>
         <title>SponsorTube | Indexing Sponsors Across YouTube</title>
-        <meta name="description" content="" />
+        <meta
+          name="description"
+          content="Effortlessly analyze sponsors across YouTube. We automatically scan thousands of videos and channels and gather sponsor brands, products, offers, and more."
+        />
       </Head>
       <div className="fixed top-0 z-50 w-full ">
         <HomeNavBar />
@@ -81,7 +84,7 @@ const Home: NextPage = () => {
                   </Link>
                 </div>
               </ScrollTextHeader>
-             
+
               <div
                 className={cn(
                   "mx-auto w-full px-[5vw] sm:items-center md:px-[calc(5vw)] 2xl:max-w-[192rem]"
@@ -107,10 +110,17 @@ export async function getServerSideProps(
     ctx: { prisma, session: null },
     transformer: SuperJSON, // optional - adds superjson serialization
   });
-  await helpers.video.getRecent.prefetchInfinite({
+  const videos = await helpers.video.getRecent.fetchInfinite({
     limit: RecentVodsLimit,
     withSponsors: true,
   });
+  if (videos.pages?.[0] && (videos.pages?.[0]?.vods?.length ?? 0) > 0) {
+    await Promise.all(
+      videos.pages[0].vods.map((v) =>
+        helpers.video.segments.prefetch({ videoID: v.id })
+      )
+    );
+  }
   context.res.setHeader(
     "Cache-Control",
     "public, s-maxage=3600, stale-while-revalidate=59"
