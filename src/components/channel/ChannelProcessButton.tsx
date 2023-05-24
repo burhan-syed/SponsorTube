@@ -23,7 +23,7 @@ const ChannelProcessButtonChildren = ({
   isLoading: boolean;
 }) => {
   return (
-    <div className="rounded-full bg-th-chipBackground flex w-full items-center justify-center">
+    <div className="flex w-full items-center justify-center rounded-full bg-th-chipBackground">
       <div className="flex flex-none select-none items-center gap-2 px-4 py-2 ">
         <span className="md:hidden">Process Channel Sponsors</span>
         <span className="hidden md:block">Process Sponsors</span>
@@ -121,7 +121,7 @@ const ChannelStatusToolTip = ({
 const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [waitToFinish, setWaitToFinish] = useState(false);
-  const isMobile = useIsMobileWindow(); 
+  const isMobile = useIsMobileWindow();
   const utils = api.useContext();
   const dialogueTrigger = useGlobalStore((store) => store.setDialogueTrigger);
   const { startMonitor, channelStatusQuery } = useMonitorChannel({ channelId });
@@ -237,12 +237,15 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
               <span>Sync Sponsors</span>
             </button>,
           ]}
-          menuHeader={{ title: "Process Channel", description: "description" }}
+          menuHeader={{
+            title: "Process Channel",
+            description:
+              "Automatically identify and update sponsor information in recent videos. Sync sponsors if information is out of date.",
+          }}
           menuOptions={{
             sideOffset: 5,
             side: "bottom",
             align: "end",
-            
           }}
         >
           <ChannelProcessButtonChildren isLoading={isLoading} />

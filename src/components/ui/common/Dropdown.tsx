@@ -63,7 +63,7 @@ const Dropdown = ({
                     </h2>
                   )}
                   {menuHeader.description && (
-                    <p className="text-sm text-th-textSecondary">
+                    <p className="text-sm text-th-textSecondary text-center">
                       {menuHeader.description}
                     </p>
                   )}
