@@ -38,7 +38,8 @@ const ScrollComponent = ({
       let translateBox = translateRef.current?.getBoundingClientRect();
       let yPos = (translateBox?.top ?? 0) + window.scrollY;
       let totalWindowScroll = document.documentElement.scrollHeight;
-      let scrollWindowHeight = window.innerHeight;
+      //use outer height on smaller devices to reduce position jump as dynamic navbars adjust
+      let scrollWindowHeight = window.innerWidth < 767 ? window.outerHeight : window.innerHeight;
       let minoffset = Math.max(
         0,
         (scrollWindowHeight - (totalWindowScroll - yPos - translateHeight)) /
