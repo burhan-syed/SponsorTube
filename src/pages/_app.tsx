@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import RouteChangeLoader from "@/components/ui/loaders/RouteChangeLoader";
 import { Roboto, Roboto_Mono } from "next/font/google";
 import Footer from "@/components/Footer";
+import { Analytics } from "@vercel/analytics/react";
 
 const roboto = Roboto({
   weight: ["100", "300", "400", "500", "700", "900"],
@@ -84,9 +85,15 @@ const MyApp: AppType<{ session: Session | null }> = ({
               <AlertDialogueProvider>
                 <GeneralDialogueProvider>
                   <>
-                    <RouteChangeLoader routeIsLoading={routeIsLoading} />
-                    <Component {...pageProps} />
-                    <Footer />
+                    <div className="m-0 flex min-h-screen flex-col">
+                      <div className="flex-1">
+                        <RouteChangeLoader routeIsLoading={routeIsLoading} />
+                        <Component {...pageProps} />
+                      </div>
+                      <Footer />
+                    </div>
+
+                    <Analytics />
                   </>
                 </GeneralDialogueProvider>
               </AlertDialogueProvider>
