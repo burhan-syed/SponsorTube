@@ -92,8 +92,6 @@ const MyApp: AppType<{ session: Session | null }> = ({
                       </div>
                       <Footer />
                     </div>
-
-                    <Analytics />
                   </>
                 </GeneralDialogueProvider>
               </AlertDialogueProvider>
@@ -102,6 +100,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
           </SessionProvider>
         </CookiesProvider>
       </main>
+      <Analytics />
     </>
   );
 };
