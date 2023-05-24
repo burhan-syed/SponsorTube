@@ -33,7 +33,7 @@ const ChannelSponsorsPills = ({ sponsors }: { sponsors: string[] }) => {
         (listRef.current?.clientHeight ?? 0)
       ) {
         setShowExpand(true);
-      } else {
+      } else if (!showExpand) {
         setShowExpand(false);
       }
     };
