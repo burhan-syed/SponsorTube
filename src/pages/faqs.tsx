@@ -2,6 +2,7 @@ import HomeNavBar from "@/components/home/HomeNavBar";
 import Accordion from "@/components/ui/common/accordion/Accordion";
 import type { AccordionItemType } from "@/components/ui/common/accordion/Accordion";
 import { NextPage } from "next";
+import Head from "next/head";
 import { BsInputCursorText } from "react-icons/bs";
 import { MdEditNote } from "react-icons/md";
 import { cn } from "@/utils/cn";
@@ -335,13 +336,20 @@ const faqTranscriptAnnotations: AccordionItemType[] = [
 const Faqs: NextPage = () => {
   return (
     <>
+      <Head>
+        <title>{"FAQs | SponsorTube"}</title>
+        <meta
+          name="description"
+          content="SponsorTube FAQs"
+        />
+      </Head>
       <div className="fixed top-0 z-50 w-full ">
         <HomeNavBar noinvert={true} />
       </div>
       <section
         className={cn(
           "mx-auto min-h-screen w-full px-[5vw] py-20 2xl:max-w-[192rem]",
-          "prose max-w-full prose-h3:my-1 prose-headings:font-normal prose-p:text-base  prose-p:leading-relaxed prose-p:text-th-textSecondary prose-a:text-th-callToAction prose-a:no-underline prose-p:lg:text-lg"
+          "prose max-w-full prose-headings:font-normal prose-h3:my-1 prose-p:text-base  prose-p:leading-relaxed prose-p:text-th-textSecondary prose-a:text-th-callToAction prose-a:no-underline prose-p:lg:text-lg"
         )}
       >
         <h1 className="text-h1">FAQs</h1>

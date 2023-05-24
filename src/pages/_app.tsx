@@ -49,7 +49,6 @@ const MyApp: AppType<{ session: Session | null }> = ({
   const [routeIsLoading, setRouteIsLoading] = useState(false);
   useEffect(() => {
     Router.events.on("routeChangeStart", (url) => {
-      console.log("loading?", url);
       setRouteIsLoading(true);
     });
     Router.events.on("routeChangeComplete", (url) => {
@@ -74,8 +73,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
       <Head>
         <meta
           name="viewport"
-          content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover, user-scalable=0" //user-scalable="no"
+          content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover, user-scalable=1" //user-scalable="no"
         />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={"h-full w-full"}>
         <CookiesProvider>
@@ -86,7 +86,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
                   <>
                     <RouteChangeLoader routeIsLoading={routeIsLoading} />
                     <Component {...pageProps} />
-                    <Footer/>
+                    <Footer />
                   </>
                 </GeneralDialogueProvider>
               </AlertDialogueProvider>

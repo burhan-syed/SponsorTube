@@ -24,7 +24,6 @@ const Home: NextPage = () => {
       <Head>
         <title>SponsorTube | Indexing Sponsors Across YouTube</title>
         <meta name="description" content="" />
-        <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="fixed top-0 z-50 w-full ">
         <HomeNavBar />

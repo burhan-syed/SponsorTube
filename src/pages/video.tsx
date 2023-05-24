@@ -54,7 +54,6 @@ const Home: NextPage = ({}) => {
             " | Identify YouTube Video Sponsors SponsorTube"}
         </title>
         <meta name="description" content="Identify video sponsor information" />
-        <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
       <section className="min-h-screen">
