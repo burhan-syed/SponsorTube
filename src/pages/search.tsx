@@ -29,25 +29,33 @@ const SearchPage = () => {
           content="search for YouTube sponsor information"
         />
       </Head>
-      <div className="min-h-screen">
-        <Header searchInitialValue={searchQuery} />
-        <section className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-2">
-          {searchResults.isLoading ? (
-            <ListVideoLoader />
-          ) : searchResults?.data ? (
-            <>
-              {searchResults?.data?.channels?.map((channel) => (
-                <ChannelCard key={channel.id} channel={channel} />
-              ))}
-              {searchResults.data.videos?.map((video, i) => (
-                <VideoCard key={video.id} video={video} />
-              ))}
-            </>
-          ) : (
-            "something went wrong"
-          )}
-        </section>
-      </div>
+      <Header searchInitialValue={searchQuery} />
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-2">
+        {!!searchQuery ? (
+          <>
+            {searchResults.isLoading ? (
+              <ListVideoLoader />
+            ) : searchResults?.data ? (
+              <>
+                {searchResults?.data?.channels?.map((channel) => (
+                  <ChannelCard key={channel.id} channel={channel} />
+                ))}
+                {searchResults.data.videos?.map((video, i) => (
+                  <VideoCard key={video.id} video={video} />
+                ))}
+              </>
+            ) : (
+              <p className="my-10 text-center">{"no results found"}</p>
+            )}
+          </>
+        ) : (
+          <p className="my-10 text-center">
+            {"no results found"}
+            <br />
+            {"enter a search query"}
+          </p>
+        )}
+      </section>
     </>
   );
 };

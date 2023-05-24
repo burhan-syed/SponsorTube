@@ -376,7 +376,7 @@ const Faqs: NextPage = () => {
       </div>
       <section
         className={cn(
-          "mx-auto min-h-screen w-full px-[5vw] py-20 2xl:max-w-[192rem]",
+          "mx-auto w-full px-[5vw] py-20 2xl:max-w-[192rem]",
           "prose max-w-full prose-headings:font-normal prose-h3:my-1 prose-p:text-base  prose-p:leading-relaxed prose-p:text-th-textSecondary prose-a:text-th-callToAction prose-a:no-underline hover:prose-a:underline prose-p:lg:text-lg"
         )}
       >
