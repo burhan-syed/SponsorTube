@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from "react";
 import YouTube, { YouTubeProps, YouTubePlayer } from "react-youtube";
-let rendercount = 0;
 const YTEmbedMemo = ({
   videoID,
   height,
@@ -32,8 +31,8 @@ const YTEmbedMemo = ({
       // end: videoSeek?.[2] ?? Infinity
     },
   };
-  rendercount++;
-  console.log("render?", rendercount);
+
+
   useEffect(() => {
     if (videoSeek?.[0] && playerRef.current) {
       playerRef.current?.seekTo(videoSeek?.[1], true);
@@ -42,8 +41,8 @@ const YTEmbedMemo = ({
   return (
     <>
       <YouTube
-        className={"absolute h-full w-full"}
-        iframeClassName={"absolute w-full h-full inset-0"}
+        className={"absolute  h-full w-full"}
+        iframeClassName={"absolute w-full h-full inset-0 aspect-[16/9]"}
         videoId={videoID}
         opts={opts}
         onReady={onPlayerReady}

@@ -6,23 +6,8 @@ const HeroBG = () => {
   const [blurred, setBlurred] = useState(true);
   useEffect(() => {
     let timeout = setTimeout(() => setBlurred(false), 10);
-    const onScroll = () => {
-      if (containerRef.current) {
-        const scrollY = window.scrollY;
-        const innerHeight = window.innerHeight;
-        const innerWidth = window.innerWidth;
-        const mobile = innerWidth < 768;
-        //poor performance
-        // const max = mobile ? 800 : 200;
-        // const min = mobile ? 200 : 100;
-        // const scaled = ((max - min) / (innerHeight)) * scrollY;
-        // containerRef.current.style.height = `${Math.min(min + scaled, max)}vh`;
-      }
-    };
-    window.addEventListener("scroll", onScroll);
     return () => {
       timeout && clearTimeout(timeout);
-      window.removeEventListener("scroll", onScroll);
     };
   }, []);
 

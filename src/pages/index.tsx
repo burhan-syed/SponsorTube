@@ -9,12 +9,12 @@ import HomeNavBar from "@/components/home/HomeNavBar";
 import Hero from "@/components/home/Hero";
 import HeroBG from "@/components/home/HeroBG";
 import HomeSectionsContainer from "@/components/home/HomeSectionsContainer";
-import ScrollComponent from "@/components/ui/ScrollComponent";
 import HomeRecentVods from "@/components/home/HomeRecentVods";
 import { appRouter } from "@/server/api/router";
 import { cn } from "@/utils/cn";
 import { FaChevronRight } from "react-icons/fa";
 import Link from "next/link";
+import ScrollTextHeader from "@/components/ui/animation/ScrollTextHeader";
 
 const RecentVodsLimit = 5;
 
@@ -58,34 +58,34 @@ const Home: NextPage = () => {
               </div>
             </section>
             <section className="relative flex flex-col items-center">
-              <div className="absolute top-0 mx-auto w-full max-w-full overflow-clip md:items-center md:px-[5vw] 2xl:max-w-[192rem] ">
-                <div className="w-full lg:w-3/4  xl:w-2/3">
-                  <ScrollComponent completeAt={0}>
-                    <h2 className="text-h1 inline px-[5vw] font-bold text-th-textPrimary/10 ">
-                      Latest Videos
-                    </h2>
-                  </ScrollComponent>
-                  <div>
-                    <Link
-                      href="/recent"
-                      className={
-                        "text-h2  group absolute right-[10vw] top-0 flex items-center gap-x-2 font-semibold text-th-textPrimary "
-                      }
-                    >
-                      <span className="text-p translate-x-0 transition-transform duration-500 ease-in-out group-hover:-translate-x-2">
-                        View All
-                      </span>
-                      <div className="aspect-square h-full rounded-lg bg-th-textPrimary lg:rounded-2xl">
-                        <FaChevronRight className=" p-1 text-th-textPrimaryInverse lg:p-2" />
-                      </div>
-                    </Link>
-                  </div>
+              <ScrollTextHeader
+                text="Recent Videos"
+                loading={false}
+                completeAt={0}
+                innerContainerSizePercent={1.1}
+                headerClassName="px-[5vw]"
+                className="mx-auto w-full max-w-full overflow-clip md:items-center md:px-[5vw] 2xl:max-w-[192rem]"
+              >
+                <div>
+                  <Link
+                    href="/recent"
+                    className={
+                      "text-h2  group absolute right-[10vw] top-0 flex items-center gap-x-2 font-semibold text-th-textPrimary "
+                    }
+                  >
+                    <span className="text-p translate-x-0 transition-transform duration-500 ease-in-out group-hover:-translate-x-2">
+                      View All
+                    </span>
+                    <div className="aspect-square h-full rounded-lg bg-th-textPrimary lg:rounded-2xl">
+                      <FaChevronRight className=" p-1 text-th-textPrimaryInverse lg:p-2" />
+                    </div>
+                  </Link>
                 </div>
-              </div>
+              </ScrollTextHeader>
+             
               <div
                 className={cn(
-                  "mx-auto w-full px-[5vw] sm:items-center md:px-[calc(5vw)] 2xl:max-w-[192rem]",
-                  "my-[calc(min(12vw,8rem))] sm:my-[7.4vw] md:my-[5.6vw] lg:my-[5.4vw] xl:my-[4.8vw] 2xl:my-[calc(min(4.1vw,8.8rem))]"
+                  "mx-auto w-full px-[5vw] sm:items-center md:px-[calc(5vw)] 2xl:max-w-[192rem]"
                 )}
               >
                 <div className="-mx-1 flex w-full flex-col sm:mx-0 md:px-[5vw]">

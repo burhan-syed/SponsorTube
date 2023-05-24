@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import SlideUpText from "../ui/SlideUpText";
+import SlideUpText from "../ui/animation/SlideUpText";
 import HomeSearch from "../search/HomeSearch";
 const Hero = () => {
   const HeroText = ["Uncover the", "brands behind", "video sponsors."];

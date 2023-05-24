@@ -38,7 +38,7 @@ const HomeNavBar = ({noinvert}: {noinvert?:boolean}) => {
       //     ? windowHeight - 0.1 * windowWidth + convertRemToPixels(6.4)
       //     : 4 * windowWidth - 1.5 * windowWidth - 1 * windowWidth;
     };
-    window.addEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, {passive: true});
     window.addEventListener("resize", onResize);
 
     return () => {
