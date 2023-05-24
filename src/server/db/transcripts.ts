@@ -223,6 +223,17 @@ export const saveAnnotationsAndTranscript = async ({
 
   const isBot = await isUserABot({ ctx });
   if (!isBot) {
+    const set = new Set<string>(input.annotations.map(a => a.text)); 
+    if (set.size > 10) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Too many annotations",
+        cause: new CustomError({
+          expose: true,
+          message: "Too many annotations submitted.",
+        }),
+      });
+    }
     input.annotations.forEach((annotation) => {
       if (checkAnnotationBadWords(annotation.text)) {
         const message = "Invalid annotations. Check for Profanity.";
@@ -234,6 +245,15 @@ export const saveAnnotationsAndTranscript = async ({
           code: "BAD_REQUEST",
           message,
           cause: cError,
+        });
+      } else if (annotation.text.trim().length < 2) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid annotations. Some annotations were too short.",
+          cause: new CustomError({
+            message: "Annotation length must exceed 2 characters.",
+            expose: true,
+          }),
         });
       }
     });
