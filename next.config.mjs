@@ -20,5 +20,14 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+  async redirects() {
+    return [
+      {
+        source: "/watch",
+        destination: "/video",
+        permanent: true,
+      },
+    ];
+  },
 };
 export default config;
