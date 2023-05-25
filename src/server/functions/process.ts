@@ -27,6 +27,8 @@ const OPENAI_RPM: number = parseInt(process?.env?.OPENAI_API_RPM ?? "20");
 const SECRET = process?.env?.MY_SECRET_KEY ?? "";
 const SERVER_URL = process.env.SERVER_URL;
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const processVideo = async ({
   videoId,
   channelId,
@@ -466,7 +468,7 @@ export const processChannelVideoTranscriptAnnotations = async ({
 }: {
   channelId: string;
   parentQueueId?: string;
-  continueQueue?: true;
+  continueQueue?: boolean;
   stopAt?: Date;
   ctx: Context;
   spawnProcess?: boolean;
@@ -563,8 +565,6 @@ export const processChannelVideoTranscriptAnnotations = async ({
   //delay calls
   let earlyReturn = false;
   let slicedTranscripts = transcripts;
-  const sleep = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
 
   if (stopAt) {
     const minutesUntilStop =
@@ -1306,14 +1306,42 @@ export const processAllChannels = async ({ ctx }: { ctx: Context }) => {
   });
   console.log("processing paritalized", partialChannels.length);
   await Promise.allSettled(
-    partialChannels.map((c) =>
-      processChannelVideoTranscriptAnnotations({
-        channelId: c.channelId as unknown as string,
-        parentQueueId: c.id,
-        ctx,
-      })
-    )
+    partialChannels.map(async (c, i) => {
+      await sleep(i * (1000 * (60 / OPENAI_RPM)));
+      const pendingvods = await ctx.prisma.processQueue.findMany({
+        where: { type: "video", status: "partial", channelId: c.channelId },
+      });
+      if (!(pendingvods.length > 0)) {
+        await ctx.prisma.processQueue.update({
+          where: { id: c.id },
+          data: { status: "completed" },
+        });
+      } else {
+        await processChannelVideoTranscriptAnnotations({
+          channelId: c.channelId as unknown as string,
+          parentQueueId: c.id,
+          ctx,
+        });
+      }
+    })
   );
+  // const partialVideos = await ctx.prisma.processQueue.findMany({
+  //   where: { type: "video", status: { in: ["partial"] } },
+  // });
+  // console.log("processing paritalized", partialVideos.length);
+  // await Promise.allSettled(
+  //   partialVideos.map(async (v, i) => {
+  //     await sleep(i * (1000 * (60 / OPENAI_RPM)));
+  //     if (v.videoId) {
+  //       await processVideo({
+  //         videoId: v.videoId,
+  //         channelId: v.channelId ?? undefined,
+  //         ctx,
+  //         options: { spawnProcess: false, skipTransaction: true },
+  //       });
+  //     }
+  //   })
+  // );
   console.log("done with partial");
 
   while (!done) {
@@ -1321,15 +1349,15 @@ export const processAllChannels = async ({ ctx }: { ctx: Context }) => {
     const channelsWithSponsors = await ctx.prisma.channels.findMany({
       where: {
         hasSponsors: true,
-        // ProcessQueue: {
-        //   none: {
-        //     status: "completed",
-        //     type: "channel_videos",
-        //     timeInitialized: {
-        //       gt: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 4),
-        //     },
-        //   },
-        // }, //exclude completed channel video processes less than 4 day ago
+        ProcessQueue: {
+          none: {
+            status: "completed",
+            type: "channel_videos",
+            timeInitialized: {
+              gt: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 4),
+            },
+          },
+        }, //exclude completed channel video processes less than 4 day ago
       },
       take: take + 1,
       cursor: cursor ? { id: cursor } : undefined,
