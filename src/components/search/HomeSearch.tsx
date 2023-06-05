@@ -41,7 +41,6 @@ const HomeSearch = ({
     placeholder: "Lookup any Channel or Video",
   });
 
-
   const setHomeSearchTriggered = useGlobalStore(
     (store) => store.setHomeSearchTriggered
   );
@@ -59,13 +58,10 @@ const HomeSearch = ({
         scrollTimeout = setTimeout(
           () => {
             if (inputRef?.current) {
-              const yOffset =
-               window.outerHeight * 0.08 + window.outerWidth * 0.16;
-              const y =
-                inputRef.current?.getBoundingClientRect().top +
-                window.scrollY -
-                yOffset;
-              window.scrollTo({ top: y, behavior: "smooth" });
+              inputRef.current?.scrollIntoView({
+                block: "start",
+                behavior: "smooth",
+              });
             }
           },
 
