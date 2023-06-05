@@ -110,20 +110,13 @@ export async function getServerSideProps(
     ctx: { prisma, session: null },
     transformer: SuperJSON, // optional - adds superjson serialization
   });
-  const videos = await helpers.video.getRecent.fetchInfinite({
+  await helpers.video.getRecent.prefetch({
     limit: RecentVodsLimit,
     withSponsors: true,
   });
-  if (videos.pages?.[0] && (videos.pages?.[0]?.vods?.length ?? 0) > 0) {
-    await Promise.all(
-      videos.pages[0].vods.map((v) =>
-        helpers.video.segments.prefetch({ videoID: v.id })
-      )
-    );
-  }
   context.res.setHeader(
     "Cache-Control",
-    "public, s-maxage=3600, stale-while-revalidate=59"
+    "public, s-maxage=86400, stale-while-revalidate=59"
   );
   return {
     props: {
