@@ -41,13 +41,13 @@ const HomeSearch = ({
     placeholder: "Lookup any Channel or Video",
   });
 
+
   const setHomeSearchTriggered = useGlobalStore(
     (store) => store.setHomeSearchTriggered
   );
 
-  const isMobile = useIsMobileWindow();
-
   useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
     if (focused) {
       setHomeSearchTriggered(true);
       if (window.innerWidth > 768) {
@@ -55,21 +55,38 @@ const HomeSearch = ({
           block: "center",
           behavior: "smooth",
         });
+      } else {
+        scrollTimeout = setTimeout(
+          () => {
+            if (inputRef?.current) {
+              const yOffset =
+               window.outerHeight * 0.08 + window.outerWidth * 0.16;
+              const y =
+                inputRef.current?.getBoundingClientRect().top +
+                window.scrollY -
+                yOffset;
+              window.scrollTo({ top: y, behavior: "smooth" });
+            }
+          },
+
+          100
+        );
       }
-      //  else {
-      //   window.scrollTo({ top: 0, behavior: "instant" });
-      // }
     } else {
       setHomeSearchTriggered(false);
     }
+    return () => {
+      scrollTimeout && clearTimeout(scrollTimeout);
+    };
   }, [focused]);
 
   return (
-    <RemoveScroll forwardProps enabled={focused && !isMobile}>
+    <RemoveScroll forwardProps enabled={focused}>
       <>
-        {focused && !isMobile && (
+        {focused && (
           <h2
-            className="fixed left-[2.5vw] top-16 z-50 flex w-[95vw] max-w-6xl  items-center text-[16vw] font-semibold  leading-[1] text-th-textPrimaryInverse opacity-95  sm:absolute  sm:left-0 sm:top-auto sm:w-full  sm:-translate-y-full sm:pb-[4vh] sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]"
+            className="absolute left-0 z-50  w-full max-w-6xl -translate-y-full  items-center pb-[2vh] text-[16vw]  font-semibold  leading-[1] text-th-textPrimaryInverse opacity-95  sm:absolute sm:top-auto sm:pb-[4vh] sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]"
+            //left-[2.5vw] top-16 z-50 flex w-[95vw]
             style={{ textShadow: "1px 2px 2px #00000020" }}
           >
             <div className="flex w-full items-center justify-between animate-in fade-in-0 slide-in-from-bottom-12 duration-300 ease-out ">
@@ -92,6 +109,7 @@ const HomeSearch = ({
             </div>
           </h2>
         )}
+
         <form
           ref={formRef}
           onSubmit={onFormSubmit}
@@ -184,7 +202,7 @@ const HomeSearch = ({
           //placeholder
           <div className="inline-flex h-11 max-w-6xl sm:hidden"></div>
         )} */}
-        {(focused || autoFocus) && !isMobile && (
+        {(focused || autoFocus) && (
           //bg blur
           <>
             <div className="fixed inset-0 z-40 h-full w-full animate-[blur_ease-in-out_500ms_forwards] bg-th-invertedBackground/50 opacity-100 fade-in-90"></div>
