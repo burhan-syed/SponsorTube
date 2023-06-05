@@ -48,6 +48,7 @@ export const processVideo = async ({
     spawnProcess?: boolean;
     skipAnnotations?: boolean;
     skipTransaction?: boolean;
+    skipUnsponsored?: boolean;
   };
 }) => {
   queueId && console.log("processing video with queue", queueId, videoId);
@@ -281,7 +282,9 @@ export const processVideo = async ({
         !(segments.length > 0) ||
         !englishCaptionTracks?.[0]?.base_url
       ) {
-        await vodUpsert(videoInfo, segments);
+        if (!options?.skipUnsponsored) {
+          await vodUpsert(videoInfo, segments);
+        }
         await completeQueue(processQueue, "error");
         return;
       }
@@ -1354,10 +1357,10 @@ export const processAllChannels = async ({ ctx }: { ctx: Context }) => {
             status: "completed",
             type: "channel_videos",
             timeInitialized: {
-              gt: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 4),
+              gt: new Date(new Date().getTime() - 1000 * 60 * 60 * 12 * 1),
             },
           },
-        }, //exclude completed channel video processes less than 4 day ago
+        }, //exclude completed channel video processes less than xhrs ago
       },
       take: take + 1,
       cursor: cursor ? { id: cursor } : undefined,
