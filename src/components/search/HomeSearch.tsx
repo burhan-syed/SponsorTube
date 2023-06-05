@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/common/Button";
 import { cn } from "@/utils/cn";
 import useSearch from "@/hooks/useSearch";
 import useGlobalStore from "@/store/useGlobalStore";
+import useIsMobileWindow from "@/hooks/useIsMobileWindow";
 
 const HomeSearch = ({
   initialValue = "",
@@ -38,12 +39,13 @@ const HomeSearch = ({
     setAutoFocus,
     variant: "HOME",
     placeholder: "Lookup any Channel or Video",
-    noScroll: true,
   });
 
   const setHomeSearchTriggered = useGlobalStore(
     (store) => store.setHomeSearchTriggered
   );
+
+  const isMobile = useIsMobileWindow();
 
   useEffect(() => {
     if (focused) {
@@ -53,18 +55,19 @@ const HomeSearch = ({
           block: "center",
           behavior: "smooth",
         });
-      } else {
-        // window.scrollTo({ top: 0, behavior: "smooth" });
       }
+      //  else {
+      //   window.scrollTo({ top: 0, behavior: "instant" });
+      // }
     } else {
       setHomeSearchTriggered(false);
     }
   }, [focused]);
 
   return (
-    <RemoveScroll forwardProps enabled={focused}>
+    <RemoveScroll forwardProps enabled={focused && !isMobile}>
       <>
-        {focused && (
+        {focused && !isMobile && (
           <h2
             className="fixed left-[2.5vw] top-16 z-50 flex w-[95vw] max-w-6xl  items-center text-[16vw] font-semibold  leading-[1] text-th-textPrimaryInverse opacity-95  sm:absolute  sm:left-0 sm:top-auto sm:w-full  sm:-translate-y-full sm:pb-[4vh] sm:text-[10.6vw] md:text-[8vw] lg:text-[7.6vw] xl:text-[6.6vw] 2xl:text-[calc(min(5.5vw,12rem))]"
             style={{ textShadow: "1px 2px 2px #00000020" }}
@@ -95,7 +98,7 @@ const HomeSearch = ({
           className={cn(
             "flex h-11 max-w-6xl flex-grow flex-col text-th-searchText md:h-[calc(mac(4.6vw,4.4rem))] md:px-0  lg:h-[4.6vw]  xl:h-[3.6vw]   2xl:h-[calc(min(3.2vw,6.4rem))]  ",
             focused
-              ? "fixed left-1/2 top-[calc(18vw+6.6rem)] z-50 w-[95vw] -translate-x-1/2 rounded-full sm:relative sm:left-auto sm:top-auto sm:w-auto sm:translate-x-0 sm:shadow-md "
+              ? " z-50 rounded-full sm:relative sm:left-auto sm:top-auto sm:w-auto sm:translate-x-0 sm:shadow-md " // w-[95vw] -translate-x-1/2 fixed left-1/2 top-[calc(18vw+6.6rem)]
               : " "
           )}
           id="HomeSearch"
@@ -107,7 +110,7 @@ const HomeSearch = ({
               className={cn(
                 "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border border-r-0 bg-th-menuBackground sm:shadow-[inset_0_1px_2px_#eeeeee]", //sm:border sm:shadow-[inset_0_1px_2px_#eeeeee]
                 focused
-                  ? " border-th-searchBorder opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none  sm:shadow-[inset_0_1px_2px_#eeeeee] " //sm:border-th-searchBorderFocus
+                  ? " border-th-searchBorder sm:shadow-[inset_0_1px_2px_#eeeeee] " //opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none
                   : "border-th-searchBorder   " //sm:border-r-0 sm:ml-8
               )}
             >
@@ -151,7 +154,7 @@ const HomeSearch = ({
               {results.isLoading &&
                 autoCompleteSearchTerm.length >= 3 &&
                 focused && (
-                  <div className="fixed top-[calc(10%+5rem)] z-50 flex w-[95vw] flex-col items-center overflow-hidden rounded-[2.2rem] bg-th-raisedBackground py-2 shadow-md sm:absolute sm:top-[calc(10%+7rem)] sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:py-2">
+                  <div className="absolute top-[calc(10%+5rem)] z-50 flex w-[calc(100%+4.8rem)] flex-col items-center overflow-hidden rounded-[2.2rem] bg-th-raisedBackground py-2 shadow-md sm:absolute sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:py-2">
                     <div className="flex w-full flex-col">
                       <div className="pointer-events-none z-10 flex items-center gap-4 p-1 px-0 sm:border-none sm:p-2">
                         <div>
@@ -168,20 +171,20 @@ const HomeSearch = ({
               type="submit"
               aria-label="search"
               className={cn(
-                "h-full rounded-r-full border border-th-searchBorder bg-th-searchButton px-2   after:bg-th-additiveBackground/5  hover:bg-th-searchButtonHover sm:px-4  sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus sm:focus:outline-none", //sm:border sm:border-th-searchBorder sm:bg-th-searchButton sm:px-4 sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus
-                focused &&
-                  " opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none"
+                "h-full rounded-r-full border border-th-searchBorder bg-th-searchButton px-2   after:bg-th-additiveBackground/5  hover:bg-th-searchButtonHover sm:px-4  sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus sm:focus:outline-none" //sm:border sm:border-th-searchBorder sm:bg-th-searchButton sm:px-4 sm:hover:shadow-[0_1px_0_rgb(0,0,0,0,0.1)] sm:focus:border-th-searchBorderFocus
+                // focused &&
+                //   " opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none"
               )}
             >
               <TfiSearch className="mx-2 h-4 w-4 flex-none sm:h-5 sm:w-5" />
             </button>
           </div>
         </form>
-        {focused && (
+        {/* {focused && (
           //placeholder
           <div className="inline-flex h-11 max-w-6xl sm:hidden"></div>
-        )}
-        {(focused || autoFocus) && (
+        )} */}
+        {(focused || autoFocus) && !isMobile && (
           //bg blur
           <>
             <div className="fixed inset-0 z-40 h-full w-full animate-[blur_ease-in-out_500ms_forwards] bg-th-invertedBackground/50 opacity-100 fade-in-90"></div>

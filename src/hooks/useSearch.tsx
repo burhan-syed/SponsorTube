@@ -12,14 +12,12 @@ const useSearch = ({
   autoFocus = false,
   setAutoFocus,
   variant,
-  noScroll = false,
 }: {
   initialValue?: string;
   placeholder?: string;
   autoFocus?: boolean;
   setAutoFocus?(b: boolean): void;
   variant: "HOME" | "NAV";
-  noScroll?: boolean;
 }) => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
