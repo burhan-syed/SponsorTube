@@ -110,7 +110,7 @@ export async function getServerSideProps(
     ctx: { prisma, session: null },
     transformer: SuperJSON, // optional - adds superjson serialization
   });
-  await helpers.video.getRecent.prefetch({
+  await helpers.video.getRecent.prefetchInfinite({
     limit: RecentVodsLimit,
     withSponsors: true,
   });
