@@ -122,7 +122,7 @@ const HomeSearch = ({
               // onFocus={() => setFocused(true)}
               // onBlur={() => setFocused(false)}
               className={cn(
-                "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border border-r-0 bg-th-menuBackground sm:shadow-[inset_0_1px_2px_#eeeeee]", //sm:border sm:shadow-[inset_0_1px_2px_#eeeeee]
+                "relative flex h-full w-full items-center justify-between rounded-full rounded-r-none border border-r-0 bg-th-menuBackground  sm:shadow-[inset_0_1px_2px_#eeeeee]", //sm:border sm:shadow-[inset_0_1px_2px_#eeeeee]
                 focused
                   ? " border-th-searchBorder sm:shadow-[inset_0_1px_2px_#eeeeee] " //opacity-100 animate-in fade-in-90 slide-in-from-bottom-12 duration-300 ease-out sm:animate-none
                   : "border-th-searchBorder   " //sm:border-r-0 sm:ml-8
@@ -168,7 +168,7 @@ const HomeSearch = ({
               {results.isLoading &&
                 autoCompleteSearchTerm.length >= 3 &&
                 focused && (
-                  <div className="absolute top-[calc(10%+5rem)] z-50 flex w-[calc(100%+4.8rem)] flex-col items-center overflow-hidden rounded-[2.2rem] bg-th-raisedBackground py-2 shadow-md sm:absolute sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:py-2">
+                  <div className="absolute top-[120%] z-50 flex w-[calc(100%+4.8rem)] flex-col items-center overflow-hidden rounded-[2.2rem] bg-th-raisedBackground py-2 shadow-md sm:absolute sm:h-auto sm:w-full sm:rounded-2xl sm:border sm:py-2">
                     <div className="flex w-full flex-col">
                       <div className="pointer-events-none z-10 flex items-center gap-4 p-1 px-0 sm:border-none sm:p-2">
                         <div>
