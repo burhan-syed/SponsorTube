@@ -102,27 +102,27 @@ const Home: NextPage = () => {
   );
 };
 
-export async function getServerSideProps(
-  context: GetServerSidePropsContext<{}>
-) {
-  const helpers = createServerSideHelpers({
-    router: appRouter,
-    ctx: { prisma, session: null },
-    transformer: SuperJSON, // optional - adds superjson serialization
-  });
-  await helpers.video.getRecent.prefetchInfinite({
-    limit: RecentVodsLimit,
-    withSponsors: true,
-  });
-  context.res.setHeader(
-    "Cache-Control",
-    "public, s-maxage=86400, stale-while-revalidate=59"
-  );
-  return {
-    props: {
-      trpcState: helpers.dehydrate(),
-    },
-  };
-}
+// export async function getServerSideProps(
+//   context: GetServerSidePropsContext<{}>
+// ) {
+//   const helpers = createServerSideHelpers({
+//     router: appRouter,
+//     ctx: { prisma, session: null },
+//     transformer: SuperJSON, // optional - adds superjson serialization
+//   });
+//   await helpers.video.getRecent.prefetchInfinite({
+//     limit: RecentVodsLimit,
+//     withSponsors: true,
+//   });
+//   context.res.setHeader(
+//     "Cache-Control",
+//     "public, s-maxage=86400, stale-while-revalidate=59"
+//   );
+//   return {
+//     props: {
+//       trpcState: helpers.dehydrate(),
+//     },
+//   };
+// }
 
 export default Home;
