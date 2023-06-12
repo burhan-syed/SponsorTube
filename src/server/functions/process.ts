@@ -883,26 +883,6 @@ export const processChannel = async ({
         })
       )
     );
-    //TODO: async promiseall this. current slow loop to avoid prisma transaction errors
-    // for (let i = 0; i < filteredVods.length; i++) {
-    //   const v = filteredVods[i] as Video | VideoWithVideoInfo;
-    //   try {
-    //     const result = await processVideo({
-    //       videoId: v.id,
-    //       channelId: channelId,
-    //       queueId: newQueue.id,
-    //       botId,
-    //       suppliedVideoInfo: (v as VideoWithVideoInfo)?.videoInfo,
-    //       ctx,
-    //       options: {
-    //         skipAnnotations: true,
-    //       },
-    //     });
-    //     videoProcesses.push({ status: "fulfilled", value: result });
-    //   } catch (err) {
-    //     videoProcesses.push({ status: "rejected", reason: err });
-    //   }
-    // }
   }
 
   if (filteredVods.length > 0) {
@@ -1328,23 +1308,23 @@ export const processAllChannels = async ({ ctx }: { ctx: Context }) => {
       }
     })
   );
-  // const partialVideos = await ctx.prisma.processQueue.findMany({
-  //   where: { type: "video", status: { in: ["partial"] } },
-  // });
-  // console.log("processing paritalized", partialVideos.length);
-  // await Promise.allSettled(
-  //   partialVideos.map(async (v, i) => {
-  //     await sleep(i * (1000 * (60 / OPENAI_RPM)));
-  //     if (v.videoId) {
-  //       await processVideo({
-  //         videoId: v.videoId,
-  //         channelId: v.channelId ?? undefined,
-  //         ctx,
-  //         options: { spawnProcess: false, skipTransaction: true },
-  //       });
-  //     }
-  //   })
-  // );
+  const partialVideos = await ctx.prisma.processQueue.findMany({
+    where: { type: "video", status: { in: ["partial"] } },
+  });
+  console.log("processing paritalized", partialVideos.length);
+  await Promise.allSettled(
+    partialVideos.map(async (v, i) => {
+      await sleep(i * (1000 * (60 / OPENAI_RPM)));
+      if (v.videoId) {
+        await processVideo({
+          videoId: v.videoId,
+          channelId: v.channelId ?? undefined,
+          ctx,
+          options: { spawnProcess: false, skipTransaction: true, skipUnsponsored: true },
+        });
+      }
+    })
+  );
   console.log("done with partial");
 
   while (!done) {
@@ -1378,7 +1358,7 @@ export const processAllChannels = async ({ ctx }: { ctx: Context }) => {
       channelsWithSponsors.map((channel) =>
         processChannel({
           channelId: channel.id,
-          limitToPreviousDate: false,
+          limitToPreviousDate: true,
           maxPages: 1,
           maxVideos: 20,
           spawnProcesses: false,
