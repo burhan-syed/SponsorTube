@@ -1,12 +1,7 @@
 import { CustomError } from "../common/errors";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import {
-  OpenAIApi,
-  Configuration,
-  CreateCompletionResponse,
-  CreateChatCompletionResponse,
-} from "openai";
+import OpenAI from "openai";
 import { textFindIndices } from "@/utils";
 import { md5 } from "../functions/hash";
 import { saveAnnotationsAndTranscript } from "./transcripts";
@@ -19,8 +14,8 @@ import type {
 import type { Context } from "@/server/api/trpc";
 import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo.js";
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+const openai = new OpenAI({
+  apiKey: process.env["OPENAI_API_KEY"],
 });
 
 const MAX_RETRY = 10;
@@ -176,13 +171,19 @@ export const getSegmentAnnotationsOpenAICall = async ({
     },
   });
 
+  type OpenAiCallReturnType =
+    | {
+        message: string | undefined;
+        id: string;
+        usage: { prompt_tokens: number; total_tokens: number } | undefined;
+      }
+    | undefined;
+
   try {
     const makeOpenAICall = async (
       bot: Bots,
       retry = 0
-    ): Promise<
-      CreateChatCompletionResponse | CreateCompletionResponse | undefined
-    > => {
+    ): Promise<OpenAiCallReturnType> => {
       const delay = 2 ** retry * 100 + Math.random() * 10;
       if (stopAt && retry && new Date().getTime() + delay >= stopAt.getTime()) {
         throw new TRPCError({
@@ -197,10 +198,9 @@ export const getSegmentAnnotationsOpenAICall = async ({
       }
       retry && (await new Promise((resolve) => setTimeout(resolve, delay)));
       try {
-        const openai = new OpenAIApi(configuration);
         if (bot.model === "gpt-3.5-turbo") {
           const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\n|Sponsor|Product|URL|Promo Code|Offer|`;
-          const response = await openai.createChatCompletion({
+          const response = await openai.chat.completions.create({
             model: bot.model,
             messages: [
               {
@@ -216,10 +216,14 @@ export const getSegmentAnnotationsOpenAICall = async ({
             presence_penalty: bot?.presencePenalty ?? 0,
           });
           //console.log("AI RES?", response.headers);
-          return response.data;
+          return {
+            message: response.choices[0]?.message?.content ?? undefined,
+            id: response.id,
+            usage: response.usage,
+          };
         } else {
           const prompt = `Create a table to identify sponsor information if there is any in the following text:\n"${input.transcript}"\n\n|Sponsor|Product|URL|Promo Code|Offer|\n\n`;
-          const response = await openai.createCompletion({
+          const response = await openai.completions.create({
             model: bot.model, //"text-curie-001",
             prompt: prompt,
             temperature: bot?.temperature ?? 0, //0,
@@ -229,7 +233,11 @@ export const getSegmentAnnotationsOpenAICall = async ({
             presence_penalty: bot?.presencePenalty ?? 0,
             //user
           });
-          return response.data;
+          return {
+            message: response.choices[0]?.text,
+            id: response.id,
+            usage: response.usage,
+          };
         }
       } catch (err) {
         if ((err as any)?.response?.status === 429 && retry <= MAX_RETRY) {
@@ -244,10 +252,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
 
     const timeOutOpenAICall = async (bot: Bots) => {
       const SECTOTIMEOUT = 20;
-      let returnObject:
-        | CreateCompletionResponse
-        | CreateChatCompletionResponse
-        | undefined;
+      let returnObject: OpenAiCallReturnType;
       let timedOut = false;
       await Promise.race([
         (async () => {
@@ -282,7 +287,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
           ? JSON.parse(botQueue.rawResponseData)
           : botQueue.rawResponseData
         : await timeOutOpenAICall(bot)
-    ) as CreateCompletionResponse | CreateChatCompletionResponse | undefined;
+    ) as OpenAiCallReturnType;
 
     //console.log("response?", JSON.stringify(responseData, null, 2));
 
@@ -301,9 +306,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
     }
     const rawResponseData = JSON.stringify(responseData);
 
-    const parseResponseData = (
-      responseData: CreateCompletionResponse | CreateChatCompletionResponse
-    ) => {
+    const parseResponseData = (responseData: OpenAiCallReturnType) => {
       const formatText = (t?: string) => {
         const split = t?.split("\n") ?? [t];
         //console.log("split?", split);
@@ -425,19 +428,7 @@ export const getSegmentAnnotationsOpenAICall = async ({
           });
       };
 
-      if ((responseData as CreateCompletionResponse)?.choices?.[0]?.text) {
-        return formatText(
-          (responseData as CreateCompletionResponse).choices?.[0]?.text
-        );
-      } else if (
-        (responseData as CreateChatCompletionResponse)?.choices?.[0]?.message
-          ?.content
-      ) {
-        return formatText(
-          (responseData as CreateChatCompletionResponse)?.choices?.[0]?.message
-            ?.content
-        );
-      }
+      return formatText(responseData?.message);
     };
 
     const parsed = parseResponseData(responseData);
