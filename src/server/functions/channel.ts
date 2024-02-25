@@ -1,4 +1,4 @@
-import { YTNodes } from "youtubei.js/agnostic";
+import { YTNodes } from "youtubei.js";
 import Channel, {
   ChannelListContinuation,
 } from "youtubei.js/dist/src/parser/youtube/Channel";

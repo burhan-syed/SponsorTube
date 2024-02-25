@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
-import Innertube from "youtubei.js";
+import { Innertube } from "youtubei.js";
 //import { Platform } from "youtubei.js";
 
 const InnerTubeSettings = {

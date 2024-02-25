@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { getSegmentsByID } from "@/apis/sponsorblock";
 import { getVideoInfo } from "@/apis/youtube";
 import { TRPCError } from "@trpc/server";
-import { YTNodes } from "youtubei.js/agnostic";
+import { YTNodes } from "youtubei.js";
 import type VideoInfo from "youtubei.js/dist/src/parser/youtube/VideoInfo";
 import type { Context } from "@/server/api/trpc";
 

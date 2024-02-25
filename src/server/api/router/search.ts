@@ -1,7 +1,7 @@
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { ytAutoComplete, ytSearchQuery } from "../../../apis/youtube";
-import { YTNodes } from "youtubei.js/agnostic";
+import { YTNodes } from "youtubei.js";
 import {
   transformInnerTubeChannelToChannelCard,
   transformInnerTubeVideoToVideoCard,

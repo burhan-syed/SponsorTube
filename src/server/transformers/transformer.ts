@@ -1,4 +1,4 @@
-import { YTNodes } from "youtubei.js/agnostic";
+import { YTNodes } from "youtubei.js";
 import { ChannelCardInfo, VideoCardInfo } from "@/types/schemas";
 
 export const transformInnerTubeVideoToVideoCard = (
