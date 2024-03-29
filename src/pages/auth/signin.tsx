@@ -21,9 +21,9 @@ export default function SignIn({
         <title>{"Sign in | SponsorTube"}</title>
         <meta name="description" content="SponsorTube Sign in" />
       </Head>
-      <div className="flex min-h-screen flex-1 flex-grow flex-col items-stretch">
+      <div className="flex min-h-screen flex-col items-stretch">
         <div className="flex h-full flex-grow">
-          <section className="flex h-full w-full flex-1 flex-col">
+          <section className="flex w-full flex-1 flex-col">
             <div className="flex h-full w-full flex-col items-center justify-center gap-16 p-10  sm:mb-24">
               <div className="flex flex-col items-center">
                 <Link

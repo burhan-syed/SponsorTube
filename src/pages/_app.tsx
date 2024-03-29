@@ -11,6 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import Head from "next/head";
+import { PagesProgressBar as ProgressBar } from "next-nprogress-bar";
 import AlertDialogueProvider from "@/components/ui/dialogue/AlertDialogProvider";
 import GeneralDialogueProvider from "@/components/ui/dialogue/GeneralDialogProvider";
 import { useEffect, useState } from "react";
@@ -86,8 +87,14 @@ const MyApp: AppType<{ session: Session | null }> = ({
                 <GeneralDialogueProvider>
                   <>
                     <div className="m-0 flex min-h-screen flex-col">
-                      <div className="flex-1 flex">
-                        <RouteChangeLoader routeIsLoading={routeIsLoading} />
+                      <div className="flex-1">
+                        {/* <RouteChangeLoader routeIsLoading={routeIsLoading} /> */}
+                        <ProgressBar
+                          height="3px"
+                          color="#F71C0D"
+                          options={{ showSpinner: false }}
+                          shallowRouting
+                        />
                         <Component {...pageProps} />
                       </div>
                       <Footer />
