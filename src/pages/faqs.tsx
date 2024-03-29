@@ -42,7 +42,7 @@ const faqGeneralItems: AccordionItemType[] = [
           </li>
           <li>
             NLP models are used to parse and identify relevant information in
-            video captions. Currently, we primarily prompt OpenAI’s GPT 3.5
+            video captions. Currently, we primarily prompt a fine tuned OpenAI GPT 3.5
             model.
           </li>
           <li>Manual data entry by SponsorTube users and administration.</li>
@@ -50,61 +50,58 @@ const faqGeneralItems: AccordionItemType[] = [
       </>
     ),
   },
-  {
-    value: "why",
-    trigger: "Why was SponsorTube created?",
-    content: (
-      <p>
-        {
-          "SponsorTube was created out of curiosity to easily identify sponsor information across YouTube. It is a hobby project by me 👋🙂."
-        }
-      </p>
-    ),
-  },
-  {
-    value: "contact",
-    trigger: "How can I contact you?",
-    content: (
-      <p>
-        You can contact me on{" "}
-        <a
-          target="_blank"
-          rel="noreferrer"
-          href="https://twitter.com/syedBrhn"
-          className="text-th-callToAction hover:underline"
-        >
-          twitter
-        </a>
-        .
-      </p>
-    ),
-  },
-  {
-    value: "beta",
-    trigger: "Why is SponsorTube in beta?",
-    content: (
-      <p>{`SponsorTube is in testing and incomplete. Currently, SponsorTube approaches the topic of sponsors from the “ground up”. That is, you can search for videos or channels and get sponsor information about a specific video or channel. I aim to provide a “top down” experience as well to search for brands and products and find relevant videos and channels. `}</p>
-    ),
-  },
-  {
-    value: "opensource",
-    trigger: "Is SponsorTube open source?",
-    content: (
-      <p>
-        Not currently but I plan on open sourcing this project in some time. You
-        can find my public repositories{" "}
-        <a
-          rel="noreferrer"
-          target="_blank"
-          href="https://github.com/burhan-syed"
-          className="text-th-callToAction hover:underline"
-        >
-          here
-        </a>
-        .
-      </p>
-    ),
-  },
+  // {
+  //   value: "contact",
+  //   trigger: "How can I contact you?",
+  //   content: (
+  //     <p>
+  //       You can find me on{" "}
+  //       <a
+  //         target="_blank"
+  //         rel="noreferrer"
+  //         href="https://twitter.com/syedBrhn"
+  //         className="text-th-callToAction hover:underline"
+  //       >
+  //         X
+  //       </a>{" "}
+  //       or <a
+  //         target="_blank"
+  //         rel="noreferrer"
+  //         href="https://github.com/burhan-syed"
+  //         className="text-th-callToAction hover:underline"
+  //       >
+  //         GitHub
+  //       </a>
+  //       .
+  //     </p>
+  //   ),
+  // },
+  // {
+  //   value: "beta",
+  //   trigger: "Why is SponsorTube in beta?",
+  //   content: (
+  //     <p>{`SponsorTube is in testing and incomplete. Currently, SponsorTube approaches the topic of sponsors from the “ground up”. That is, you can search for videos or channels and get sponsor information about a specific video or channel. I aim to provide a “top down” experience as well to search for brands and products and find relevant videos and channels. `}</p>
+  //   ),
+  // },
+  // {
+  //   value: "opensource",
+  //   trigger: "Is SponsorTube open source?",
+  //   content: (
+  //     <p>
+  //       Not currently but I plan on open sourcing this project in some time. You
+  //       can find my public repositories{" "}
+  //       <a
+  //         rel="noreferrer"
+  //         target="_blank"
+  //         href="https://github.com/burhan-syed"
+  //         className="text-th-callToAction hover:underline"
+  //       >
+  //         here
+  //       </a>
+  //       .
+  //     </p>
+  //   ),
+  // },
   {
     value: "channel_update",
     trigger: "Why isn't a channel or video updated with data?",

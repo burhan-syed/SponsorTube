@@ -36,6 +36,19 @@ const Footer = () => {
           </span>
         </div>
       </div>
+      <div className="mx-auto flex h-full w-full flex-row flex-wrap items-center md:justify-end px-4 pb-4 font-light text-th-textSecondary md:px-[5vw] 2xl:max-w-[192rem] ">
+        <div>
+          Created by {" "}
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://github.com/burhan-syed"
+            className="hover:text-th-callToAction"
+          >
+            Burhan Syed
+          </a>
+        </div>
+      </div>
     </footer>
   );
 };
