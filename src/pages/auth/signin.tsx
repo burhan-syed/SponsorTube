@@ -11,11 +11,16 @@ import HeroBG from "@/components/home/HeroBG";
 import Link from "next/link";
 import Image from "next/image";
 import ScrollTextHeader from "@/components/ui/animation/ScrollTextHeader";
+import Head from "next/head";
 export default function SignIn({
   providers,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
     <>
+    <Head>
+        <title>{"Sign in | SponsorTube"}</title>
+        <meta name="description" content="SponsorTube Sign in" />
+      </Head>
       <div className="flex min-h-screen flex-1 flex-grow flex-col items-stretch">
         <div className="flex h-full flex-grow">
           <section className="flex h-full w-full flex-1 flex-col">
