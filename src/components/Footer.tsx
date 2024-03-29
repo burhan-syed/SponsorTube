@@ -21,7 +21,7 @@ const Footer = () => {
 
         <div className="inline-flex flex-wrap gap-x-6 font-light text-th-textSecondary ">
           <span className="">
-            {`Copyright 2023. `}
+            {`Copyright ${new Date().getFullYear()}. `}
             <Link href={"/"}>SponsorTube</Link>
             {` ©`}
           </span>
