@@ -46,46 +46,49 @@ const RecentsPage = () => {
           content="Recent YouTube video sponsorships identified by SponsorTube"
         />
       </Head>
-      <Header />
-      <section className="relative my-2 lg:my-4">
-        <ScrollTextHeader
-          text="Recent Videos"
-          completeAt={0.2}
-          loading={recentVods.isLoading}
-          disable={false}
-          className="md:px-[calc(10vw)] 2xl:max-w-[192rem]"
-          headerClassName="px-2 sm:px-0"
-          innerClassName=""
-          innerContainerSizePercent={1.1}
-        />
-        <div className="mx-auto md:px-[10vw] 2xl:max-w-[192rem]">
-          {recentVods.isLoading ? (
-            <GridVideoLoader count={limit} />
-          ) : flatVideos?.length ?? 0 > 0 ? (
-            <>
-              <GridVideoView
-                videos={flatVideos}
-                showLoading={recentVods.isFetchingNextPage ? limit : 0}
-              />
-            </>
-          ) : (
-            "something went wrong"
-          )}
-          <div className="my-2 flex w-full items-center justify-center lg:my-4">
-            <Button
-              disabled={
-                recentVods.isLoading ||
-                recentVods.isFetching ||
-                !recentVods.hasNextPage
-              }
-              loading={recentVods.isLoading || recentVods.isFetching}
-              onClick={() => recentVods.fetchNextPage()}
-            >
-              load more
-            </Button>
+      <div>
+        <Header />
+
+        <section className="relative my-2 lg:my-4">
+          <ScrollTextHeader
+            text="Recent Videos"
+            completeAt={0.2}
+            loading={recentVods.isLoading}
+            disable={false}
+            className="md:px-[calc(10vw)] 2xl:max-w-[192rem]"
+            headerClassName="px-2 sm:px-0"
+            innerClassName=""
+            innerContainerSizePercent={1.1}
+          />
+          <div className="mx-auto md:px-[10vw] 2xl:max-w-[192rem]">
+            {recentVods.isLoading ? (
+              <GridVideoLoader count={limit} />
+            ) : flatVideos?.length ?? 0 > 0 ? (
+              <>
+                <GridVideoView
+                  videos={flatVideos}
+                  showLoading={recentVods.isFetchingNextPage ? limit : 0}
+                />
+              </>
+            ) : (
+              "something went wrong"
+            )}
+            <div className="my-2 flex w-full items-center justify-center lg:my-4">
+              <Button
+                disabled={
+                  recentVods.isLoading ||
+                  recentVods.isFetching ||
+                  !recentVods.hasNextPage
+                }
+                loading={recentVods.isLoading || recentVods.isFetching}
+                onClick={() => recentVods.fetchNextPage()}
+              >
+                load more
+              </Button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </>
   );
 };

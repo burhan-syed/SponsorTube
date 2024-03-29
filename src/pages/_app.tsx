@@ -86,7 +86,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
                 <GeneralDialogueProvider>
                   <>
                     <div className="m-0 flex min-h-screen flex-col">
-                      <div className="flex-1">
+                      <div className="flex-1 flex">
                         <RouteChangeLoader routeIsLoading={routeIsLoading} />
                         <Component {...pageProps} />
                       </div>
