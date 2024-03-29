@@ -124,12 +124,29 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
   const isMobile = useIsMobileWindow();
   const utils = api.useContext();
   const dialogueTrigger = useGlobalStore((store) => store.setDialogueTrigger);
+  const setSessionRequiredTrigger = useGlobalStore(
+    (state) => state.setSessionRequiredTrigger
+  );
   const { startMonitor, channelStatusQuery } = useMonitorChannel({ channelId });
   const processChannel = api.channel.processChannel.useMutation({
     async onSuccess() {
       await utils.channel.getVideosStatus.invalidate({ channelId });
       startMonitor();
       setWaitToFinish(true);
+    },
+    onError(error, variables, context) {
+      if (error.data?.customError) {
+        const cError = new CustomError({ fromstring: error.data.customError });
+        if (cError.message) {
+          dialogueTrigger({
+            title: "error",
+            description: cError.message,
+            close: "ok",
+          });
+        }
+      } else if (error.message === "UNAUTHORIZED") {
+        setSessionRequiredTrigger("Sign in to request bulk channel updates");
+      }
     },
   });
   //keep this loaded for invalidation
@@ -152,6 +169,8 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
             close: "ok",
           });
         }
+      } else if (error.message === "UNAUTHORIZED") {
+        setSessionRequiredTrigger("");
       }
     },
   });
@@ -216,7 +235,7 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
           MenuItems={[
             <button
               disabled={isLoading}
-              className="flex items-center justify-between px-4 md:justify-start md:gap-2 md:px-4"
+              className="flex items-center justify-between px-4 sm:justify-start sm:gap-2 sm:px-4"
               key="button1"
               onClick={() => {
                 processChannel.mutate({ channelID: channelId });
@@ -227,7 +246,7 @@ const ChannelProcessButton = ({ channelId }: { channelId: string }) => {
             </button>,
             <button
               disabled={isLoading}
-              className="flex items-center justify-between px-4 md:justify-start md:gap-2  md:px-4 "
+              className="flex items-center justify-between px-4 sm:justify-start sm:gap-2  sm:px-4 "
               key="button2"
               onClick={() => {
                 updateSponsors.mutate({ channelId: channelId });

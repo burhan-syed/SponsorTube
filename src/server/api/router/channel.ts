@@ -91,12 +91,12 @@ export const channelRouter = createTRPCRouter({
         nextCursor: nextCursor,
       };
     }),
-  processChannel: publicProcedure
+  processChannel: protectedProcedure
     .input(z.object({ channelID: z.string() }))
     .mutation(async ({ input, ctx }) => {
       await processChannel({ channelId: input.channelID, ctx });
     }),
-  updateChannelSponsors: publicProcedure
+  updateChannelSponsors: protectedProcedure
     .input(z.object({ channelId: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const summarizeResult = await summarizeChannelSponsors({
