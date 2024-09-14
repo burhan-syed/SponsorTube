@@ -60,7 +60,7 @@
     "tailwindcss-animate": "^1.0.5",
     "ts-node": "^10.9.1",
     "uuid": "^9.0.0",
-    "youtubei.js": "^9.1.0",
+    "youtubei.js": "^10.4.0",
     "zod": "^3.21.4",
     "zustand": "^4.3.2"
   },

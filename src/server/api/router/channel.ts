@@ -18,6 +18,12 @@ import { summarizeChannelSponsors } from "@/server/db/sponsors";
 import { transformInnerTubeVideoToVideoCard } from "@/server/transformers/transformer";
 import { ChannelHeaderInfo } from "@/types/schemas";
 import { CustomError } from "@/server/common/errors";
+import {
+  DecoratedAvatarView,
+  DescriptionPreviewView,
+  ImageBannerView,
+  PageHeader,
+} from "youtubei.js/dist/src/parser/nodes";
 
 export const channelRouter = createTRPCRouter({
   hello: publicProcedure
@@ -32,7 +38,7 @@ export const channelRouter = createTRPCRouter({
     .query(async ({ input }) => {
       //let hasNext = false;
       const channel = await getChannel({ channelID: input.channelID });
-      //console.log("channel?", channel);
+      // console.log("channel?", channel?.title);
       if (!channel) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -40,49 +46,77 @@ export const channelRouter = createTRPCRouter({
         });
       }
       const videosTab = await channel.getVideos();
-
       const { videos, hasNext, nextCursor } = await getVideosContinuation({
         videosTab,
         cursor: input.cursor,
       });
-
+      // console.log("videos?", videos.length, hasNext, nextCursor);
       const transformedVideos = videos.map((v) =>
         transformInnerTubeVideoToVideoCard(v)
       );
-      const c4Header = channel.header as C4TabbedHeader;
-      const transformedHeader: ChannelHeaderInfo = {
-        id: c4Header.author.id,
-        name: c4Header.author.name,
-        isVerified: c4Header.author.is_verified ?? undefined,
-        thumbnail: c4Header.author.thumbnails?.[0]?.url
-          ? {
-              url: c4Header.author.thumbnails?.[0]?.url,
-              height: c4Header.author.thumbnails[0]?.height,
-              width: c4Header.author.thumbnails[0]?.width,
-            }
-          : undefined,
-        shortDescription: channel.metadata.description,
-        subscriberCountText: c4Header?.subscribers?.text,
-        videoCountText: c4Header?.videos_count?.text,
-        handle: c4Header.channel_handle?.text,
-        banner: c4Header.banner?.[0]?.url
-          ? {
-              url: c4Header.banner[0].url,
-              height: c4Header.banner[0]?.height,
-              width: c4Header.banner[0]?.width,
-            }
-          : undefined,
-      };
-      // const fv = videos?.[0];
-      // const lv = videos?.[videos?.length - 1];
-      // console.log({
-      //   fvpub: fv?.published.text,
-      //   fvtitle: fv?.title.text,
-      //   lvpub: lv?.published.text,
-      //   lvtitle: lv?.title.text,
-      //   cursor: input.cursor,
-      //   nextCursor,
-      // });
+      // console.log("transformedVideos", transformedVideos.length);
+      const header = channel.header;
+      // console.log("header?", channel.metadata);
+      let transformedHeader: ChannelHeaderInfo;
+      // if (channel.metadata && channel.metadata.title) {
+      //   transformedHeader = {
+      //     id: input.channelID,
+      //     name: channel.metadata.title,
+      //     thumbnail: channel.metadata.thumbnail?.[0],
+      //     shortDescription: channel.metadata?.description,
+      //   };
+      // }
+      if (header?.type === "C4TabbedHeader") {
+        const c4Header = header as C4TabbedHeader;
+        transformedHeader = {
+          id: c4Header.author.id,
+          name: c4Header.author.name,
+          isVerified: c4Header.author.is_verified ?? undefined,
+          thumbnail: c4Header.author.thumbnails?.[0]?.url
+            ? {
+                url: c4Header.author.thumbnails?.[0]?.url,
+                height: c4Header.author.thumbnails[0]?.height,
+                width: c4Header.author.thumbnails[0]?.width,
+              }
+            : undefined,
+          shortDescription: channel.metadata.description,
+          subscriberCountText: c4Header?.subscribers?.text,
+          videoCountText: c4Header?.videos_count?.text,
+          handle: c4Header.channel_handle?.text,
+          banner: c4Header.banner?.[0]?.url
+            ? {
+                url: c4Header.banner[0].url,
+                height: c4Header.banner[0]?.height,
+                width: c4Header.banner[0]?.width,
+              }
+            : undefined,
+        };
+      } else if (header?.type === "PageHeader") {
+        const pageHeader = header as PageHeader;
+        const avatar = (pageHeader.content?.image as DecoratedAvatarView)
+          ?.avatar?.image?.[0];
+        const metadata = pageHeader.content?.metadata?.metadata_rows;
+        transformedHeader = {
+          id: input.channelID,
+          name: pageHeader.page_title,
+          isVerified: undefined,
+          thumbnail: avatar
+            ? { url: avatar.url, height: avatar.height, width: avatar.width }
+            : undefined,
+          shortDescription: (
+            pageHeader.content?.description as DescriptionPreviewView
+          )?.description?.text,
+          subscriberCountText: metadata?.[1]?.metadata_parts?.[0]?.text?.text,
+          videoCountText: metadata?.[2]?.metadata_parts?.[0]?.text?.text,
+          handle: metadata?.[0]?.metadata_parts?.[0]?.text?.text,
+          banner: (pageHeader.content?.banner as ImageBannerView)?.image?.[0],
+        };
+      } else {
+        transformedHeader = {
+          id: input.channelID,
+          name: channel.metadata.title ?? "",
+        };
+      }
 
       return {
         channelInfo: transformedHeader,

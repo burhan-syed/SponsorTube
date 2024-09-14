@@ -2600,10 +2600,10 @@ isexe@^2.0.0:
   resolved "https://registry.yarnpkg.com/isexe/-/isexe-2.0.0.tgz#e8fbf374dc556ff8947a10dcb0572d633f2cfa10"
   integrity sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==
 
-jintr@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/jintr/-/jintr-1.1.0.tgz#223a3b07f5e03d410cec6e715c537c8ad1e714c3"
-  integrity sha512-Tu9wk3BpN2v+kb8yT6YBtue+/nbjeLFv4vvVC4PJ7oCidHKbifWhvORrAbQfxVIQZG+67am/mDagpiGSVtvrZg==
+jintr@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/jintr/-/jintr-2.1.1.tgz#84d555df06d26128c2a1d0e1eebd6fecdf8eb280"
+  integrity sha512-89cwX4ouogeDGOBsEVsVYsnWWvWjchmwXBB4kiBhmjOKw19FiOKhNhMhpxhTlK2ctl7DS+d/ethfmuBpzoNNgA==
   dependencies:
     acorn "^8.8.0"
 
@@ -4065,12 +4065,12 @@ youtube-player@5.5.2:
     load-script "^1.0.0"
     sister "^3.0.0"
 
-youtubei.js@^9.1.0:
-  version "9.1.0"
-  resolved "https://registry.yarnpkg.com/youtubei.js/-/youtubei.js-9.1.0.tgz#bcf154c9fa21d3c8c1d00a5e10360d0a065c660e"
-  integrity sha512-C5GBJ4LgnS6vGAUkdIdQNOFFb5EZ1p3xBvUELNXmIG3Idr6vxWrKNBNy8ClZT3SuDVXaAJqDgF9b5jvY8lNKcg==
+youtubei.js@^10.4.0:
+  version "10.4.0"
+  resolved "https://registry.yarnpkg.com/youtubei.js/-/youtubei.js-10.4.0.tgz#5c13ecdab7241960cb63533cb2bac274ddc3105a"
+  integrity sha512-FZahkkg5ROyH/FgJ4czy/xDNkqHbJTCUQzumQlnR+2Q7m6HaWghAFWWJUTcexemGuu7t/5EuyQz98eBgKQRMog==
   dependencies:
-    jintr "^1.1.0"
+    jintr "^2.1.1"
     tslib "^2.5.0"
     undici "^5.19.1"
 

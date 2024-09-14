@@ -43,3 +43,4 @@ yarn-error.log*
 #other
 *.csv
 src/server/functions/segments.ts
+/sampledata

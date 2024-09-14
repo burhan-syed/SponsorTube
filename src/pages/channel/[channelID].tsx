@@ -88,14 +88,15 @@ const ChannelPage: NextPage = () => {
           <div className="py-1 md:py-3"></div>
           {channel.isLoading ? (
             <GridVideoLoader />
+          ) : flatVideos && flatVideos.length > 0 ? (
+            <GridVideoView
+              videos={flatVideos}
+              showLoading={channel.isFetchingNextPage ? 30 : 0}
+            />
+          ) : channel.error ? (
+            <div className="w-full text-center font-mono">error loading channel</div>
           ) : (
-            flatVideos &&
-            flatVideos.length > 0 && (
-              <GridVideoView
-                videos={flatVideos}
-                showLoading={channel.isFetchingNextPage ? 30 : 0}
-              />
-            )
+            <></>
           )}
           {channel.hasNextPage && (
             <div className="w-full items-center justify-center p-4 text-center">
